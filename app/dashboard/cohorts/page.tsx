@@ -5,14 +5,17 @@ import { api, Cohort } from '@/lib/api';
 import { TopHeader } from '@/components/top-header';
 import { StatCard } from '@/components/stat-card';
 import { useAuth } from '@/lib/auth-context';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, Calendar, TrendingUp, Clock } from 'lucide-react';
+import { Users, Calendar, TrendingUp, Clock, Sparkles, BookOpen, ChevronRight, LayoutGrid } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 export default function CohortsPage() {
   const { user, refreshUser } = useAuth();
+  const router = useRouter();
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -32,30 +35,49 @@ export default function CohortsPage() {
     loadCohorts();
   }, []);
 
-  const getStatusColor = (status: string) => {
+  const getStatusConfig = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-700 border-green-200';
+        return {
+          label: 'Ongoing Session',
+          class: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+          dot: 'bg-emerald-500'
+        };
       case 'upcoming':
-        return 'bg-blue-100 text-blue-700 border-blue-200';
+        return {
+          label: 'Registration Open',
+          class: 'bg-indigo-50 text-indigo-700 border-indigo-100',
+          dot: 'bg-indigo-500'
+        };
       case 'completed':
-        return 'bg-gray-100 text-gray-700 border-gray-200';
-      case 'archived':
-        return 'bg-gray-100 text-gray-700 border-gray-200';
+        return {
+          label: 'Concluded',
+          class: 'bg-slate-100 text-slate-600 border-slate-200',
+          dot: 'bg-slate-400'
+        };
       default:
-        return 'bg-gray-100 text-gray-700';
+        return {
+          label: status,
+          class: 'bg-slate-100 text-slate-600 border-slate-200',
+          dot: 'bg-slate-400'
+        };
     }
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-neutral-50/50">
         <TopHeader user={user ? { name: `${user.firstName} ${user.lastName}`, email: user.email } : undefined} />
-        <div className="p-6 space-y-6">
-          <div className="h-10 bg-muted animate-pulse rounded" />
-          <div className="grid gap-6">
+        <div className="max-w-7xl mx-auto p-8 space-y-8">
+          <div className="h-48 bg-slate-200 animate-pulse rounded-[32px] w-full" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-48 bg-muted animate-pulse rounded-xl" />
+              <div key={i} className="h-32 bg-slate-100 animate-pulse rounded-2xl" />
+            ))}
+          </div>
+          <div className="space-y-4 pt-4">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="h-64 bg-white animate-pulse rounded-[32px] border border-slate-100" />
             ))}
           </div>
         </div>
@@ -63,154 +85,203 @@ export default function CohortsPage() {
     );
   }
 
-  const activeCohorts = cohorts.filter(c => c.status === 'active').length;
-  const totalLearners = cohorts.reduce((sum, c) => sum + c.learnerIds.length, 0);
+  const activeCohortsCount = cohorts.filter(c => c.status === 'active').length;
+  const totalLearnersCount = cohorts.reduce((sum, c) => sum + (c.learnerIds?.length || 0), 0);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-neutral-50/50 pb-20">
       <TopHeader user={user ? { name: `${user.firstName} ${user.lastName}`, email: user.email } : undefined} />
 
-      <div className="p-6 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">My Cohorts</h1>
-          <p className="text-muted-foreground mt-2">
-            {cohorts.length} cohorts • {activeCohorts} active
-          </p>
-        </div>
+      <div className="max-w-7xl mx-auto p-8 space-y-10">
+        {/* Hero Section */}
+        {/* <div className="relative overflow-hidden rounded-[32px] bg-slate-900 p-10 md:p-14 text-white shadow-2xl shadow-slate-200">
+          <div className="relative z-10 max-w-3xl space-y-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs font-bold uppercase tracking-wider text-indigo-300">
+              <LayoutGrid className="w-3.5 h-3.5" /> Academic Directory
+            </div>
+            <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">Explore Cohorts</h1>
+            <p className="text-lg text-slate-400 leading-relaxed font-medium">
+              Navigate through our standard academic groups. Join an active or upcoming cohort to begin your structured curriculum and connect with peers.
+            </p>
+            <div className="flex items-center gap-6 pt-2 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-slate-300 font-semibold">{activeCohortsCount} Active Sessions</span>
+              </div>
+              <div className="w-1 h-1 rounded-full bg-slate-700" />
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-indigo-400" />
+                <span className="text-slate-300 font-semibold">{totalLearnersCount} Enrolled Globally</span>
+              </div>
+            </div>
+          </div>
+         
+          <div className="absolute right-[-5%] top-[-10%] w-[30%] h-[60%] rounded-full bg-indigo-500/10 blur-[100px]" />
+          <div className="absolute bottom-[-20%] left-[10%] w-[20%] h-[40%] rounded-full bg-blue-500/10 blur-[80px]" />
+        </div> */}
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatCard
-            icon={Users}
-            label="Total Cohorts"
+            icon={LayoutGrid}
+            label="Total Available"
             value={cohorts.length}
-            iconColor="text-blue-600"
-            iconBgColor="bg-blue-100"
+            iconColor="text-indigo-600"
+            iconBgColor="bg-indigo-50"
           />
           <StatCard
             icon={TrendingUp}
-            label="Active Cohorts"
-            value={activeCohorts}
-            iconColor="text-green-600"
-            iconBgColor="bg-green-100"
+            label="Active Now"
+            value={activeCohortsCount}
+            iconColor="text-emerald-600"
+            iconBgColor="bg-emerald-50"
           />
           <StatCard
             icon={Users}
-            label="Total Learners"
-            value={totalLearners}
-            iconColor="text-purple-600"
-            iconBgColor="bg-purple-100"
+            label="Knowledge Network"
+            value={totalLearnersCount}
+            iconColor="text-blue-600"
+            iconBgColor="bg-blue-50"
           />
         </div>
 
-        {/* Cohorts Grid */}
-        <div className="grid gap-6">
-          {cohorts.map((cohort) => (
-            <Card key={cohort._id} className="border-border hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-semibold text-foreground">{cohort.name}</h3>
-                      <Badge className={`${getStatusColor(cohort.status)} border`}>
-                        {cohort.status.charAt(0).toUpperCase() + cohort.status.slice(1)}
-                      </Badge>
-                    </div>
-                    <p className="text-muted-foreground">{cohort.description}</p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Cohort Info Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-lg">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                      <Users className="w-3 h-3" /> Learners
-                    </p>
-                    <p className="text-lg font-semibold">{cohort.learnerIds.length}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                      <Calendar className="w-3 h-3" /> Duration
-                    </p>
-                    <p className="text-sm font-semibold">
-                      {new Date(cohort.startDate).toLocaleDateString()} -{' '}
-                      {new Date(cohort.endDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                      <TrendingUp className="w-3 h-3" /> Performance Target
-                    </p>
-                    <p className="text-lg font-semibold">{cohort.performanceThreshold}%</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> Weekly Target
-                    </p>
-                    <p className="text-lg font-semibold">{cohort.weeklyTarget}h</p>
-                  </div>
-                </div>
+        {/* Cohorts List */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-3">
+            
+              All Cohorts
+            </h2>
+          </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-2 pt-4">
-                  {user?.role === 'learner' ? (
-                    (user.activeCohortId ? user.activeCohortId === cohort._id : cohort.learnerIds.includes(user.id)) ? (
-                      <Button disabled className="w-full bg-green-600 text-white opacity-90">
-                        Current Cohort
-                      </Button>
-                    ) : (
-                      <Button 
-                        onClick={async () => {
-                          if (confirm('Joining this cohort will reset your progress in other cohorts. Continue?')) {
-                             try {
-                                await api.joinCohort(cohort._id);
-                                toast.success('Joined cohort successfully');
-                                // Refresh cohorts
-                                const updatedCohorts = await api.getCohorts();
-                                setCohorts(updatedCohorts);
-                                // Refresh user to update activeCohortId
-                                await refreshUser();
-                             } catch (error) {
-                                console.error(error);
-                                toast.error('Failed to join cohort');
-                             }
-                          }
-                        }} 
-                        className="w-full"
-                        disabled={cohort.status !== 'upcoming' && cohort.status !== 'active'}
-                      >
-                        Join Cohort
-                      </Button>
-                    )
-                  ) : (
-                    <>
-                      <Button className="flex-1 bg-primary hover:bg-primary/90">
-                        View Learners
-                      </Button>
-                      <Button variant="outline" className="flex-1">
-                        View Progress
-                      </Button>
-                      <Button variant="ghost" className="flex-1">
-                        Settings
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          <div className="grid gap-8">
+            {cohorts.map((cohort) => {
+              const status = getStatusConfig(cohort.status);
+              const isEnrolled = user?.role === 'learner' && (user.activeCohortId === cohort._id || cohort.learnerIds?.includes(user.id));
+
+              return (
+                <Card key={cohort._id} className="group border-slate-100 bg-white shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 rounded-[32px] overflow-hidden">
+                  <div className="flex flex-col md:flex-row h-full">
+                    {/* Visual Side */}
+                    <div className={cn(
+                      "w-full md:w-2 px-1 transition-all duration-500 group-hover:w-3",
+                      cohort.status === 'active' ? 'bg-emerald-500' : 'bg-indigo-500'
+                    )} />
+
+                    <div className="flex-1 p-8 md:p-10 flex flex-col md:flex-row gap-10">
+                      <div className="flex-1 space-y-6">
+                        <div className="flex flex-wrap items-center gap-4">
+                          <Badge className={cn("rounded-full px-4 py-1 text-[10px] font-bold uppercase tracking-widest border shadow-sm", status.class)}>
+                            <div className={cn("w-1.5 h-1.5 rounded-full mr-2 inline-block", status.dot)} />
+                            {status.label}
+                          </Badge>
+                          {isEnrolled && (
+                            <Badge className="rounded-full px-4 py-1 text-[10px] font-bold uppercase tracking-widest bg-slate-900 text-white border-slate-900 shadow-sm">
+                              Your Workspace
+                            </Badge>
+                          )}
+                        </div>
+
+                        <div>
+                          <h3 className="text-3xl font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors leading-tight">{cohort.name}</h3>
+                          <p className="text-slate-500 mt-3 text-lg font-medium leading-relaxed italic line-clamp-2 max-w-3xl">
+                            "{cohort.description}"
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                              <Users className="w-3 h-3" /> Learners
+                            </p>
+                            <p className="text-xl font-semibold text-slate-800">{cohort.learnerIds?.length || 0}</p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                              <Calendar className="w-3 h-3" /> Start Date
+                            </p>
+                            <p className="text-sm font-semibold text-slate-700">{new Date(cohort.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                              <TrendingUp className="w-3 h-3" /> Threshold
+                            </p>
+                            <p className="text-xl font-semibold text-slate-800">{cohort.performanceThreshold}%</p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                              <Clock className="w-3 h-3" /> Engagement
+                            </p>
+                            <p className="text-xl font-semibold text-slate-800">{cohort.weeklyTarget}h/wk</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="md:w-64 flex items-center">
+                        {user?.role === 'learner' ? (
+                          isEnrolled ? (
+                            <Button disabled className="w-full h-14 rounded-2xl bg-emerald-50 text-emerald-600 font-bold border border-emerald-100 opacity-100 flex items-center gap-2">
+                              <Sparkles className="w-5 h-5" />
+                              Active Access
+                            </Button>
+                          ) : (
+                            <Button
+                              onClick={async () => {
+                                if (confirm('Switching cohorts will re-initialize your course progress tracking. Proceed to join?')) {
+                                  try {
+                                    await api.joinCohort(cohort._id);
+                                    toast.success('Successfully provisioned into ' + cohort.name);
+                                    const updatedCohorts = await api.getCohorts();
+                                    setCohorts(updatedCohorts);
+                                    await refreshUser();
+                                  } catch (error) {
+                                    console.error(error);
+                                    toast.error('Provisioning failed');
+                                  }
+                                }
+                              }}
+                              className={cn(
+                                "w-full h-14 rounded-2xl font-bold shadow-lg shadow-indigo-100 group/btn transition-all active:scale-95",
+                                cohort.status === 'active' || cohort.status === 'upcoming'
+                                  ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                  : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                              )}
+                              disabled={cohort.status !== 'upcoming' && cohort.status !== 'active'}
+                            >
+                              {cohort.status === 'active' || cohort.status === 'upcoming' ? (
+                                <div className="flex items-center gap-2">
+                                  Initialize Join
+                                  <ChevronRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
+                                </div>
+                              ) : 'Enrollment Closed'}
+                            </Button>
+                          )
+                        ) : (
+                          <div className="space-y-3 w-full">
+                            <Button className="w-full h-12 rounded-xl bg-slate-900 border-none font-bold">Manage Learners</Button>
+                            <Button variant="outline" className="w-full h-12 rounded-xl border-slate-200 font-bold hover:bg-slate-50">Performance Logic</Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
         </div>
 
         {/* Empty State */}
         {cohorts.length === 0 && (
-          <Card className="border-border">
-            <CardContent className="pt-6 text-center space-y-3">
-              <Users className="w-12 h-12 text-muted-foreground mx-auto opacity-50" />
-              <p className="text-muted-foreground">No cohorts assigned yet</p>
-              <p className="text-xs text-muted-foreground">Contact admin to be assigned to a cohort</p>
-            </CardContent>
-          </Card>
+          <div className="py-20 bg-white rounded-[32px] border border-dashed border-slate-200 text-center space-y-4 shadow-sm">
+            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
+              <LayoutGrid className="w-10 h-10 text-slate-300" />
+            </div>
+            <div className="max-w-xs mx-auto space-y-2">
+              <h3 className="text-xl font-semibold text-slate-900">Academic Grid Empty</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">No cohorts have been published to the directory yet. Please synchronize with administrators.</p>
+            </div>
+          </div>
         )}
       </div>
     </div>

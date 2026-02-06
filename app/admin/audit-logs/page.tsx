@@ -83,7 +83,7 @@ export default function AuditLogsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Audit Logs</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground">Audit Logs</h1>
         <p className="text-muted-foreground mt-2">System activity and administrative actions</p>
       </div>
 

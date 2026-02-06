@@ -39,8 +39,8 @@ export default function ProgressPage() {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white/80 backdrop-blur-md border border-slate-200 p-3 rounded-2xl shadow-xl">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">{label}</p>
-          <p className="text-sm font-bold text-indigo-600">{payload[0].value}% Score</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1">{label}</p>
+          <p className="text-sm font-semibold text-indigo-600">{payload[0].value}% Score</p>
         </div>
       );
     }
@@ -120,29 +120,29 @@ export default function ProgressPage() {
 
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div className="space-y-4">
-              <Badge className="bg-white/10 text-white border-white/20 px-3 py-1 backdrop-blur-md rounded-full text-[10px] font-bold tracking-widest uppercase">
+              <Badge className="bg-white/10 text-white border-white/20 px-3 py-1 backdrop-blur-md rounded-full text-[10px] font-semibold tracking-widest uppercase">
                 Active Learner
               </Badge>
               <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
                 Powering Through <br />Your Journey.
               </h1>
               <p className="text-slate-300 max-w-lg text-lg leading-relaxed">
-                You've reached <span className="text-white font-bold">82% of your target</span> this month. Keep up the momentum to reach your goals.
+                You've reached <span className="text-white font-semibold">82% of your target</span> this month. Keep up the momentum to reach your goals.
               </p>
             </div>
 
             <div className="flex gap-4">
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-[32px] w-40 text-center space-y-2">
-                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Global Rank</p>
+                <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-widest">Global Rank</p>
                 <p className="text-4xl font-black">#12</p>
-                <div className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-bold leading-none">
+                <div className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-semibold leading-none">
                   <TrendingUp className="w-3 h-3" /> +3
                 </div>
               </div>
               <div className="bg-indigo-600 p-6 rounded-[32px] w-40 text-center space-y-2 shadow-xl shadow-indigo-900/40">
-                <p className="text-indigo-200 text-[10px] font-bold uppercase tracking-widest">Total XP</p>
+                <p className="text-indigo-200 text-[10px] font-semibold uppercase tracking-widest">Total XP</p>
                 <p className="text-4xl font-black">4.8k</p>
-                <p className="text-[10px] text-indigo-400 font-bold leading-none">Next level at 5k</p>
+                <p className="text-[10px] text-indigo-400 font-semibold leading-none">Next level at 5k</p>
               </div>
             </div>
           </div>
@@ -190,10 +190,10 @@ export default function ProgressPage() {
               <CardHeader className="p-8 pb-0">
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-2xl font-bold">Performance Analytics</CardTitle>
+                    <CardTitle className="text-2xl font-semibold">Performance Analytics</CardTitle>
                     <CardDescription className="text-slate-500 mt-1">Consistency tracking across last 8 weeks</CardDescription>
                   </div>
-                  <select className="bg-slate-50 border-none rounded-xl text-xs font-bold p-2 outline-none cursor-pointer">
+                  <select className="bg-slate-50 border-none rounded-xl text-xs font-semibold p-2 outline-none cursor-pointer">
                     <option>Last 8 Weeks</option>
                     <option>This Semester</option>
                   </select>
@@ -246,18 +246,18 @@ export default function ProgressPage() {
                   <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
                     <Target className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-lg">Goal Progression</h3>
+                  <h3 className="font-semibold text-lg">Goal Progression</h3>
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <div className="flex justify-between text-xs font-bold mb-2">
+                    <div className="flex justify-between text-xs font-semibold mb-2">
                       <span className="text-slate-400">COURSE COMPLETION</span>
                       <span className="text-indigo-600">75%</span>
                     </div>
                     <Progress value={75} className="h-2 bg-slate-50" />
                   </div>
                   <div>
-                    <div className="flex justify-between text-xs font-bold mb-2">
+                    <div className="flex justify-between text-xs font-semibold mb-2">
                       <span className="text-slate-400">ASSIGNMENT ACCURACY</span>
                       <span className="text-violet-600">92%</span>
                     </div>
@@ -271,13 +271,13 @@ export default function ProgressPage() {
                   <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
                     <Award className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-lg">Milestones</h3>
+                  <h3 className="font-semibold text-lg">Milestones</h3>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Badge className="bg-indigo-50 text-indigo-600 border-indigo-100 py-1.5 px-3 rounded-xl text-[10px] font-bold">Fast Learner</Badge>
-                  <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 py-1.5 px-3 rounded-xl text-[10px] font-bold">Code Master</Badge>
-                  <Badge className="bg-violet-50 text-violet-600 border-violet-100 py-1.5 px-3 rounded-xl text-[10px] font-bold">Helper</Badge>
-                  <Badge className="bg-rose-50 text-rose-600 border-rose-100 py-1.5 px-3 rounded-xl text-[10px] font-bold">Night Owl</Badge>
+                  <Badge className="bg-indigo-50 text-indigo-600 border-indigo-100 py-1.5 px-3 rounded-xl text-[10px] font-semibold">Fast Learner</Badge>
+                  <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 py-1.5 px-3 rounded-xl text-[10px] font-semibold">Code Master</Badge>
+                  <Badge className="bg-violet-50 text-violet-600 border-violet-100 py-1.5 px-3 rounded-xl text-[10px] font-semibold">Helper</Badge>
+                  <Badge className="bg-rose-50 text-rose-600 border-rose-100 py-1.5 px-3 rounded-xl text-[10px] font-semibold">Night Owl</Badge>
                 </div>
                 <p className="text-[11px] text-slate-400 font-medium">Unlocked 12/24 total platform badges</p>
               </Card>
@@ -289,8 +289,8 @@ export default function ProgressPage() {
             <Card className="rounded-[32px] border-slate-100 shadow-sm bg-white overflow-hidden h-full flex flex-col">
               <CardHeader className="p-8 pb-4">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl font-bold">Evaluations</CardTitle>
-                  <button className="text-xs font-bold text-indigo-600 hover:text-indigo-700">View All</button>
+                  <CardTitle className="text-xl font-semibold">Evaluations</CardTitle>
+                  <button className="text-xs font-semibold text-indigo-600 hover:text-indigo-700">View All</button>
                 </div>
               </CardHeader>
               <CardContent className="p-4 pt-0 flex-1">
@@ -309,23 +309,23 @@ export default function ProgressPage() {
                         )}>
                           {assessment.type}
                         </Badge>
-                        <span className="text-[10px] font-bold text-slate-400">
+                        <span className="text-[10px] font-semibold text-slate-400">
                           {new Date(assessment.date).toLocaleDateString()}
                         </span>
                       </div>
                       <div className="flex items-end justify-between">
                         <div>
-                          <h4 className="font-bold text-slate-800 text-sm group-hover:text-indigo-600 transition-colors">
+                          <h4 className="font-semibold text-slate-800 text-sm group-hover:text-indigo-600 transition-colors">
                             {assessment.name}
                           </h4>
                         </div>
                         <div className="text-right">
                           {assessment.status === 'completed' ? (
                             <div className="font-black text-lg text-slate-900 leading-none">
-                              {assessment.score}<span className="text-xs text-slate-400 font-bold ml-0.5">/100</span>
+                              {assessment.score}<span className="text-xs text-slate-400 font-semibold ml-0.5">/100</span>
                             </div>
                           ) : (
-                            <Badge className="bg-slate-100 text-slate-500 border-none font-bold text-[9px] px-2">PENDING</Badge>
+                            <Badge className="bg-slate-100 text-slate-500 border-none font-semibold text-[9px] px-2">PENDING</Badge>
                           )}
                         </div>
                       </div>
@@ -339,10 +339,10 @@ export default function ProgressPage() {
                     <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                       <Star className="w-4 h-4 fill-white" />
                     </div>
-                    <h4 className="font-bold">Next Milestone</h4>
+                    <h4 className="font-semibold">Next Milestone</h4>
                   </div>
                   <p className="text-xs text-indigo-100 leading-relaxed">
-                    Complete your <span className="font-bold text-white">Final Portfolio Project</span> to earn the "Professional Developer" certificate.
+                    Complete your <span className="font-semibold text-white">Final Portfolio Project</span> to earn the "Professional Developer" certificate.
                   </p>
                   <button className="w-full bg-white py-2 rounded-xl text-indigo-600 text-xs font-black hover:bg-indigo-50 transition-colors">
                     EXPLORE REQUIREMENTS

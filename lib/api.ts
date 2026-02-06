@@ -80,6 +80,17 @@ export interface Appeal {
   reviewNotes?: string;
 }
 
+export interface Event {
+  _id: string;
+  title: string;
+  description: string;
+  date: string;
+  duration: string;
+  type: 'exam' | 'assignment' | 'test' | 'lecture';
+  cohortId: string;
+  icon: string;
+}
+
 class APIClient {
   private token: string | null = null;
 
@@ -180,6 +191,14 @@ class APIClient {
 
   async getLearnerTasks(learnerId: string): Promise<any[]> {
     return this.request(`/api/learner-progress/${learnerId}/tasks`);
+  }
+
+  async getEvents(): Promise<Event[]> {
+    return this.request('/api/events');
+  }
+
+  async getCohortEvents(cohortId: string): Promise<Event[]> {
+    return this.request(`/api/events/cohort/${cohortId}`);
   }
 
   async getCohortLearners(cohortId: string): Promise<any[]> {

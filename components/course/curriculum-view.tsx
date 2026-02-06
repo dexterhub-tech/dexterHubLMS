@@ -31,7 +31,7 @@ export function CurriculumView({ modules, activeLessonId, onSelectLesson, comple
     return (
         <div className="w-full h-full overflow-y-auto bg-white border-r border-slate-200">
             <div className="px-6 py-5 border-b border-slate-100 sticky top-0 bg-white/95 backdrop-blur z-10">
-                <h3 className="font-bold text-lg text-slate-800 tracking-tight">Curriculum</h3>
+                <h3 className="font-semibold text-lg text-slate-800 tracking-tight">Curriculum</h3>
                 <p className="text-xs text-muted-foreground mt-1">
                     {modules.reduce((acc, m) => acc + (m.lessons?.length || 0), 0)} sessions total
                 </p>

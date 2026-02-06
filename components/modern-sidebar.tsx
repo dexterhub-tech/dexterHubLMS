@@ -64,10 +64,10 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
                         <Sparkles className="w-6 h-6 text-white" />
                     </div> */}
                     <div>
-                        <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+                        <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
                             Dexter<span className="text-indigo-600">Hub</span>
                         </h1>
-                        <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Education Hub</p>
+                        <p className="text-[10px] uppercase tracking-widest font-semibold text-slate-400">Education Hub</p>
                     </div>
                 </div>
             </div>
@@ -75,7 +75,7 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
             {/* Main Navigation */}
             <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto custom-scrollbar pt-2">
                 <div className="px-4 mb-4">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Main Menu</p>
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Main Menu</p>
                 </div>
                 {links.map((link) => {
                     const Icon = link.icon;
@@ -109,9 +109,9 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
                     <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:scale-125 transition-transform">
                         <Sparkles className="w-12 h-12" />
                     </div>
-                    <p className="text-xs font-bold opacity-80 mb-1">Upgrade to Pro</p>
+                    <p className="text-xs font-semibold opacity-80 mb-1">Upgrade to Pro</p>
                     <p className="text-sm font-semibold mb-3 leading-tight">Get unlimited access to premium courses.</p>
-                    <button className="w-full py-2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl text-xs font-bold transition-all">
+                    <button className="w-full py-2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl text-xs font-semibold transition-all">
                         Upgrade Now
                     </button>
                 </div>
@@ -123,12 +123,12 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
                     <div className="flex items-center gap-3">
                         <Avatar className="w-10 h-10 border-2 border-white shadow-sm">
                             <AvatarImage src={user?.avatar} />
-                            <AvatarFallback className="bg-white text-indigo-600 font-bold">
+                            <AvatarFallback className="bg-white text-indigo-600 font-semibold">
                                 {user?.firstName?.[0] || 'U'}{user?.lastName?.[0] || ''}
                             </AvatarFallback>
                         </Avatar>
                         <div className="max-w-[100px]">
-                            <p className="text-sm font-bold text-slate-800 truncate">{user?.firstName} {user?.lastName}</p>
+                            <p className="text-sm font-semibold text-slate-800 truncate">{user?.firstName} {user?.lastName}</p>
                             <p className="text-[10px] text-slate-400 font-medium truncate capitalize">{role}</p>
                         </div>
                     </div>

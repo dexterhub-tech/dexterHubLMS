@@ -92,7 +92,7 @@ export default function CourseDetailPage() {
                     </Button>
                     <div className="h-8 w-px bg-slate-200 mx-2" />
                     <div>
-                        <h1 className="font-bold text-lg text-slate-900 tracking-tight">{course.name}</h1>
+                        <h1 className="font-semibold text-lg text-slate-900 tracking-tight">{course.name}</h1>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <span className="font-medium text-indigo-600">{activeLesson ? activeLesson.name : 'Welcome'}</span>
                             {activeLesson && <span>• {activeLesson.duration} mins</span>}
@@ -140,7 +140,7 @@ export default function CourseDetailPage() {
                                                 <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
                                                     <FileText className="w-5 h-5" />
                                                 </div>
-                                                <h2 className="text-xl font-bold text-slate-900">Session Notes</h2>
+                                                <h2 className="text-xl font-semibold text-slate-900">Session Notes</h2>
                                             </div>
                                             <article className="prose prose-slate prose-lg max-w-none text-slate-600 leading-relaxed">
                                                 {activeLesson.content ? (
@@ -157,7 +157,7 @@ export default function CourseDetailPage() {
                                         {activeLesson.assignment?.title && (
                                             <div className="bg-white rounded-2xl border border-indigo-100 shadow-lg shadow-indigo-100/50 overflow-hidden sticky top-6">
                                                 <div className="bg-gradient-to-br from-indigo-600 to-violet-600 p-6 text-white">
-                                                    <h3 className="font-bold text-lg flex items-center gap-2">
+                                                    <h3 className="font-semibold text-lg flex items-center gap-2">
                                                         <FileText className="w-5 h-5" /> Assignment
                                                     </h3>
                                                     <p className="text-indigo-100 text-sm mt-1 opacity-90">
@@ -207,7 +207,7 @@ export default function CourseDetailPage() {
                                 <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center">
                                     <Video className="w-8 h-8" />
                                 </div>
-                                <h2 className="text-2xl font-bold text-slate-900">Ready to start?</h2>
+                                <h2 className="text-2xl font-semibold text-slate-900">Ready to start?</h2>
                                 <p className="text-slate-500 max-w-md">Select a session from the sidebar to begin watching lessons and completing tasks.</p>
                             </div>
                         )}

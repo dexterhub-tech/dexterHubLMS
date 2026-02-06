@@ -17,6 +17,7 @@ interface CourseCardProps {
     progress?: number;
     duration?: string;
     instructor?: string;
+    registrarsCount?: number;
     color?: 'mint' | 'peach' | 'lavender' | 'yellow' | string;
     onClick?: () => void;
 }
@@ -28,6 +29,7 @@ export function CourseCard({
     progress = 0,
     duration = 'N/A',
     instructor = 'Instructor',
+    registrarsCount,
     color = 'lavender',
     onClick
 }: CourseCardProps) {
@@ -62,7 +64,7 @@ export function CourseCard({
                         {icon}
                     </div>
                     {progress > 0 && (
-                        <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border border-emerald-100">
+                        <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider border border-emerald-100">
                             <TrendingUp className="w-3 h-3" />
                             {progress}%
                         </div>
@@ -71,7 +73,7 @@ export function CourseCard({
 
                 {/* Content */}
                 <div>
-                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors leading-tight">
+                    <h3 className="text-xl font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors leading-tight">
                         {title}
                     </h3>
                     <p className="text-sm text-slate-500 mt-2 line-clamp-2 leading-relaxed">
@@ -93,6 +95,12 @@ export function CourseCard({
                             <User className="w-3.5 h-3.5" />
                             {instructor}
                         </div>
+                        {registrarsCount !== undefined && (
+                            <div className="flex items-center gap-1.5 text-indigo-600">
+                                <TrendingUp className="w-3.5 h-3.5" />
+                                {registrarsCount} Registrar{registrarsCount !== 1 ? 's' : ''}
+                            </div>
+                        )}
                     </div>
                     <div className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-indigo-600">
                         <ArrowRight className="w-4 h-4" />

@@ -74,13 +74,12 @@ export function DashboardSidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`${
-          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 fixed left-0 top-0 w-64 h-screen bg-sidebar border-r border-sidebar-border transition-transform duration-300 z-40 flex flex-col`}
+        className={`${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          } lg:translate-x-0 fixed left-0 top-0 w-64 h-screen bg-sidebar border-r border-sidebar-border transition-transform duration-300 z-40 flex flex-col`}
       >
         {/* Header */}
         <div className="h-20 flex items-center justify-center border-b border-sidebar-border px-4">
-          <Link href="/dashboard" className="text-2xl font-bold text-sidebar-primary">
+          <Link href="/dashboard" className="text-2xl font-semibold text-sidebar-primary">
             DexterHub
           </Link>
         </div>
@@ -95,11 +94,10 @@ export function DashboardSidebar() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${
-                  isActive
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${isActive
                     ? 'bg-sidebar-primary text-sidebar-primary-foreground'
                     : 'text-sidebar-foreground hover:bg-sidebar-accent/50'
-                }`}
+                  }`}
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
                 <span className="flex-1">{item.label}</span>

@@ -1,7 +1,6 @@
 'use client';
 
 import React from "react"
-
 import { useEffect, useState } from 'react';
 import { api, Cohort } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,8 +16,21 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Users, Plus, Edit2, Trash2 } from 'lucide-react';
+import {
+  Users,
+  Plus,
+  Edit2,
+  Trash2,
+  Calendar,
+  Target,
+  Clock,
+  ArrowRight,
+  MoreVertical,
+  Activity,
+  Layers
+} from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 export default function CohortsManagementPage() {
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
@@ -73,15 +85,7 @@ export default function CohortsManagementPage() {
         toast.success('Cohort created successfully');
       }
       setIsDialogOpen(false);
-      setFormData({
-        name: '',
-        description: '',
-        startDate: '',
-        endDate: '',
-        performanceThreshold: 70,
-        weeklyTarget: 10,
-        gracePeriodDays: 3,
-      });
+      handleReset();
       loadCohorts();
     } catch (error) {
       toast.error('Failed to save cohort');
@@ -115,26 +119,44 @@ export default function CohortsManagementPage() {
     });
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusInfo = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-500/10 text-green-700 dark:text-green-400';
+        return {
+          color: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+          dot: 'bg-emerald-500'
+        };
       case 'upcoming':
-        return 'bg-blue-500/10 text-blue-700 dark:text-blue-400';
+        return {
+          color: 'bg-blue-50 text-blue-700 border-blue-100',
+          dot: 'bg-blue-500'
+        };
       case 'completed':
-        return 'bg-gray-500/10 text-gray-700 dark:text-gray-400';
+        return {
+          color: 'bg-slate-50 text-slate-700 border-slate-200',
+          dot: 'bg-slate-400'
+        };
       default:
-        return 'bg-gray-500/10 text-gray-700 dark:text-gray-400';
+        return {
+          color: 'bg-slate-50 text-slate-700 border-slate-200',
+          dot: 'bg-slate-400'
+        };
     }
   };
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="h-10 bg-muted animate-pulse rounded w-1/3" />
-        <div className="grid gap-6">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-40 bg-muted animate-pulse rounded-lg" />
+      <div className="p-8 space-y-8 max-w-7xl mx-auto">
+        <div className="flex justify-between items-end">
+          <div className="space-y-3">
+            <div className="h-8 bg-slate-200 animate-pulse rounded-lg w-48" />
+            <div className="h-4 bg-slate-100 animate-pulse rounded w-32" />
+          </div>
+          <div className="h-10 bg-slate-200 animate-pulse rounded-xl w-32" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-64 bg-slate-50 animate-pulse rounded-[32px] border border-slate-100" />
           ))}
         </div>
       </div>
@@ -142,130 +164,161 @@ export default function CohortsManagementPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="max-w-7xl mx-auto p-8 space-y-10">
+
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-200/60">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Cohorts</h1>
-          <p className="text-muted-foreground mt-2">{cohorts.length} total cohorts</p>
+          <div className="flex items-center gap-2 mb-2">
+            <Badge className="bg-blue-50 text-blue-700 border-blue-100 px-3 py-1 text-[10px] font-semibold tracking-tight uppercase">Management</Badge>
+          </div>
+          <h1 className="text-4xl font-semibold tracking-tight text-slate-900">Academic Cohorts</h1>
+          <p className="text-muted-foreground mt-2 max-w-xl text-lg">
+            Create, monitor, and manage learning groups and their performance targets.
+          </p>
         </div>
+
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);
           if (!open) handleReset();
         }}>
           <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90 gap-2">
-              <Plus className="w-4 h-4" />
-              New Cohort
+            <Button className="bg-indigo-600 hover:bg-indigo-700 shadow-sm transition-all hover:shadow-md rounded-xl h-12 px-6">
+              <Plus className="w-5 h-5 mr-2" />
+              Initializze Cohort
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingCohort ? 'Edit Cohort' : 'Create New Cohort'}
-              </DialogTitle>
-              <DialogDescription>
-                Configure cohort settings and targets
-              </DialogDescription>
-            </DialogHeader>
+          <DialogContent className="max-w-2xl bg-white rounded-[32px] border-none shadow-2xl p-0 overflow-hidden">
+            <div className="bg-indigo-600 p-8 text-white">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-semibold">
+                  {editingCohort ? 'Modify Cohort' : 'New Academic Group'}
+                </DialogTitle>
+                <DialogDescription className="text-indigo-100 opacity-90">
+                  Configure thresholds, schedules, and targets for the cohort.
+                </DialogDescription>
+              </DialogHeader>
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Cohort Name *</label>
-                <Input
-                  placeholder="e.g., Cohort 2024-Q1"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
+            <form onSubmit={handleSubmit} className="p-8 space-y-6">
+              <div className="space-y-4">
+                <div className="grid gap-2">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Cohort Identifier</label>
+                  <Input
+                    placeholder="e.g., Summer Intensive Flow 2024"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="h-12 rounded-xl bg-slate-50 border-slate-100 focus:bg-white transition-all"
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Overview & Context</label>
+                  <Textarea
+                    placeholder="Provide vision and goals for this cohort..."
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="min-h-24 rounded-xl bg-slate-50 border-slate-100 focus:bg-white transition-all resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="grid gap-2">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Start Timeline</label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Input
+                        type="date"
+                        value={formData.startDate}
+                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                        className="h-12 pl-10 rounded-xl bg-slate-50 border-slate-100"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Graduation Date</label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Input
+                        type="date"
+                        value={formData.endDate}
+                        onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                        className="h-12 pl-10 rounded-xl bg-slate-50 border-slate-100"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 p-5 bg-slate-50 rounded-[24px] border border-slate-100">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">Min. Performance</label>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formData.performanceThreshold}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            performanceThreshold: parseInt(e.target.value),
+                          })
+                        }
+                        className="h-10 rounded-lg bg-white border-slate-200 pr-8"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">%</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">Weekly Target</label>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        min="1"
+                        value={formData.weeklyTarget}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            weeklyTarget: parseInt(e.target.value),
+                          })
+                        }
+                        className="h-10 rounded-lg bg-white border-slate-200 pr-8"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-slate-400">HRS</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">Grace Period</label>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        min="0"
+                        value={formData.gracePeriodDays}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            gracePeriodDays: parseInt(e.target.value),
+                          })
+                        }
+                        className="h-10 rounded-lg bg-white border-slate-200 pr-8"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-slate-400">DAYS</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <label className="text-sm font-medium">Description</label>
-                <Textarea
-                  placeholder="Describe the cohort..."
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="min-h-24"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Start Date *</label>
-                  <Input
-                    type="date"
-                    value={formData.startDate}
-                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">End Date *</label>
-                  <Input
-                    type="date"
-                    value={formData.endDate}
-                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Performance Threshold (%)</label>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={formData.performanceThreshold}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        performanceThreshold: parseInt(e.target.value),
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Weekly Target (hours)</label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={formData.weeklyTarget}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        weeklyTarget: parseInt(e.target.value),
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Grace Period (days)</label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={formData.gracePeriodDays}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        gracePeriodDays: parseInt(e.target.value),
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-2 justify-end pt-4 border-t">
+              <div className="flex gap-3 justify-end pt-4">
                 <Button
                   type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setIsDialogOpen(false);
-                    handleReset();
-                  }}
+                  variant="ghost"
+                  onClick={() => setIsDialogOpen(false)}
+                  className="rounded-xl h-12 px-6"
                 >
                   Cancel
                 </Button>
-                <Button type="submit" className="bg-primary hover:bg-primary/90">
-                  {editingCohort ? 'Update Cohort' : 'Create Cohort'}
+                <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 rounded-xl h-12 px-8 font-semibold text-white shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5">
+                  {editingCohort ? 'Update Cohort' : 'Launch New Cohort'}
                 </Button>
               </div>
             </form>
@@ -274,78 +327,104 @@ export default function CohortsManagementPage() {
       </div>
 
       {/* Cohorts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {cohorts.map((cohort) => (
-          <Card key={cohort._id} className="border-border/50">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold text-foreground">{cohort.name}</h3>
-                    <Badge className={getStatusColor(cohort.status)}>
-                      {cohort.status.charAt(0).toUpperCase() + cohort.status.slice(1)}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{cohort.description}</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleEdit(cohort)}
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </Button>
-                  <Button size="sm" variant="ghost" className="text-destructive hover:bg-destructive/10">
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <p className="text-xs text-muted-foreground">Learners</p>
-                  <p className="font-semibold">{cohort.learnerIds.length}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Instructors</p>
-                  <p className="font-semibold">{cohort.instructorIds.length}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Start Date</p>
-                  <p className="font-semibold text-xs">
-                    {new Date(cohort.startDate).toLocaleDateString()}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">End Date</p>
-                  <p className="font-semibold text-xs">
-                    {new Date(cohort.endDate).toLocaleDateString()}
-                  </p>
-                </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {cohorts.map((cohort) => {
+          const statusInfo = getStatusInfo(cohort.status);
+          return (
+            <Card key={cohort._id} className="group relative bg-white rounded-[32px] border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+              <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button variant="ghost" size="icon" className="rounded-full bg-slate-50">
+                  <MoreVertical className="w-4 h-4 text-slate-400" />
+                </Button>
               </div>
 
-              <div className="pt-3 border-t border-border/50 flex gap-2">
-                <Button size="sm" variant="outline" className="flex-1 bg-transparent">
-                  View Learners
-                </Button>
-                <Button size="sm" variant="outline" className="flex-1 bg-transparent">
-                  Manage
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              <CardHeader className="p-8 pb-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <Badge className={cn("rounded-full px-3 py-0.5 text-[10px] font-semibold uppercase tracking-widest border transition-colors", statusInfo.color)}>
+                    <span className={cn("w-1.5 h-1.5 rounded-full mr-2 inline-block", statusInfo.dot)} />
+                    {cohort.status}
+                  </Badge>
+                  <Badge variant="outline" className="rounded-full text-[10px] font-semibold border-slate-100 bg-slate-50/50 text-slate-400">
+                    ID: {cohort._id?.toString().slice(-6)}
+                  </Badge>
+                </div>
+                <CardTitle className="text-2xl font-semibold text-slate-900 leading-tight group-hover:text-indigo-600 transition-colors">
+                  {cohort.name}
+                </CardTitle>
+                <CardDescription className="text-slate-500 line-clamp-2 mt-2 leading-relaxed">
+                  {cohort.description || "No description provided for this cohort."}
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="p-8 pt-4 space-y-8">
+                <div className="grid grid-cols-2 gap-y-6 gap-x-8">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+                      <Users className="w-3 h-3" /> Talent Pool
+                    </p>
+                    <p className="text-xl font-semibold text-slate-800">{cohort.learnerIds.length} <span className="text-sm font-medium text-slate-400">Learners</span></p>
+                  </div>
+                  <div className="space-y-1 text-right">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 flex items-center gap-1.5 justify-end">
+                      Academic Staff <Layers className="w-3 h-3" />
+                    </p>
+                    <p className="text-xl font-semibold text-slate-800">{cohort.instructorIds.length} <span className="text-sm font-medium text-slate-400">Mentors</span></p>
+                  </div>
+
+                  <div className="col-span-2 bg-slate-50/80 rounded-2xl p-4 border border-slate-100 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-indigo-600 shadow-sm border border-slate-100">
+                        <Clock className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-tighter">Timeline</p>
+                        <p className="text-xs font-semibold text-slate-700">
+                          {new Date(cohort.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} — {new Date(cohort.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-tighter">Threshold</p>
+                      <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 border-indigo-100 font-semibold text-xs">{cohort.performanceThreshold}% Score</Badge>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    onClick={() => handleEdit(cohort)}
+                    variant="outline"
+                    className="flex-1 rounded-2xl h-11 border-slate-200 text-slate-600 font-semibold text-xs hover:bg-slate-50"
+                  >
+                    Edit Config
+                  </Button>
+                  <Button
+                    className="flex-1 rounded-2xl h-11 bg-slate-900 text-white font-semibold text-xs hover:bg-slate-800 group"
+                  >
+                    Manage Learners
+                    <ArrowRight className="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Empty State */}
       {cohorts.length === 0 && (
-        <Card className="border-border/50">
-          <CardContent className="pt-12 text-center space-y-3">
-            <Users className="w-12 h-12 text-muted-foreground mx-auto opacity-50" />
-            <p className="text-muted-foreground">No cohorts yet</p>
-            <p className="text-sm text-muted-foreground">Create your first cohort to get started</p>
+        <Card className="border-dashed border-2 border-slate-200 bg-transparent rounded-[40px] shadow-none">
+          <CardContent className="py-24 text-center space-y-6">
+            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="w-10 h-10 text-slate-300" />
+            </div>
+            <div>
+              <p className="text-2xl font-semibold text-slate-800 tracking-tight">Expand the ecosystem</p>
+              <p className="text-slate-500 mt-2 max-w-sm mx-auto">You haven't initialized any cohorts yet. Start by creating your first academic group.</p>
+            </div>
+            <Button onClick={() => setIsDialogOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 rounded-xl px-8 h-12 shadow-xl shadow-indigo-100">
+              Initialize First Cohort
+            </Button>
           </CardContent>
         </Card>
       )}

@@ -125,7 +125,7 @@ export function InstructorDashboard() {
                 {/* Welcome Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Welcome Back, {user?.firstName}!</h1>
+                        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Welcome Back, {user?.firstName}!</h1>
                         <p className="text-slate-500 mt-1">Manage your courses, students, and track their growth.</p>
                     </div>
                     <div className="flex gap-3">
@@ -152,7 +152,7 @@ export function InstructorDashboard() {
                             <div className="space-y-1">
                                 <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Courses</h3>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-3xl font-bold text-slate-900">{cohorts.length}</span>
+                                    <span className="text-3xl font-semibold text-slate-900">{cohorts.length}</span>
                                     <span className="text-sm text-slate-400">active cohorts</span>
                                 </div>
                             </div>
@@ -172,7 +172,7 @@ export function InstructorDashboard() {
                             <div className="space-y-1">
                                 <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Students</h3>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-3xl font-bold text-slate-900">{stats.totalStudents}</span>
+                                    <span className="text-3xl font-semibold text-slate-900">{stats.totalStudents}</span>
                                     <span className="text-sm text-slate-400">across all cohorts</span>
                                 </div>
                             </div>
@@ -192,7 +192,7 @@ export function InstructorDashboard() {
                             <div className="space-y-1">
                                 <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider">Avg Completion</h3>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-3xl font-bold text-slate-900">{stats.avgCompletion}%</span>
+                                    <span className="text-3xl font-semibold text-slate-900">{stats.avgCompletion}%</span>
                                     <span className="text-sm text-slate-400">learner success</span>
                                 </div>
                             </div>
@@ -207,7 +207,7 @@ export function InstructorDashboard() {
                             <CardHeader className="bg-white border-b border-slate-50">
                                 <div className="flex justify-between items-center">
                                     <div>
-                                        <CardTitle className="text-lg font-bold text-slate-900">Student Growth</CardTitle>
+                                        <CardTitle className="text-lg font-semibold text-slate-900">Student Growth</CardTitle>
                                         <CardDescription>Monthly student enrolment trends</CardDescription>
                                     </div>
                                     <select className="text-xs font-medium border-0 bg-slate-50 rounded-lg p-2.5 text-slate-600 outline-none ring-1 ring-slate-100 cursor-pointer">
@@ -261,7 +261,7 @@ export function InstructorDashboard() {
                     <div className="lg:col-span-1">
                         <Card className="rounded-2xl border-slate-100 shadow-sm h-full">
                             <CardHeader className="bg-white border-b border-slate-50">
-                                <CardTitle className="text-lg font-bold text-slate-900">Recent Activity</CardTitle>
+                                <CardTitle className="text-lg font-semibold text-slate-900">Recent Activity</CardTitle>
                             </CardHeader>
                             <CardContent className="p-6">
                                 <div className="space-y-8">
@@ -290,7 +290,7 @@ export function InstructorDashboard() {
                         <CardHeader className="bg-white/50 border-b border-indigo-50">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-indigo-600 rounded-full animate-pulse" />
-                                <CardTitle className="text-lg font-bold text-slate-900">Pending Enrollment Requests</CardTitle>
+                                <CardTitle className="text-lg font-semibold text-slate-900">Pending Enrollment Requests</CardTitle>
                                 <Badge className="ml-2 bg-indigo-600 h-5 px-1.5">{enrollmentRequests.length}</Badge>
                             </div>
                             <CardDescription>Review learners application for your courses.</CardDescription>
@@ -301,13 +301,13 @@ export function InstructorDashboard() {
                                     <div key={req._id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-white/40 transition-colors">
                                         <div className="flex items-center gap-4">
                                             <Avatar className="w-10 h-10 border-2 border-white shadow-sm">
-                                                <AvatarFallback className="bg-indigo-100 text-indigo-700 font-bold">
+                                                <AvatarFallback className="bg-indigo-100 text-indigo-700 font-semibold">
                                                     {req.learnerId?.firstName?.[0]}{req.learnerId?.lastName?.[0]}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div>
                                                 <div className="font-semibold text-slate-800">{req.learnerId?.firstName} {req.learnerId?.lastName}</div>
-                                                <div className="text-xs text-slate-500">Applied for <span className="font-bold text-indigo-600">{req.courseId?.name}</span> in {req.cohortId?.name}</div>
+                                                <div className="text-xs text-slate-500">Applied for <span className="font-semibold text-indigo-600">{req.courseId?.name}</span> in {req.cohortId?.name}</div>
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
@@ -339,7 +339,7 @@ export function InstructorDashboard() {
                     <CardHeader className="bg-white border-b border-slate-50">
                         <div className="flex justify-between items-center">
                             <div>
-                                <CardTitle className="text-lg font-bold text-slate-900">Cohort Overview</CardTitle>
+                                <CardTitle className="text-lg font-semibold text-slate-900">Cohort Overview</CardTitle>
                                 <CardDescription>Managing {cohorts.length} total active cohorts</CardDescription>
                             </div>
                             <div className="flex gap-2">

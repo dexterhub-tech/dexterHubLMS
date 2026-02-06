@@ -29,7 +29,7 @@ const typeColors = {
 export function UpcomingEvents({ events, onViewAll }: UpcomingEventsProps) {
     return (
         <div className="bg-card rounded-xl p-4 border border-border">
-            <h3 className="font-bold text-lg text-foreground mb-4">Upcoming</h3>
+            <h3 className="font-semibold text-lg text-foreground mb-4">Upcoming</h3>
 
             <div className="space-y-3">
                 {events.map((event) => (

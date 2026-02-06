@@ -7,7 +7,10 @@ const Lesson = require('../models/Lesson');
 // Create a new Course
 exports.createCourse = async (req, res) => {
     try {
-        const course = new Course(req.body);
+        const course = new Course({
+            ...req.body,
+            instructorId: req.user.id
+        });
         await course.save();
         res.status(201).json(course);
     } catch (error) {
@@ -18,8 +21,22 @@ exports.createCourse = async (req, res) => {
 // Get all courses
 exports.getAllCourses = async (req, res) => {
     try {
-        const courses = await Course.find().populate('modules');
-        res.json(courses);
+        const query = {};
+        if (req.user.role === 'instructor') {
+            query.instructorId = req.user.id;
+        }
+
+        const courses = await Course.find(query).populate('modules');
+
+        const enhancedCourses = courses.map(c => {
+            const courseObj = c.toObject();
+            return {
+                ...courseObj,
+                registrarsCount: c.registrars ? c.registrars.length : 0
+            };
+        });
+
+        res.json(enhancedCourses);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

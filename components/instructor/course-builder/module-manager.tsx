@@ -4,11 +4,13 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
-import { Plus, CheckCircle, Video, FileText } from 'lucide-react';
+import { Plus, CheckCircle, Video, FileText, Trash2, GripVertical, Sparkles, ChevronDown, Clock, Layers, Award, ArrowRight, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 import { api } from '@/lib/api';
+import { cn } from '@/lib/utils';
 
 interface ModuleManagerProps {
     courseId: string;
@@ -32,6 +34,7 @@ export function ModuleManager({ courseId, onComplete }: ModuleManagerProps) {
     const [modules, setModules] = useState<any[]>([]);
     const [isAddingModule, setIsAddingModule] = useState(false);
     const [newModuleName, setNewModuleName] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
 
     // Lesson state
     const [activeModuleId, setActiveModuleId] = useState<string | null>(null);
@@ -45,36 +48,39 @@ export function ModuleManager({ courseId, onComplete }: ModuleManagerProps) {
             description: '',
             maxScore: 100,
             type: 'task',
-            questions: []
+            questions: [] as Array<{ question: string; options: string[]; correctAnswer: number; }>
         }
     });
 
     const handleAddModule = async () => {
         if (!newModuleName.trim()) return;
+        setIsSaving(true);
         try {
             const module = await api.createModule({
                 courseId,
                 name: newModuleName,
-                description: 'Module layer'
+                description: 'Academic Module'
             });
             setModules([...modules, { ...module, lessons: [] }]);
             setNewModuleName('');
             setIsAddingModule(false);
-            toast.success('Class (Module) added');
+            toast.success('Module added to syllabus.');
         } catch (error) {
-            toast.error('Failed to add module');
+            toast.error('Failed to register module.');
+        } finally {
+            setIsSaving(false);
         }
     };
 
     const handleAddLesson = async (moduleId: string) => {
         if (!newLesson.name) return;
+        setIsSaving(true);
         try {
             const lesson = await api.createLesson({
                 moduleId,
                 ...newLesson
             });
 
-            // Update local state
             const updatedModules = modules.map(m => {
                 if (m._id === moduleId) {
                     return { ...m, lessons: [...(m.lessons || []), lesson] };
@@ -83,7 +89,6 @@ export function ModuleManager({ courseId, onComplete }: ModuleManagerProps) {
             });
             setModules(updatedModules);
 
-            // Reset form
             setNewLesson({
                 name: '',
                 content: '',
@@ -92,166 +97,280 @@ export function ModuleManager({ courseId, onComplete }: ModuleManagerProps) {
                 assignment: { title: '', description: '', maxScore: 100, type: 'task', questions: [] }
             });
             setActiveModuleId(null);
-            toast.success('Session (Lesson) added');
+            toast.success('Learning session established.');
         } catch (error) {
-            toast.error('Failed to add session');
+            toast.error('Failed to create session.');
+        } finally {
+            setIsSaving(false);
         }
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold">Course Classes</h2>
-                <Button onClick={() => setIsAddingModule(true)} disabled={isAddingModule}>
-                    <Plus className="w-4 h-4 mr-2" /> Add Class
+        <div className="space-y-10">
+            {/* Module Manager Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-1">
+                    <h2 className="text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                            <Layers className="w-5 h-5" />
+                        </div>
+                        Curriculum Architecture
+                    </h2>
+                    <p className="text-slate-500 font-medium ml-13">Structure your course into modules and deep-dive sessions.</p>
+                </div>
+                <Button
+                    onClick={() => setIsAddingModule(true)}
+                    disabled={isAddingModule}
+                    className="h-12 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg shadow-indigo-100 transition-all active:scale-95 flex items-center gap-2"
+                >
+                    <Plus className="w-4 h-4" /> Add Module
                 </Button>
             </div>
 
+            {/* In-line Add Module Form */}
             {isAddingModule && (
-                <Card className="border-dashed border-2">
-                    <CardContent className="pt-6 flex gap-4">
-                        <Input
-                            value={newModuleName}
-                            onChange={(e) => setNewModuleName(e.target.value)}
-                            placeholder="Class Name (e.g., HTML Fundamentals)"
-                        />
-                        <Button onClick={handleAddModule}>Save</Button>
-                        <Button variant="ghost" onClick={() => setIsAddingModule(false)}>Cancel</Button>
-                    </CardContent>
-                </Card>
+                <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+                    <Card className="border-2 border-dashed border-indigo-200 bg-indigo-50/30 rounded-[28px] overflow-hidden">
+                        <CardContent className="p-8 space-y-4">
+                            <Label className="text-xs font-bold uppercase tracking-widest text-indigo-600 ml-1">New Module Title</Label>
+                            <div className="flex gap-4">
+                                <Input
+                                    value={newModuleName}
+                                    onChange={(e) => setNewModuleName(e.target.value)}
+                                    placeholder="e.g. Fundamental Logic and Structures"
+                                    className="h-14 bg-white border-white/50 rounded-2xl focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all font-medium text-slate-900 flex-1 shadow-sm"
+                                    autoFocus
+                                />
+                                <Button
+                                    onClick={handleAddModule}
+                                    disabled={isSaving || !newModuleName.trim()}
+                                    className="h-14 px-8 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-900/10 transition-all"
+                                >
+                                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : "Save Module"}
+                                </Button>
+                                <Button variant="ghost" onClick={() => setIsAddingModule(false)} className="h-14 px-6 rounded-2xl font-bold text-slate-500 hover:bg-slate-100 transition-all">
+                                    Cancel
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
             )}
 
-            <Accordion type="single" collapsible className="w-full">
-                {modules.map((module) => (
-                    <AccordionItem key={module._id} value={module._id}>
-                        <AccordionTrigger className="hover:no-underline">
-                            <div className="flex items-center gap-2">
-                                <span className="font-semibold">{module.name}</span>
-                                <span className="text-muted-foreground text-sm">({module.lessons?.length || 0} Sessions)</span>
-                            </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="space-y-4 px-4 py-2 bg-muted/20 rounded-b-lg">
-                            {/* Existing Lessons */}
-                            <div className="space-y-2">
-                                {module.lessons?.map((lesson: any) => (
-                                    <div key={lesson._id} className="flex justify-between items-center p-3 bg-card rounded border">
-                                        <div className="flex items-center gap-2">
-                                            {lesson.videoUrl ? <Video className="w-4 h-4 text-blue-500" /> : <FileText className="w-4 h-4" />}
-                                            <span>{lesson.name}</span>
-                                            {lesson.assignment?.title && (
-                                                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
-                                                    Task: {lesson.assignment.title}
-                                                </span>
-                                            )}
+            {/* Curriculum Accordion */}
+            <div className="space-y-4">
+                {modules.length === 0 && !isAddingModule && (
+                    <div className="py-20 bg-white rounded-[32px] border border-dashed border-slate-200 text-center space-y-4">
+                        <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto text-slate-300">
+                            <Layers className="w-8 h-8" />
+                        </div>
+                        <div className="max-w-xs mx-auto space-y-2">
+                            <p className="font-semibold text-slate-900">No Modules Yet</p>
+                            <p className="text-slate-500 text-sm leading-relaxed">Start building your curriculum by adding your first educational module above.</p>
+                        </div>
+                    </div>
+                )}
+
+                <Accordion type="single" collapsible className="space-y-4">
+                    {modules.map((module, idx) => (
+                        <AccordionItem key={module._id} value={module._id} className="border-none">
+                            <Card className="rounded-[28px] border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group">
+                                <AccordionTrigger className="p-0 hover:no-underline">
+                                    <div className="flex items-center gap-6 p-6 md:p-8 w-full text-left">
+                                        <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-600 font-bold group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm border border-slate-100/50">
+                                            {idx + 1}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-xl font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{module.name}</h3>
+                                            <div className="flex items-center gap-4 mt-1">
+                                                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400">
+                                                    <Clock className="w-3.5 h-3.5" />
+                                                    {module.lessons?.length || 0} SESSIONS
+                                                </div>
+                                                <div className="w-1 h-1 rounded-full bg-slate-300" />
+                                                <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-500">
+                                                    <Layers className="w-3.5 h-3.5" />
+                                                    PROVISIONED
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
+                                </AccordionTrigger>
+                                <AccordionContent className="px-8 pb-8 pt-0 space-y-6">
+                                    <div className="h-px bg-slate-50 w-full mb-6" />
 
-                            {/* Add Lesson Form */}
-                            {activeModuleId === module._id ? (
-                                <Card className="mt-4">
-                                    <CardHeader><CardTitle className="text-base">New Session</CardTitle></CardHeader>
-                                    <CardContent className="space-y-4">
-                                        <div className="grid gap-2">
-                                            <Label>Session Title</Label>
-                                            <Input value={newLesson.name} onChange={e => setNewLesson({ ...newLesson, name: e.target.value })} />
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label>Video URL (Optional)</Label>
-                                            <Input value={newLesson.videoUrl} onChange={e => setNewLesson({ ...newLesson, videoUrl: e.target.value })} />
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label>Content/Notes</Label>
-                                            <Input value={newLesson.content} onChange={e => setNewLesson({ ...newLesson, content: e.target.value })} />
-                                        </div>
+                                    {/* Existing Lessons List */}
+                                    <div className="grid gap-3">
+                                        {module.lessons?.map((lesson: any, sIdx: number) => (
+                                            <div key={lesson._id} className="group/session flex items-center gap-4 p-5 bg-slate-50/50 border border-slate-100 rounded-2xl hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 hover:border-indigo-100 transition-all duration-300">
+                                                <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover/session:text-indigo-600 transition-colors shadow-sm">
+                                                    {lesson.videoUrl ? <Video className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-0.5">Session {sIdx + 1}</p>
+                                                    <h4 className="font-semibold text-slate-900 truncate uppercase tracking-tight">{lesson.name}</h4>
+                                                </div>
+                                                {lesson.assignment?.title && (
+                                                    <Badge className="bg-amber-50 text-amber-700 border-amber-100 text-[9px] font-bold uppercase tracking-widest px-3 py-1">
+                                                        <Award className="w-3 h-3 mr-1.5" />
+                                                        {lesson.assignment.type}: {lesson.assignment.title}
+                                                    </Badge>
+                                                )}
+                                                <Button variant="ghost" size="icon" className="text-slate-300 hover:text-rose-500 rounded-xl">
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
 
-                                        <div className="border-t pt-4 mt-2">
-                                            <Label className="font-semibold text-primary">Class Task (Graduation Requirement)</Label>
-                                            <CardDescription className="mb-2">Learners pass this class by completing these tasks.</CardDescription>
-
-                                            <div className="grid gap-3">
-                                                <div className="flex gap-4">
-                                                    <div className="flex-1">
-                                                        <Label className="text-xs mb-1 block">Task Type</Label>
-                                                        <select
-                                                            className="w-full p-2 rounded-md border text-sm bg-background"
-                                                            value={newLesson.assignment.type || 'task'}
-                                                            onChange={(e) => setNewLesson({
-                                                                ...newLesson,
-                                                                assignment: { ...newLesson.assignment, type: e.target.value as any }
-                                                            })}
-                                                        >
-                                                            <option value="task">File Upload</option>
-                                                            <option value="quiz">CBT / Quiz</option>
-                                                            <option value="video">Video Submission</option>
-                                                        </select>
+                                    {/* Add Session Area */}
+                                    {activeModuleId === module._id ? (
+                                        <Card className="bg-indigo-50/20 border-indigo-100 rounded-[24px] overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+                                            <CardHeader className="bg-white/50 border-b border-indigo-50 p-6 flex flex-row items-center justify-between">
+                                                <div>
+                                                    <CardTitle className="text-lg font-bold text-indigo-900">Add Learning Session</CardTitle>
+                                                    <CardDescription className="text-xs font-medium text-indigo-600/70">Define a lesson and its corresponding task.</CardDescription>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs">{module.lessons?.length + 1}</div>
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent className="p-8 space-y-6">
+                                                <div className="grid md:grid-cols-2 gap-6">
+                                                    <div className="space-y-4">
+                                                        <div className="space-y-2">
+                                                            <Label className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 ml-1">Session Title</Label>
+                                                            <Input value={newLesson.name} onChange={e => setNewLesson({ ...newLesson, name: e.target.value })} placeholder="e.g. Logic Gates & Signal Flow" className="bg-white border-indigo-100 h-12 rounded-xl" />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 ml-1">Video Source URL (Optional)</Label>
+                                                            <div className="relative">
+                                                                <Video className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-300" />
+                                                                <Input value={newLesson.videoUrl} onChange={e => setNewLesson({ ...newLesson, videoUrl: e.target.value })} placeholder="https://vimeo.com/..." className="pl-10 bg-white border-indigo-100 h-12 rounded-xl" />
+                                                            </div>
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 ml-1">Session Notes / Resources</Label>
+                                                            <Input value={newLesson.content} onChange={e => setNewLesson({ ...newLesson, content: e.target.value })} placeholder="Additional instructions..." className="bg-white border-indigo-100 h-12 rounded-xl" />
+                                                        </div>
                                                     </div>
-                                                    <div className="flex-[2]">
-                                                        <Label className="text-xs mb-1 block">Title</Label>
-                                                        <Input
-                                                            placeholder="Task Title"
-                                                            value={newLesson.assignment.title}
-                                                            onChange={e => setNewLesson({ ...newLesson, assignment: { ...newLesson.assignment, title: e.target.value } })}
-                                                        />
+
+                                                    <div className="space-y-4 bg-white/60 p-6 rounded-2xl border border-indigo-50 shadow-inner">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <Award className="w-4 h-4 text-amber-500" />
+                                                            <h4 className="text-sm font-bold text-indigo-900 uppercase tracking-tight">Graduation Task</h4>
+                                                        </div>
+
+                                                        <div className="space-y-3">
+                                                            <div className="space-y-1.5">
+                                                                <Label className="text-[10px] font-bold text-slate-500">Submission Mode</Label>
+                                                                <select
+                                                                    className="w-full h-11 px-3 rounded-xl border-indigo-100 border text-sm bg-white focus:ring-1 focus:ring-indigo-500 transition-all"
+                                                                    value={newLesson.assignment.type || 'task'}
+                                                                    onChange={(e) => setNewLesson({
+                                                                        ...newLesson,
+                                                                        assignment: { ...newLesson.assignment, type: e.target.value as any }
+                                                                    })}
+                                                                >
+                                                                    <option value="task">File Upload Portfolio</option>
+                                                                    <option value="quiz">Interactive CBT Quiz</option>
+                                                                    <option value="video">Direct Video Pitch</option>
+                                                                </select>
+                                                            </div>
+
+                                                            <div className="space-y-1.5">
+                                                                <Label className="text-[10px] font-bold text-slate-500">Task Title</Label>
+                                                                <Input
+                                                                    placeholder="e.g. System Diagram Output"
+                                                                    value={newLesson.assignment.title}
+                                                                    onChange={e => setNewLesson({ ...newLesson, assignment: { ...newLesson.assignment, title: e.target.value } })}
+                                                                    className="bg-white border-indigo-100 h-11 rounded-xl"
+                                                                />
+                                                            </div>
+
+                                                            <div className="space-y-1.5">
+                                                                <Label className="text-[10px] font-bold text-slate-500">Brief Overview</Label>
+                                                                <Input
+                                                                    placeholder="Describe the expected output..."
+                                                                    value={newLesson.assignment.description}
+                                                                    onChange={e => setNewLesson({ ...newLesson, assignment: { ...newLesson.assignment, description: e.target.value } })}
+                                                                    className="bg-white border-indigo-100 h-11 rounded-xl"
+                                                                />
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
 
-                                                <Input
-                                                    placeholder="Task Description"
-                                                    value={newLesson.assignment.description}
-                                                    onChange={e => setNewLesson({ ...newLesson, assignment: { ...newLesson.assignment, description: e.target.value } })}
-                                                />
-
-                                                {/* QUIZ BUILDER */}
+                                                {/* QUIZ BUILDER UI */}
                                                 {(newLesson.assignment.type === 'quiz' as any) && (
-                                                    <div className="bg-slate-50 p-4 rounded-lg border space-y-4">
-                                                        <Label>Quiz Questions</Label>
-                                                        {(newLesson.assignment.questions || []).map((q: any, qIdx: number) => (
-                                                            <div key={qIdx} className="bg-white p-3 rounded border space-y-2">
-                                                                <Input
-                                                                    placeholder={`Question ${qIdx + 1}`}
-                                                                    value={q.question}
-                                                                    onChange={(e) => {
-                                                                        const updatedQuestions = [...(newLesson.assignment.questions || [])];
-                                                                        updatedQuestions[qIdx].question = e.target.value;
-                                                                        setNewLesson({ ...newLesson, assignment: { ...newLesson.assignment, questions: updatedQuestions } });
-                                                                    }}
-                                                                />
-                                                                <div className="grid grid-cols-2 gap-2">
-                                                                    {q.options.map((opt: string, oIdx: number) => (
+                                                    <div className="bg-white/80 p-8 rounded-[24px] border border-indigo-100 shadow-xl shadow-indigo-100/30 space-y-6 animate-in slide-in-from-top-2 duration-300">
+                                                        <div className="flex items-center justify-between border-b border-slate-50 pb-4">
+                                                            <h5 className="text-sm font-bold text-indigo-900 uppercase tracking-widest flex items-center gap-2">
+                                                                <Sparkles className="w-4 h-4" /> Quiz Architect
+                                                            </h5>
+                                                            <p className="text-[10px] font-bold text-slate-400">{(newLesson.assignment.questions || []).length} CHALLENGES ADDED</p>
+                                                        </div>
+
+                                                        <div className="space-y-6">
+                                                            {(newLesson.assignment.questions || []).map((q: any, qIdx: number) => (
+                                                                <div key={qIdx} className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 space-y-4 relative group/quiz">
+                                                                    <div className="flex items-center gap-3 mb-2">
+                                                                        <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center">Q{qIdx + 1}</div>
                                                                         <Input
-                                                                            key={oIdx}
-                                                                            placeholder={`Option ${oIdx + 1}`}
-                                                                            value={opt}
+                                                                            placeholder="Define your question challenge..."
+                                                                            value={q.question}
                                                                             onChange={(e) => {
                                                                                 const updatedQuestions = [...(newLesson.assignment.questions || [])];
-                                                                                updatedQuestions[qIdx].options[oIdx] = e.target.value;
+                                                                                updatedQuestions[qIdx].question = e.target.value;
                                                                                 setNewLesson({ ...newLesson, assignment: { ...newLesson.assignment, questions: updatedQuestions } });
                                                                             }}
-                                                                            className={q.correctAnswer === oIdx ? "border-green-500 ring-1 ring-green-500" : ""}
+                                                                            className="bg-white border-slate-200 h-12 rounded-xl flex-1 font-semibold"
                                                                         />
-                                                                    ))}
-                                                                </div>
-                                                                <div className="flex justify-end gap-2">
-                                                                    <select
-                                                                        className="text-xs p-1 border rounded"
-                                                                        value={q.correctAnswer}
-                                                                        onChange={(e) => {
-                                                                            const updatedQuestions = [...(newLesson.assignment.questions || [])];
-                                                                            updatedQuestions[qIdx].correctAnswer = parseInt(e.target.value);
-                                                                            setNewLesson({ ...newLesson, assignment: { ...newLesson.assignment, questions: updatedQuestions } });
-                                                                        }}
-                                                                    >
-                                                                        {q.options.map((_: any, idx: number) => (
-                                                                            <option key={idx} value={idx}>Correct Answer: Option {idx + 1}</option>
+                                                                    </div>
+                                                                    <div className="grid grid-cols-2 gap-3 pl-10">
+                                                                        {q.options.map((opt: string, oIdx: number) => (
+                                                                            <div key={oIdx} className="relative">
+                                                                                <div className={cn(
+                                                                                    "absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full border flex items-center justify-center text-[10px] font-bold transition-all",
+                                                                                    q.correctAnswer === oIdx ? "bg-emerald-500 border-emerald-500 text-white" : "bg-slate-50 border-slate-200 text-slate-400"
+                                                                                )}>
+                                                                                    {String.fromCharCode(65 + oIdx)}
+                                                                                </div>
+                                                                                <Input
+                                                                                    placeholder={`Option ${String.fromCharCode(65 + oIdx)}`}
+                                                                                    value={opt}
+                                                                                    onChange={(e) => {
+                                                                                        const updatedQuestions = [...(newLesson.assignment.questions || [])];
+                                                                                        updatedQuestions[qIdx].options[oIdx] = e.target.value;
+                                                                                        setNewLesson({ ...newLesson, assignment: { ...newLesson.assignment, questions: updatedQuestions } });
+                                                                                    }}
+                                                                                    className={cn(
+                                                                                        "pl-10 h-11 rounded-xl transition-all font-medium",
+                                                                                        q.correctAnswer === oIdx ? "border-emerald-200 bg-emerald-50/30 ring-1 ring-emerald-500/20" : "bg-white border-slate-200"
+                                                                                    )}
+                                                                                />
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => {
+                                                                                        const updatedQuestions = [...(newLesson.assignment.questions || [])];
+                                                                                        updatedQuestions[qIdx].correctAnswer = oIdx;
+                                                                                        setNewLesson({ ...newLesson, assignment: { ...newLesson.assignment, questions: updatedQuestions } });
+                                                                                    }}
+                                                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-400 hover:text-emerald-600 tracking-tighter transition-colors uppercase"
+                                                                                >
+                                                                                    MARK CORRECT
+                                                                                </button>
+                                                                            </div>
                                                                         ))}
-                                                                    </select>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        ))}
+                                                            ))}
+                                                        </div>
+
                                                         <Button
-                                                            size="sm" variant="outline"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="w-full h-12 border-dashed border-2 border-indigo-100 rounded-xl text-indigo-600 font-bold hover:bg-indigo-50 transition-all border-spacing-4"
                                                             onClick={() => {
                                                                 const currentQuestions = newLesson.assignment.questions || [];
                                                                 setNewLesson({
@@ -263,37 +382,56 @@ export function ModuleManager({ courseId, onComplete }: ModuleManagerProps) {
                                                                 });
                                                             }}
                                                         >
-                                                            Add Question
+                                                            <Plus className="w-4 h-4 mr-2" /> Append Challenge Question
                                                         </Button>
                                                     </div>
                                                 )}
-                                            </div>
-                                        </div>
+                                            </CardContent>
+                                            <CardFooter className="bg-slate-50/50 p-6 flex justify-end gap-3 border-t border-indigo-50">
+                                                <Button variant="ghost" onClick={() => setActiveModuleId(null)} className="rounded-xl font-bold text-slate-500">Cancel</Button>
+                                                <Button
+                                                    onClick={() => handleAddLesson(module._id)}
+                                                    disabled={isSaving || !newLesson.name}
+                                                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl h-11 px-8 shadow-md"
+                                                >
+                                                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : "Establish Session"}
+                                                </Button>
+                                            </CardFooter>
+                                        </Card>
+                                    ) : (
+                                        <Button
+                                            variant="outline"
+                                            className="w-full h-14 border-dashed border-2 border-slate-200 rounded-2xl text-slate-400 font-bold hover:bg-slate-50 hover:border-indigo-200 hover:text-indigo-500 transition-all duration-300"
+                                            onClick={() => setActiveModuleId(module._id)}
+                                        >
+                                            <Plus className="w-5 h-5 mr-3" /> Initialize New Learning Session
+                                        </Button>
+                                    )}
+                                </AccordionContent>
+                            </Card>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
+            </div>
 
-                                        <div className="flex justify-end gap-2 mt-4">
-                                            <Button variant="ghost" onClick={() => setActiveModuleId(null)}>Cancel</Button>
-                                            <Button onClick={() => handleAddLesson(module._id)}>Add Session</Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ) : (
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="w-full border-dashed"
-                                    onClick={() => setActiveModuleId(module._id)}
-                                >
-                                    <Plus className="w-4 h-4 mr-2" /> Add Session
-                                </Button>
-                            )}
-                        </AccordionContent>
-                    </AccordionItem>
-                ))}
-            </Accordion>
-
-            <div className="flex justify-end pt-8 border-t">
-                <Button onClick={onComplete} size="lg" className="bg-green-600 hover:bg-green-700">
-                    <CheckCircle className="w-4 h-4 mr-2" /> Finish Course Setup
+            {/* Completion Section */}
+            <div className="pt-12 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-8">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shadow-sm border border-emerald-100">
+                        <CheckCircle className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Syllabus Complete?</p>
+                        <p className="text-slate-500 font-medium text-sm leading-relaxed">Once you finish, the course will be provisioned into the database.</p>
+                    </div>
+                </div>
+                <Button
+                    onClick={onComplete}
+                    size="lg"
+                    className="h-16 px-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-[24px] shadow-xl shadow-emerald-900/10 transition-all active:scale-95 flex items-center gap-3 whitespace-nowrap"
+                >
+                    Finalize Syllabus Architecture
+                    <ArrowRight className="w-5 h-5" />
                 </Button>
             </div>
         </div>

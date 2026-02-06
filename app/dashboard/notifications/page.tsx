@@ -141,7 +141,7 @@ export default function NotificationsPage() {
             <div className="p-6 space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-foreground">Notifications</h1>
+                        <h1 className="text-3xl font-semibold text-foreground">Notifications</h1>
                         <p className="text-muted-foreground mt-2">
                             {unreadNotifications.length} unread notifications
                         </p>

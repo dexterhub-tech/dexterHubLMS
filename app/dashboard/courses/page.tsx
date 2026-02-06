@@ -134,7 +134,7 @@ export default function CoursesPage() {
         {/* Modern Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-200/60">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Explore Courses</h1>
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Explore Courses</h1>
             <p className="text-muted-foreground mt-2 max-w-xl text-lg">
               Manage your curriculum, track progress, and access learning materials.
             </p>
@@ -228,11 +228,10 @@ export default function CoursesPage() {
                         progress={course.progress}
                         duration={course.duration || 'N/A'}
                         instructor={course.instructor}
+                        registrarsCount={user?.role === 'instructor' ? course.registrarsCount : undefined}
                         color={course.color}
                         onClick={() => {
-                          if (user?.role === 'instructor' || course.learnerStatus === 'enrolled') {
-                            router.push(`/dashboard/courses/${course.id || course._id}`);
-                          }
+                          router.push(`/dashboard/courses/${course.id || course._id}`);
                         }}
                       />
 
@@ -255,12 +254,12 @@ export default function CoursesPage() {
                           <div className="bg-white/90 p-4 rounded-2xl shadow-xl border border-slate-100 w-full max-w-[200px] text-center space-y-3">
                             {course.learnerStatus === 'pending' ? (
                               <div>
-                                <p className="text-sm font-bold text-slate-800">Application Pending</p>
+                                <p className="text-sm font-semibold text-slate-800">Application Pending</p>
                                 <p className="text-[10px] text-slate-500 mt-1">Waiting for instructor approval</p>
                               </div>
                             ) : (
                               <>
-                                <p className="text-sm font-bold text-slate-800">Enroll Today</p>
+                                <p className="text-sm font-semibold text-slate-800">Enroll Today</p>
                                 <div className="space-y-1.5">
                                   {cohorts.filter(coh => coh.courseIds.includes(course.id) && (coh.status === 'upcoming' || coh.status === 'active')).map(coh => (
                                     <Button
@@ -288,7 +287,7 @@ export default function CoursesPage() {
                       {/* Mobile visibility: If not enrolled, show a small action link/button below for better discoverability if hover is not available */}
                       {user?.role === 'learner' && course.learnerStatus === 'available' && (
                         <div className="mt-2 text-center md:hidden">
-                          <span className="text-xs font-bold text-indigo-600">Tap to Enroll</span>
+                          <span className="text-xs font-semibold text-indigo-600">Tap to Enroll</span>
                         </div>
                       )}
                     </div>
@@ -351,11 +350,10 @@ export default function CoursesPage() {
                         progress={course.progress}
                         duration={course.duration || 'N/A'}
                         instructor={course.instructor}
+                        registrarsCount={user?.role === 'instructor' ? course.registrarsCount : undefined}
                         color={course.color}
                         onClick={() => {
-                          if (user?.role === 'instructor' || course.learnerStatus === 'enrolled') {
-                            router.push(`/dashboard/courses/${course.id || course._id}`);
-                          }
+                          router.push(`/dashboard/courses/${course.id || course._id}`);
                         }}
                       />
 
@@ -374,16 +372,16 @@ export default function CoursesPage() {
 
                       {/* Explicit Action Overlay for non-enrolled courses (More visible now) */}
                       {user?.role === 'learner' && course.learnerStatus !== 'enrolled' && (
-                        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-6 bg-white/40 backdrop-blur-[1px] rounded-[32px] opacity-0 group-hover:opacity-100 transition-all duration-300">
+                        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-6 bg-white/40 backdrop-blur-[1px] rounded-[32px] opacity-100 transition-all duration-300">
                           <div className="bg-white/90 p-4 rounded-2xl shadow-xl border border-slate-100 w-full max-w-[200px] text-center space-y-3">
                             {course.learnerStatus === 'pending' ? (
                               <div>
-                                <p className="text-sm font-bold text-slate-800">Application Pending</p>
+                                <p className="text-sm font-semibold text-slate-800">Application Pending</p>
                                 <p className="text-[10px] text-slate-500 mt-1">Waiting for instructor approval</p>
                               </div>
                             ) : (
                               <>
-                                <p className="text-sm font-bold text-slate-800">Enroll Today</p>
+                                <p className="text-sm font-semibold text-slate-800">Enroll Today</p>
                                 <div className="space-y-1.5">
                                   {cohorts.filter(coh => coh.courseIds.includes(course.id) && (coh.status === 'upcoming' || coh.status === 'active')).map(coh => (
                                     <Button

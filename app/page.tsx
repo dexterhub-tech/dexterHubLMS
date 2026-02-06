@@ -38,7 +38,7 @@ export default function Home() {
       {/* Navigation */}
       <nav className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="text-2xl font-bold text-primary">DexterHub</div>
+          <div className="text-2xl font-semibold text-primary">DexterHub</div>
           <div className="flex gap-4">
             <Link href="/login">
               <Button variant="ghost">Sign in</Button>
@@ -53,14 +53,14 @@ export default function Home() {
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
         <div className="text-center space-y-6 mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-foreground">
+          <h1 className="text-5xl md:text-6xl font-semibold tracking-tight text-foreground">
             Professional Learning,{' '}
             <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Cohort-Based
             </span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            DexterHub is a modern learning management system designed for structured, 
+            DexterHub is a modern learning management system designed for structured,
             outcome-driven training with accountability and transparency at its core.
           </p>
           <div className="flex gap-4 justify-center pt-4">
@@ -140,7 +140,7 @@ export default function Home() {
       {/* CTA Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl border border-border/50 p-12 text-center space-y-6">
-          <h2 className="text-3xl font-bold text-foreground">Ready to transform your learning?</h2>
+          <h2 className="text-3xl font-semibold text-foreground">Ready to transform your learning?</h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
             Join thousands of learners and instructors using DexterHub for professional development.
           </p>
@@ -156,7 +156,7 @@ export default function Home() {
       <footer className="border-t border-border/50 bg-background/50 backdrop-blur-sm py-12 mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            <div className="text-xl font-bold text-primary">DexterHub</div>
+            <div className="text-xl font-semibold text-primary">DexterHub</div>
             <p className="text-sm text-muted-foreground">© 2024 DexterHub. All rights reserved.</p>
           </div>
         </div>

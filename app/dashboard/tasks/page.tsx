@@ -99,18 +99,18 @@ export default function TasksPage() {
                 {/* Modern Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-200/60">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-slate-900">My Tasks</h1>
+                        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">My Tasks</h1>
                         <p className="text-muted-foreground mt-2 max-w-xl text-lg">
                             Track your assignments, quizzes, and deadlines.
                         </p>
                     </div>
                     <div className="flex gap-3">
                         <div className="flex flex-col items-center bg-white px-4 py-2 rounded-xl border border-slate-100 shadow-sm">
-                            <span className="text-2xl font-bold text-orange-600">{pendingTasks.length}</span>
+                            <span className="text-2xl font-semibold text-orange-600">{pendingTasks.length}</span>
                             <span className="text-xs uppercase font-semibold text-slate-500">Pending</span>
                         </div>
                         <div className="flex flex-col items-center bg-white px-4 py-2 rounded-xl border border-slate-100 shadow-sm">
-                            <span className="text-2xl font-bold text-emerald-600">{completedTasks.length}</span>
+                            <span className="text-2xl font-semibold text-emerald-600">{completedTasks.length}</span>
                             <span className="text-xs uppercase font-semibold text-slate-500">Done</span>
                         </div>
                     </div>
