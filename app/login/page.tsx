@@ -152,9 +152,9 @@ export default function LoginPage() {
         </Card>
 
         {/* Support Link */}
-        <p className="text-center text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em] pt-4">
+        {/* <p className="text-center text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em] pt-4">
           Protected by Enterprise Shield Architecture
-        </p>
+        </p> */}
       </div>
     </div>
   );
