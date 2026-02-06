@@ -185,7 +185,7 @@ export default function CohortsManagementPage() {
           <DialogTrigger asChild>
             <Button className="bg-indigo-600 hover:bg-indigo-700 shadow-sm transition-all hover:shadow-md rounded-xl h-12 px-6">
               <Plus className="w-5 h-5 mr-2" />
-              Initializze Cohort
+              Create Cohort
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl bg-white rounded-[32px] border-none shadow-2xl p-0 overflow-hidden">
@@ -420,10 +420,10 @@ export default function CohortsManagementPage() {
             </div>
             <div>
               <p className="text-2xl font-semibold text-slate-800 tracking-tight">Expand the ecosystem</p>
-              <p className="text-slate-500 mt-2 max-w-sm mx-auto">You haven't initialized any cohorts yet. Start by creating your first academic group.</p>
+              <p className="text-slate-500 mt-2 max-w-sm mx-auto">You haven't created any cohorts yet. Start by creating your first academic group.</p>
             </div>
             <Button onClick={() => setIsDialogOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 rounded-xl px-8 h-12 shadow-xl shadow-indigo-100">
-              Initialize First Cohort
+              Create First Cohort
             </Button>
           </CardContent>
         </Card>

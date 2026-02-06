@@ -222,12 +222,12 @@ export default function CohortsPage() {
                           isEnrolled ? (
                             <Button disabled className="w-full h-14 rounded-2xl bg-emerald-50 text-emerald-600 font-bold border border-emerald-100 opacity-100 flex items-center gap-2">
                               <Sparkles className="w-5 h-5" />
-                              Active Access
+                              Already Enrolled
                             </Button>
                           ) : (
                             <Button
                               onClick={async () => {
-                                if (confirm('Switching cohorts will re-initialize your course progress tracking. Proceed to join?')) {
+                                if (confirm('Switching cohorts will reset your course progress tracking. Proceed to join?')) {
                                   try {
                                     await api.joinCohort(cohort._id);
                                     toast.success('Successfully provisioned into ' + cohort.name);
@@ -250,7 +250,7 @@ export default function CohortsPage() {
                             >
                               {cohort.status === 'active' || cohort.status === 'upcoming' ? (
                                 <div className="flex items-center gap-2">
-                                  Initialize Join
+                                  Join Cohort
                                   <ChevronRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
                                 </div>
                               ) : 'Enrollment Closed'}
