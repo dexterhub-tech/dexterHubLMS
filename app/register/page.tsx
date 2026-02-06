@@ -64,20 +64,20 @@ export default function RegisterPage() {
       <div className="w-full max-w-lg relative z-10 space-y-10">
         {/* Logo/Header */}
         <div className="text-center space-y-3">
-          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-100 mx-auto mb-6">
+          {/* <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-100 mx-auto mb-6">
             <Layers className="w-7 h-7" />
-          </div>
+          </div> */}
           <h1 className="text-4xl font-semibold tracking-tight text-slate-900">Join DexterHub</h1>
           <p className="text-slate-500 text-sm font-medium tracking-wide uppercase">Create your professional learning identity</p>
         </div>
 
         {/* Register Card */}
         <Card className="bg-white border-slate-100 shadow-2xl rounded-[32px] overflow-hidden p-2">
-          <CardHeader className="p-10 pb-4">
+          <CardHeader className="md:p-10 p-4">
             <CardTitle className="text-2xl font-semibold text-slate-900">Sign Up</CardTitle>
             <CardDescription className="text-slate-500 font-medium">Complete the form below to set up your workspace account.</CardDescription>
           </CardHeader>
-          <CardContent className="p-10 pt-4">
+          <CardContent className="md:p-10 p-4">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">

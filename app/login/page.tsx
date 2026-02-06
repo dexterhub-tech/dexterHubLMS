@@ -57,9 +57,9 @@ export default function LoginPage() {
       <div className="w-full max-w-md relative z-10 space-y-8">
         {/* Logo/Header */}
         <div className="text-center space-y-3">
-          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-100 mx-auto mb-6">
+          {/* <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-100 mx-auto mb-6">
             <Layers className="w-7 h-7" />
-          </div>
+          </div> */}
           <h1 className="text-4xl font-semibold tracking-tight text-slate-900">
             Dexter<span className="text-indigo-600">Hub</span>
           </h1>
@@ -68,11 +68,11 @@ export default function LoginPage() {
 
         {/* Login Card */}
         <Card className="bg-white border-slate-100 shadow-2xl rounded-[32px] overflow-hidden p-2">
-          <CardHeader className="space-y-1 p-8 pb-4">
+          <CardHeader className="space-y-1 md:p-8 p-4">
             <CardTitle className="text-2xl font-semibold text-slate-900">Sign In</CardTitle>
             <CardDescription className="text-slate-500 font-medium">Enter your credentials to access your workspace portal</CardDescription>
           </CardHeader>
-          <CardContent className="p-8 pt-4">
+          <CardContent className="md:p-8 p-4">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <label htmlFor="email" className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">
