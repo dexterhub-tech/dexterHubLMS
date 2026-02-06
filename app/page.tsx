@@ -60,11 +60,11 @@ export default function Home() {
                 Sign In
               </Button>
             </Link>
-            <Link href="/register">
+            {/* <Link href="/register">
               <Button className="bg-slate-900 hover:bg-black text-white rounded-xl px-4 md:px-8 h-9 md:h-11 font-semibold shadow-lg shadow-slate-200 uppercase tracking-widest text-[10px] transition-all active:scale-95">
                 Join
               </Button>
-            </Link>
+            </Link> */}
           </div>
         </div>
       </nav>
