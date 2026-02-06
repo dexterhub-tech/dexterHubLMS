@@ -129,13 +129,13 @@ export default function CoursesPage() {
     <div className="min-h-screen bg-neutral-50/50">
       <TopHeader user={user ? { name: `${user.firstName} ${user.lastName}`, email: user.email } : undefined} />
 
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
+      <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
 
         {/* Modern Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-200/60">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Explore Courses</h1>
-            <p className="text-muted-foreground mt-2 max-w-xl text-lg">
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-900 uppercase">Explore Courses</h1>
+            <p className="text-muted-foreground mt-2 max-w-xl text-sm md:text-lg font-medium">
               Manage your curriculum, track progress, and access learning materials.
             </p>
           </div>
@@ -204,12 +204,14 @@ export default function CoursesPage() {
             </div>
 
             <Tabs defaultValue="all" className="w-full">
-              <TabsList className="bg-slate-100/50 p-1 mb-8 h-auto rounded-xl">
-                <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 py-2">All Courses ({filteredCourses.length})</TabsTrigger>
-                <TabsTrigger value="in-progress" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 py-2">In Progress ({inProgressCourses.length})</TabsTrigger>
-                <TabsTrigger value="completed" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 py-2">Completed ({completedCourses.length})</TabsTrigger>
-                <TabsTrigger value="not-started" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 py-2">Not Started ({notStartedCourses.length})</TabsTrigger>
-              </TabsList>
+              <div className="relative">
+                <TabsList className="bg-slate-100/50 p-1 mb-8 h-auto rounded-xl w-full flex overflow-x-auto overflow-y-hidden no-scrollbar justify-start md:justify-start gap-1">
+                  <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 py-2 text-xs md:text-sm font-bold whitespace-nowrap">All Courses ({filteredCourses.length})</TabsTrigger>
+                  <TabsTrigger value="in-progress" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 py-2 text-xs md:text-sm font-bold whitespace-nowrap">In Progress ({inProgressCourses.length})</TabsTrigger>
+                  <TabsTrigger value="completed" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 py-2 text-xs md:text-sm font-bold whitespace-nowrap">Completed ({completedCourses.length})</TabsTrigger>
+                  <TabsTrigger value="not-started" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 py-2 text-xs md:text-sm font-bold whitespace-nowrap">Not Started ({notStartedCourses.length})</TabsTrigger>
+                </TabsList>
+              </div>
 
               <TabsContent value="all" className="mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -95,12 +95,12 @@ export default function TasksPage() {
         <div className="min-h-screen bg-neutral-50/50">
             <TopHeader user={user ? { name: `${user.firstName} ${user.lastName}`, email: user.email } : undefined} />
 
-            <div className="max-w-7xl mx-auto p-6 space-y-8">
+            <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
                 {/* Modern Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-200/60">
                     <div>
-                        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">My Tasks</h1>
-                        <p className="text-muted-foreground mt-2 max-w-xl text-lg">
+                        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-900 uppercase">My Tasks</h1>
+                        <p className="text-muted-foreground mt-2 max-w-xl text-sm md:text-lg font-medium">
                             Track your assignments, quizzes, and deadlines.
                         </p>
                     </div>
@@ -132,13 +132,14 @@ export default function TasksPage() {
                     </div>
                 </div>
 
-                {/* Tabs */}
                 <Tabs defaultValue="all" className="w-full">
-                    <TabsList className="bg-slate-100/50 p-1 mb-8 h-auto rounded-xl inline-flex">
-                        <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-2">All Tasks ({tasks.length})</TabsTrigger>
-                        <TabsTrigger value="pending" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-2">Pending ({pendingTasks.length})</TabsTrigger>
-                        <TabsTrigger value="completed" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-2">Completed ({completedTasks.length})</TabsTrigger>
-                    </TabsList>
+                    <div className="relative">
+                        <TabsList className="bg-slate-100/50 p-1 mb-6 md:mb-8 h-auto rounded-xl w-full flex overflow-x-auto overflow-y-hidden no-scrollbar justify-start md:justify-start gap-1">
+                            <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 md:px-6 py-2 text-xs md:text-sm font-bold whitespace-nowrap">All Tasks ({tasks.length})</TabsTrigger>
+                            <TabsTrigger value="pending" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 md:px-6 py-2 text-xs md:text-sm font-bold whitespace-nowrap">Pending ({pendingTasks.length})</TabsTrigger>
+                            <TabsTrigger value="completed" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 md:px-6 py-2 text-xs md:text-sm font-bold whitespace-nowrap">Completed ({completedTasks.length})</TabsTrigger>
+                        </TabsList>
+                    </div>
 
                     {isLoading ? (
                         <div className="my-10 text-center text-muted-foreground">Loading tasks...</div>

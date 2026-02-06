@@ -154,14 +154,14 @@ export function ModernSidebar({ role = 'learner' }: ModernSidebarProps) {
     return (
         <>
             {/* Mobile Trigger */}
-            <div className="lg:hidden fixed top-4 left-4 z-50">
+            <div className="lg:hidden fixed top-5 left-4 z-50">
                 <Sheet open={isOpen} onOpenChange={setIsOpen}>
                     <SheetTrigger asChild>
-                        <button className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 shadow-xl hover:bg-slate-50 transition-all">
+                        <button className="transition-all">
                             <Menu className="w-6 h-6" />
                         </button>
                     </SheetTrigger>
-                    <SheetContent side="left" className="p-0 border-r-0 bg-neutral-50/50 backdrop-blur-md w-80">
+                    <SheetContent side="left" className="p-0 border-r-0 bg-white w-80">
                         <SidebarContent role={role} user={user} logout={logout} pathname={pathname} onLinkClick={() => setIsOpen(false)} />
                     </SheetContent>
                 </Sheet>

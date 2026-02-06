@@ -27,13 +27,13 @@ export function StatCard({
             <div className="flex items-start justify-between">
                 <div className="flex-1">
                     <div className={cn(
-                        "w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors",
+                        "md:w-12 md:h-12 w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-colors",
                         iconBgColor
                     )}>
                         <Icon className={cn("w-6 h-6", iconColor)} />
                     </div>
                     <p className="text-sm font-medium text-muted-foreground mb-1">{label}</p>
-                    <p className="text-3xl font-semibold text-slate-800 tracking-tight">{value}</p>
+                    <p className="md:text-3xl text-lg font-semibold text-slate-800 tracking-tight">{value}</p>
                     {trend && (
                         <p className={cn(
                             "text-sm mt-2 font-medium flex items-center gap-1",

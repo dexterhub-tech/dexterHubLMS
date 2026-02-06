@@ -46,7 +46,7 @@ export function CourseCard({
     return (
         <div
             onClick={onClick}
-            className="group relative bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 overflow-hidden"
+            className="group relative bg-white rounded-[32px] p-5 md:p-6 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 overflow-hidden"
         >
             {/* Background Accent */}
             <div className={cn(
@@ -85,20 +85,20 @@ export function CourseCard({
                 <div className="h-px bg-slate-50 w-full" />
 
                 {/* Footer Meta */}
-                <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-                    <div className="flex items-center gap-4">
+                <div className="flex items-center justify-between text-[10px] md:text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 md:gap-4">
                         <div className="flex items-center gap-1.5">
                             <Clock className="w-3.5 h-3.5" />
                             {duration}
                         </div>
                         <div className="flex items-center gap-1.5">
                             <User className="w-3.5 h-3.5" />
-                            {instructor}
+                            <span className="truncate max-w-[80px] md:max-w-none">{instructor}</span>
                         </div>
                         {registrarsCount !== undefined && (
                             <div className="flex items-center gap-1.5 text-indigo-600">
                                 <TrendingUp className="w-3.5 h-3.5" />
-                                {registrarsCount} Registrar{registrarsCount !== 1 ? 's' : ''}
+                                {registrarsCount}
                             </div>
                         )}
                     </div>

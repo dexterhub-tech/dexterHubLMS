@@ -92,7 +92,7 @@ export default function CohortsPage() {
     <div className="min-h-screen bg-neutral-50/50 pb-20">
       <TopHeader user={user ? { name: `${user.firstName} ${user.lastName}`, email: user.email } : undefined} />
 
-      <div className="max-w-7xl mx-auto p-8 space-y-10">
+      <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-10">
         {/* Hero Section */}
         {/* <div className="relative overflow-hidden rounded-[32px] bg-slate-900 p-10 md:p-14 text-white shadow-2xl shadow-slate-200">
           <div className="relative z-10 max-w-3xl space-y-6">
@@ -149,7 +149,7 @@ export default function CohortsPage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-3">
-            
+
               All Cohorts
             </h2>
           </div>
@@ -189,7 +189,7 @@ export default function CohortsPage() {
                           </p>
                         </div>
 
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 pt-4">
                           <div className="space-y-1">
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                               <Users className="w-3 h-3" /> Learners

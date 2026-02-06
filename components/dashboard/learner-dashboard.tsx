@@ -96,7 +96,7 @@ export function LearnerDashboard() {
         <div className="min-h-screen bg-neutral-50/50 pb-20">
             <TopHeader user={user ? { name: `${user.firstName} ${user.lastName}`, email: user.email } : undefined} />
 
-            <div className="max-w-7xl mx-auto p-8 space-y-10">
+            <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-10">
                 {/* Hero Section */}
                 <div className="relative overflow-hidden rounded-[32px] bg-indigo-600 p-8 md:p-14 text-white shadow-2xl shadow-indigo-200">
                     <div className="relative z-10 max-w-2xl space-y-6">
@@ -133,14 +133,11 @@ export function LearnerDashboard() {
                 {/* Stats Section */}
                 <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-semibold tracking-tight flex items-center gap-3 text-slate-900">
-                            <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
-                                <TrendingUp className="w-5 h-5" />
-                            </div>
+                        <h2 className="text-xl md:text-2xl font-semibold tracking-tight flex items-center gap-3 text-slate-900">
                             Performance Metrics
                         </h2>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 md:gap-6 gap-4">
                         <StatCard
                             icon={BookOpen}
                             label="Active Modules"
@@ -178,10 +175,7 @@ export function LearnerDashboard() {
                         {/* Current Courses */}
                         <div className="space-y-6">
                             <div className="flex items-center justify-between lg:pr-4">
-                                <h2 className="text-2xl font-semibold tracking-tight text-slate-900 flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
-                                        <BookOpen className="w-5 h-5" />
-                                    </div>
+                                <h2 className="text-xl md:text-2xl font-semibold tracking-tight text-slate-900 flex items-center gap-3">
                                     Assigned Curriculum
                                 </h2>
                                 <Button variant="ghost" onClick={() => router.push('/dashboard/courses')} className="text-indigo-600 font-bold hover:bg-indigo-50 rounded-xl">Explore All</Button>
@@ -218,10 +212,7 @@ export function LearnerDashboard() {
 
                         {/* Recent Tasks */}
                         <div className="space-y-6">
-                            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
-                                    <FileText className="w-5 h-5" />
-                                </div>
+                            <h2 className="md:text-2xl text-xl font-semibold tracking-tight text-slate-900">
                                 Required Submissions
                             </h2>
                             <div className="space-y-4">
@@ -263,12 +254,9 @@ export function LearnerDashboard() {
 
                     {/* Right Sidebar */}
                     <div className="space-y-8 sticky top-24">
-                        <div className="rounded-[32px] border border-slate-100 bg-white p-8 shadow-sm space-y-8">
+                        <div className="rounded-[32px] border border-slate-100 bg-white md:p-8 px-4 p-6 shadow-sm space-y-8">
                             <div className="space-y-2">
-                                <h3 className="text-xl font-semibold text-slate-900 flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
-                                        <Calendar className="w-4 h-4" />
-                                    </div>
+                                <h3 className="md:text-xl text-lg font-semibold text-slate-900">
                                     Academic Log
                                 </h3>
                                 <p className="text-sm text-slate-500">Track your attendance and deadlines</p>
