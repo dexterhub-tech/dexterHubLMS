@@ -74,7 +74,7 @@ export default function RegisterPage() {
         {/* Register Card */}
         <Card className="bg-white border-slate-100 shadow-2xl rounded-[32px] overflow-hidden p-2">
           <CardHeader className="p-10 pb-4">
-            <CardTitle className="text-2xl font-semibold text-slate-900">Establish Profile</CardTitle>
+            <CardTitle className="text-2xl font-semibold text-slate-900">Sign Up</CardTitle>
             <CardDescription className="text-slate-500 font-medium">Complete the form below to set up your workspace account.</CardDescription>
           </CardHeader>
           <CardContent className="p-10 pt-4">
