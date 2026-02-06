@@ -183,7 +183,7 @@ export default function LearnersAdminPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <StatCard
           icon={Users}
-          label="Total Database"
+          label="Total Students"
           value={stats.total}
           iconColor="text-slate-600"
           iconBgColor="bg-slate-50"
@@ -197,7 +197,7 @@ export default function LearnersAdminPage() {
         />
         <StatCard
           icon={AlertCircle}
-          label="Requires Action"
+          label="At Risk"
           value={stats.atRisk}
           iconColor="text-orange-600"
           iconBgColor="bg-orange-50"
@@ -211,7 +211,7 @@ export default function LearnersAdminPage() {
         />
         <StatCard
           icon={XCircle}
-          label="Dropped Students"
+          label="Dropped"
           value={stats.dropped}
           iconColor="text-rose-600"
           iconBgColor="bg-rose-50"
@@ -258,11 +258,11 @@ export default function LearnersAdminPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-50">
-                <th className="px-8 py-5 text-[10px] font-semibold uppercase tracking-widest text-slate-400">Learner Identity</th>
-                <th className="px-6 py-5 text-[10px] font-semibold uppercase tracking-widest text-slate-400 text-center">Current Cohort</th>
-                <th className="px-6 py-5 text-[10px] font-semibold uppercase tracking-widest text-slate-400 text-center">Academic Status</th>
-                <th className="px-6 py-5 text-[10px] font-semibold uppercase tracking-widest text-slate-400 text-center">Power Score</th>
-                <th className="px-6 py-5 text-[10px] font-semibold uppercase tracking-widest text-slate-400 text-center">Enrollment Date</th>
+                <th className="px-8 py-5 text-[10px] font-semibold uppercase tracking-widest text-slate-400">Student Info</th>
+                <th className="px-6 py-5 text-[10px] font-semibold uppercase tracking-widest text-slate-400 text-center">Cohort</th>
+                <th className="px-6 py-5 text-[10px] font-semibold uppercase tracking-widest text-slate-400 text-center">Status</th>
+                <th className="px-6 py-5 text-[10px] font-semibold uppercase tracking-widest text-slate-400 text-center">Grade</th>
+                <th className="px-6 py-5 text-[10px] font-semibold uppercase tracking-widest text-slate-400 text-center">Joined</th>
                 <th className="px-8 py-5 text-[10px] font-semibold uppercase tracking-widest text-slate-400 text-right">Actions</th>
               </tr>
             </thead>

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Loader2, User, Mail, Lock, ArrowRight, Layers, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Loader2, User, Mail, Lock, ArrowRight, Layers, CheckCircle2, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function RegisterPage() {
@@ -18,6 +18,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('learner');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { register, isAuthenticated } = useAuth();
@@ -44,7 +45,7 @@ export default function RegisterPage() {
     setIsLoading(true);
     try {
       await register(firstName, lastName, email, password, role);
-      toast.success('Onboarding Successful. Welcome to DexterHub.');
+      toast.success('Registration complete! Welcome to DexterHub.');
       router.push('/dashboard');
     } catch (error: any) {
       toast.error(error.message || 'Onboarding failed');
@@ -68,7 +69,7 @@ export default function RegisterPage() {
             <Layers className="w-7 h-7" />
           </div> */}
           <h1 className="text-4xl font-semibold tracking-tight text-slate-900">Join DexterHub</h1>
-          <p className="text-slate-500 text-sm font-medium tracking-wide uppercase">Create your professional learning identity</p>
+          <p className="text-slate-500 text-sm font-medium tracking-wide uppercase">Create your account</p>
         </div>
 
         {/* Register Card */}
@@ -134,19 +135,26 @@ export default function RegisterPage() {
 
               <div className="space-y-2">
                 <label htmlFor="password" className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">
-                  Secured Key
+                  Password
                 </label>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                   <Input
                     id="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
-                    className="bg-slate-50 border-slate-100 h-12 pl-11 text-slate-900 placeholder:text-slate-400 focus:ring-indigo-500/10 focus:border-indigo-500/50 rounded-2xl transition-all"
+                    className="bg-slate-50 border-slate-100 h-12 pl-11 pr-11 text-slate-900 placeholder:text-slate-400 focus:ring-indigo-500/10 focus:border-indigo-500/50 rounded-2xl transition-all"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
                 <div className="flex items-center gap-2 mt-2 ml-1">
                   {password.length >= 6 ? (
@@ -160,7 +168,7 @@ export default function RegisterPage() {
 
               <div className="space-y-3">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">
-                  Workspace Role
+                  Select Your Role
                 </label>
                 <div className="grid grid-cols-2 gap-4">
                   <div

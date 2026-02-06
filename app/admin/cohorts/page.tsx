@@ -192,10 +192,10 @@ export default function CohortsManagementPage() {
             <div className="bg-indigo-600 p-8 text-white">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-semibold">
-                  {editingCohort ? 'Modify Cohort' : 'New Academic Group'}
+                  {editingCohort ? 'Edit Cohort' : 'New Learning Group'}
                 </DialogTitle>
                 <DialogDescription className="text-indigo-100 opacity-90">
-                  Configure thresholds, schedules, and targets for the cohort.
+                  Set the schedule and targets for this group.
                 </DialogDescription>
               </DialogHeader>
             </div>
@@ -203,7 +203,7 @@ export default function CohortsManagementPage() {
             <form onSubmit={handleSubmit} className="p-8 space-y-6">
               <div className="space-y-4">
                 <div className="grid gap-2">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Cohort Identifier</label>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Cohort Name</label>
                   <Input
                     placeholder="e.g., Summer Intensive Flow 2024"
                     value={formData.name}
@@ -213,9 +213,9 @@ export default function CohortsManagementPage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Overview & Context</label>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Description</label>
                   <Textarea
-                    placeholder="Provide vision and goals for this cohort..."
+                    placeholder="What is this cohort about?"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     className="min-h-24 rounded-xl bg-slate-50 border-slate-100 focus:bg-white transition-all resize-none"
@@ -224,7 +224,7 @@ export default function CohortsManagementPage() {
 
                 <div className="grid grid-cols-2 gap-6">
                   <div className="grid gap-2">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Start Timeline</label>
+                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Start Date</label>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <Input
@@ -318,7 +318,7 @@ export default function CohortsManagementPage() {
                   Cancel
                 </Button>
                 <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 rounded-xl h-12 px-8 font-semibold text-white shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5">
-                  {editingCohort ? 'Update Cohort' : 'Launch New Cohort'}
+                  {editingCohort ? 'Save Changes' : 'Create Cohort'}
                 </Button>
               </div>
             </form>

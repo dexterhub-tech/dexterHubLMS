@@ -230,13 +230,13 @@ export default function CohortsPage() {
                                 if (confirm('Switching cohorts will reset your course progress tracking. Proceed to join?')) {
                                   try {
                                     await api.joinCohort(cohort._id);
-                                    toast.success('Successfully provisioned into ' + cohort.name);
+                                    toast.success('Successfully joined ' + cohort.name);
                                     const updatedCohorts = await api.getCohorts();
                                     setCohorts(updatedCohorts);
                                     await refreshUser();
                                   } catch (error) {
                                     console.error(error);
-                                    toast.error('Provisioning failed');
+                                    toast.error('Failed to join cohort');
                                   }
                                 }
                               }}
@@ -279,7 +279,7 @@ export default function CohortsPage() {
             </div>
             <div className="max-w-xs mx-auto space-y-2">
               <h3 className="text-xl font-semibold text-slate-900">Academic Grid Empty</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">No cohorts have been published to the directory yet. Please synchronize with administrators.</p>
+              <p className="text-slate-500 text-sm leading-relaxed">No cohorts have been published to the directory yet. Please check back later.</p>
             </div>
           </div>
         )}

@@ -37,7 +37,7 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await login(email, password);
-      toast.success('Access Granted. Welcome back.');
+      toast.success('Welcome back!');
       router.push('/dashboard');
     } catch (error: any) {
       toast.error(error.message || 'Authentication failed');
@@ -63,7 +63,7 @@ export default function LoginPage() {
           <h1 className="text-4xl font-semibold tracking-tight text-slate-900">
             Dexter<span className="text-indigo-600">Hub</span>
           </h1>
-          <p className="text-slate-500 text-sm font-medium tracking-wide uppercase">Workspace Authentication</p>
+          <p className="text-slate-500 text-sm font-medium tracking-wide uppercase">Welcome back</p>
         </div>
 
         {/* Login Card */}
@@ -95,7 +95,7 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center ml-1">
                   <label htmlFor="password" className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  Password
+                    Password
                   </label>
                   <button type="button" className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-widest transition-colors">
                     Forgot password?
