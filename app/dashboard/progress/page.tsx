@@ -120,16 +120,16 @@ export default function ProgressPage() {
 
             <div className="flex gap-4">
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-[32px] w-40 text-center space-y-2">
-                <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-widest">Global Rank</p>
-                <p className="text-4xl font-black">#12</p>
+                <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-widest">Est. Rank</p>
+                <p className="text-4xl font-black">#{stats.streak > 0 ? Math.max(1, 100 - stats.streak) : '--'}</p>
                 <div className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-semibold leading-none">
-                  <TrendingUp className="w-3 h-3" /> +3
+                  {stats.streak > 0 && <><TrendingUp className="w-3 h-3" /> Top 10%</>}
                 </div>
               </div>
               <div className="bg-indigo-600 p-6 rounded-[32px] w-40 text-center space-y-2 shadow-xl shadow-indigo-900/40">
                 <p className="text-indigo-200 text-[10px] font-semibold uppercase tracking-widest">Total XP</p>
-                <p className="text-4xl font-black">4.8k</p>
-                <p className="text-[10px] text-indigo-400 font-semibold leading-none">Next level at 5k</p>
+                <p className="text-4xl font-black">{Math.round(stats.hours * 100).toLocaleString()}</p>
+                <p className="text-[10px] text-indigo-400 font-semibold leading-none">Based on hours tracking</p>
               </div>
             </div>
           </div>
@@ -143,7 +143,7 @@ export default function ProgressPage() {
             value={`${stats.velocity}%`}
             iconColor="text-indigo-600"
             iconBgColor="bg-indigo-50"
-            trend={{ value: "Based on recent output", isPositive: true }}
+            trend={{ value: "Average Score", isPositive: true }}
           />
           <StatCard
             icon={Clock}
@@ -180,10 +180,7 @@ export default function ProgressPage() {
                     <CardTitle className="text-2xl font-semibold">Performance Analytics</CardTitle>
                     <CardDescription className="text-slate-500 mt-1">Consistency tracking across last 8 weeks</CardDescription>
                   </div>
-                  <select className="bg-slate-50 border-none rounded-xl text-xs font-semibold p-2 outline-none cursor-pointer">
-                    <option>Last 8 Weeks</option>
-                    <option>This Semester</option>
-                  </select>
+                  <Badge variant="outline" className="bg-slate-50">Last 8 Weeks</Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-8 pt-4">
@@ -236,19 +233,13 @@ export default function ProgressPage() {
                   <h3 className="font-semibold text-lg">Goal Progression</h3>
                 </div>
                 <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-xs font-semibold mb-2">
-                      <span className="text-slate-400">COURSE COMPLETION</span>
-                      <span className="text-indigo-600">75%</span>
-                    </div>
-                    <Progress value={75} className="h-2 bg-slate-50" />
-                  </div>
+                  {/* Remove hardcoded course completion if unknown */}
                   <div>
                     <div className="flex justify-between text-xs font-semibold mb-2">
                       <span className="text-slate-400">ASSIGNMENT ACCURACY</span>
-                      <span className="text-violet-600">92%</span>
+                      <span className="text-violet-600">{stats.velocity}%</span>
                     </div>
-                    <Progress value={92} className="h-2 bg-slate-50" indicatorClassName="bg-violet-600" />
+                    <Progress value={stats.velocity} className="h-2 bg-slate-50" indicatorClassName="bg-violet-600" />
                   </div>
                 </div>
               </Card>
@@ -261,12 +252,12 @@ export default function ProgressPage() {
                   <h3 className="font-semibold text-lg">Milestones</h3>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Badge className="bg-indigo-50 text-indigo-600 border-indigo-100 py-1.5 px-3 rounded-xl text-[10px] font-semibold">Fast Learner</Badge>
-                  <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 py-1.5 px-3 rounded-xl text-[10px] font-semibold">Code Master</Badge>
-                  <Badge className="bg-violet-50 text-violet-600 border-violet-100 py-1.5 px-3 rounded-xl text-[10px] font-semibold">Helper</Badge>
-                  <Badge className="bg-rose-50 text-rose-600 border-rose-100 py-1.5 px-3 rounded-xl text-[10px] font-semibold">Night Owl</Badge>
+                  {stats.streak >= 7 && <Badge className="bg-rose-50 text-rose-600 border-rose-100 py-1.5 px-3 rounded-xl text-[10px] font-semibold">Week Streak</Badge>}
+                  {stats.velocity > 80 && <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 py-1.5 px-3 rounded-xl text-[10px] font-semibold">High Performer</Badge>}
+                  {stats.hours > 50 && <Badge className="bg-violet-50 text-violet-600 border-violet-100 py-1.5 px-3 rounded-xl text-[10px] font-semibold">Dedicated</Badge>}
+                  {stats.certificates > 0 && <Badge className="bg-indigo-50 text-indigo-600 border-indigo-100 py-1.5 px-3 rounded-xl text-[10px] font-semibold">Certified</Badge>}
+                  {stats.streak === 0 && stats.velocity === 0 && <span className="text-xs text-slate-400">No milestones yet. Start learning!</span>}
                 </div>
-                <p className="text-[11px] text-slate-400 font-medium">Unlocked 12/24 total platform badges</p>
               </Card>
             </div>
           </div>
@@ -276,65 +267,66 @@ export default function ProgressPage() {
             <Card className="rounded-[32px] border-slate-100 shadow-sm bg-white overflow-hidden h-full flex flex-col">
               <CardHeader className="p-8 pb-4">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl font-semibold">Evaluations</CardTitle>
-                  <button className="text-xs font-semibold text-indigo-600 hover:text-indigo-700">View All</button>
+                  <CardTitle className="text-xl font-semibold">Recent Activity</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="p-4 pt-0 flex-1">
                 <div className="space-y-4">
-                  {assessments.map((assessment) => (
-                    <div
-                      key={assessment.id}
-                      className="group p-4 rounded-2xl border border-slate-50 hover:border-indigo-100 hover:bg-slate-50/50 transition-all cursor-pointer"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge className={cn(
-                          "text-[9px] font-black uppercase px-2 py-0.5 rounded-lg border-none shadow-none",
-                          assessment.type === 'Quiz' ? "bg-amber-100 text-amber-600" :
-                            assessment.type === 'Exam' ? "bg-rose-100 text-rose-600" :
-                              "bg-indigo-100 text-indigo-600"
-                        )}>
-                          {assessment.type}
-                        </Badge>
-                        <span className="text-[10px] font-semibold text-slate-400">
-                          {new Date(assessment.date).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <div className="flex items-end justify-between">
-                        <div>
-                          <h4 className="font-semibold text-slate-800 text-sm group-hover:text-indigo-600 transition-colors">
-                            {assessment.name}
-                          </h4>
+                  {assessments.length === 0 ? (
+                    <div className="text-center py-8 text-slate-400 text-sm">No recent activity</div>
+                  ) : (
+                    assessments.map((assessment) => (
+                      <div
+                        key={assessment.id}
+                        className="group p-4 rounded-2xl border border-slate-50 hover:border-indigo-100 hover:bg-slate-50/50 transition-all cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className={cn(
+                            "text-[9px] font-black uppercase px-2 py-0.5 rounded-lg border-none shadow-none",
+                            assessment.type === 'Quiz' ? "bg-amber-100 text-amber-600" :
+                              assessment.type === 'Exam' ? "bg-rose-100 text-rose-600" :
+                                "bg-indigo-100 text-indigo-600"
+                          )}>
+                            {assessment.type}
+                          </Badge>
+                          <span className="text-[10px] font-semibold text-slate-400">
+                            {new Date(assessment.date).toLocaleDateString()}
+                          </span>
                         </div>
-                        <div className="text-right">
-                          {assessment.status === 'completed' ? (
-                            <div className="font-black text-lg text-slate-900 leading-none">
-                              {assessment.score}<span className="text-xs text-slate-400 font-semibold ml-0.5">/100</span>
-                            </div>
-                          ) : (
-                            <Badge className="bg-slate-100 text-slate-500 border-none font-semibold text-[9px] px-2">PENDING</Badge>
-                          )}
+                        <div className="flex items-end justify-between">
+                          <div>
+                            <h4 className="font-semibold text-slate-800 text-sm group-hover:text-indigo-600 transition-colors">
+                              {assessment.name}
+                            </h4>
+                          </div>
+                          <div className="text-right">
+                            {assessment.status === 'completed' ? (
+                              <div className="font-black text-lg text-slate-900 leading-none">
+                                {assessment.score}<span className="text-xs text-slate-400 font-semibold ml-0.5">/100</span>
+                              </div>
+                            ) : (
+                              <Badge className="bg-slate-100 text-slate-500 border-none font-semibold text-[9px] px-2">PENDING</Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    )))}
                 </div>
 
-                {/* Summary Widget */}
-                <div className="mt-8 p-6 rounded-[24px] bg-indigo-600 text-white space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                      <Star className="w-4 h-4 fill-white" />
+                {/* Summary Widget - Conditional */}
+                {assessments.some(a => a.status === 'pending') && (
+                  <div className="mt-8 p-6 rounded-[24px] bg-indigo-600 text-white space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                        <Star className="w-4 h-4 fill-white" />
+                      </div>
+                      <h4 className="font-semibold">Next Task</h4>
                     </div>
-                    <h4 className="font-semibold">Next Milestone</h4>
+                    <p className="text-xs text-indigo-100 leading-relaxed">
+                      You have pending items to complete. Keep going!
+                    </p>
                   </div>
-                  <p className="text-xs text-indigo-100 leading-relaxed">
-                    Complete your <span className="font-semibold text-white">Final Portfolio Project</span> to earn the "Professional Developer" certificate.
-                  </p>
-                  <button className="w-full bg-white py-2 rounded-xl text-indigo-600 text-xs font-black hover:bg-indigo-50 transition-colors">
-                    EXPLORE REQUIREMENTS
-                  </button>
-                </div>
+                )}
               </CardContent>
             </Card>
           </div>

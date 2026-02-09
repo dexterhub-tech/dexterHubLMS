@@ -230,6 +230,10 @@ class APIClient {
     return this.request('/api/courses');
   }
 
+  async getInstructorLearners(): Promise<any[]> {
+    return this.request('/api/instructors/learners');
+  }
+
   async getCourseDetails(id: string): Promise<any> {
     return this.request(`/api/courses/${id}`);
   }

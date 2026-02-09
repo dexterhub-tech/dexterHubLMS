@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TopHeader } from '@/components/top-header';
 import { StatCard } from '@/components/stat-card';
 import { useAuth } from '@/lib/auth-context';
+import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Users, AlertCircle, MessageSquare, Flag, UserCheck } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
+import { Users, AlertCircle, MessageSquare, Flag, UserCheck, Search, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 
@@ -30,48 +34,43 @@ interface Learner {
   status: 'on-track' | 'at-risk' | 'under-review' | 'dropped';
   currentScore: number;
   inactivityDays: number;
+  cohortId?: string;
+}
+
+function LearnerSkeleton() {
+  return (
+    <Card className="border-border animate-pulse">
+      <CardContent className="pt-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex-1 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-muted" />
+            <div className="space-y-2">
+              <div className="h-5 w-32 bg-muted rounded" />
+              <div className="h-4 w-48 bg-muted rounded" />
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-8 w-full md:w-auto">
+            <div className="space-y-2">
+              <div className="h-3 w-12 bg-muted rounded mx-auto" />
+              <div className="h-6 w-16 bg-muted rounded mx-auto" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-3 w-12 bg-muted rounded mx-auto" />
+              <div className="h-6 w-16 bg-muted rounded mx-auto" />
+            </div>
+            <div className="h-10 w-24 bg-muted rounded" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function LearnersPage() {
   const { user } = useAuth();
-  const [learners] = useState<Learner[]>([
-    {
-      id: '1',
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john@example.com',
-      status: 'on-track',
-      currentScore: 85,
-      inactivityDays: 0,
-    },
-    {
-      id: '2',
-      firstName: 'Jane',
-      lastName: 'Smith',
-      email: 'jane@example.com',
-      status: 'at-risk',
-      currentScore: 62,
-      inactivityDays: 5,
-    },
-    {
-      id: '3',
-      firstName: 'Mike',
-      lastName: 'Johnson',
-      email: 'mike@example.com',
-      status: 'on-track',
-      currentScore: 78,
-      inactivityDays: 1,
-    },
-    {
-      id: '4',
-      firstName: 'Sarah',
-      lastName: 'Williams',
-      email: 'sarah@example.com',
-      status: 'under-review',
-      currentScore: 55,
-      inactivityDays: 14,
-    },
-  ]);
+  const [learners, setLearners] = useState<Learner[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('all');
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLearner, setSelectedLearner] = useState<Learner | null>(null);
@@ -80,6 +79,25 @@ export default function LearnersPage() {
   const [noteText, setNoteText] = useState('');
   const [recommendReason, setRecommendReason] = useState('');
   const [recommendEvidence, setRecommendEvidence] = useState('');
+
+  const fetchLearners = async () => {
+    try {
+      setIsLoading(true);
+      const data = await api.getInstructorLearners();
+      setLearners(data);
+    } catch (error) {
+      console.error('Failed to fetch learners:', error);
+      toast.error('Failed to load learners');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.role === 'instructor') {
+      fetchLearners();
+    }
+  }, [user]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -97,10 +115,16 @@ export default function LearnersPage() {
   };
 
   const filteredLearners = learners.filter(
-    (learner) =>
-      learner.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      learner.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      learner.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (learner) => {
+      const matchesSearch =
+        learner.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        learner.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        learner.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesTab = activeTab === 'all' || learner.status === activeTab;
+
+      return matchesSearch && matchesTab;
+    }
   );
 
   const handleAddNote = async () => {
@@ -110,9 +134,14 @@ export default function LearnersPage() {
     }
 
     try {
+      if (!selectedLearner.cohortId) {
+        toast.error('Learner is not associated with a cohort');
+        return;
+      }
+
       await api.submitInstructorNote({
         learnerId: selectedLearner.id,
-        cohortId: 'cohort-id',
+        cohortId: selectedLearner.cohortId,
         note: noteText,
         type: 'general',
       });
@@ -133,9 +162,14 @@ export default function LearnersPage() {
     }
 
     try {
+      if (!selectedLearner.cohortId) {
+        toast.error('Learner is not associated with a cohort');
+        return;
+      }
+
       await api.submitDropRecommendation({
         learnerId: selectedLearner.id,
-        cohortId: 'cohort-id',
+        cohortId: selectedLearner.cohortId,
         reason: recommendReason,
         evidence: recommendEvidence,
       });
@@ -145,6 +179,7 @@ export default function LearnersPage() {
       setRecommendReason('');
       setRecommendEvidence('');
       setSelectedLearner(null);
+      fetchLearners(); // Refresh list to show updated status if immediate
     } catch (error) {
       toast.error('Failed to submit recommendation');
     }
@@ -155,164 +190,213 @@ export default function LearnersPage() {
   const underReviewCount = learners.filter(l => l.status === 'under-review').length;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-50/50">
       <TopHeader user={user ? { name: `${user.firstName} ${user.lastName}`, email: user.email } : undefined} />
 
-      <div className="p-6 space-y-6">
-        <div>
-          <h1 className="text-3xl font-semibold text-foreground">Learner Management</h1>
-          <p className="text-muted-foreground mt-2">{filteredLearners.length} learners</p>
+      <main className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-bold text-slate-900 tracking-tight">Learner Management</h1>
+            <p className="text-slate-500 mt-2 font-medium">Monitoring {learners.length} active learners across your cohorts</p>
+          </div>
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
             icon={Users}
             label="Total Learners"
             value={learners.length}
-            iconColor="text-blue-600"
-            iconBgColor="bg-blue-100"
+            iconColor="text-indigo-600"
+            iconBgColor="bg-indigo-50"
           />
           <StatCard
             icon={UserCheck}
             label="On Track"
             value={onTrackCount}
-            iconColor="text-green-600"
-            iconBgColor="bg-green-100"
+            iconColor="text-emerald-600"
+            iconBgColor="bg-emerald-50"
           />
           <StatCard
             icon={AlertCircle}
             label="At Risk"
             value={atRiskCount}
             iconColor="text-orange-600"
-            iconBgColor="bg-orange-100"
+            iconBgColor="bg-orange-50"
           />
           <StatCard
             icon={Flag}
             label="Under Review"
             value={underReviewCount}
-            iconColor="text-yellow-600"
-            iconBgColor="bg-yellow-100"
+            iconColor="text-rose-600"
+            iconBgColor="bg-rose-50"
           />
         </div>
 
-        {/* Search */}
-        <div>
-          <Input
-            placeholder="Search learners by name or email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-md"
-          />
-        </div>
+        <div className="bg-white rounded-[32px] border border-slate-200/60 shadow-sm overflow-hidden min-h-[600px] flex flex-col">
+          <div className="p-6 border-b border-slate-100 bg-slate-50/30">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full lg:w-auto">
+                <TabsList className="bg-slate-100/80 p-1 rounded-xl">
+                  <TabsTrigger value="all" className="rounded-lg px-4 font-semibold">All</TabsTrigger>
+                  <TabsTrigger value="on-track" className="rounded-lg px-4 font-semibold">On Track</TabsTrigger>
+                  <TabsTrigger value="at-risk" className="rounded-lg px-4 font-semibold">At Risk</TabsTrigger>
+                  <TabsTrigger value="under-review" className="rounded-lg px-4 font-semibold">Under Review</TabsTrigger>
+                </TabsList>
+              </Tabs>
 
-        {/* Learners List */}
-        <div className="space-y-3">
-          {filteredLearners.map((learner) => (
-            <Card key={learner.id} className="border-border hover:shadow-md transition-shadow">
-              <CardContent className="pt-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-foreground">
-                        {learner.firstName} {learner.lastName}
-                      </h3>
-                      <Badge className={`${getStatusColor(learner.status)} border`}>
-                        {learner.status.replace('-', ' ').toUpperCase()}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{learner.email}</p>
-                  </div>
+              <div className="relative w-full lg:w-96 group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                <Input
+                  placeholder="Search students..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-11 h-12 bg-white border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500/10 transition-all text-sm font-medium"
+                />
+              </div>
+            </div>
+          </div>
 
-                  <div className="grid grid-cols-3 gap-4 md:gap-8">
-                    <div className="text-center">
-                      <p className="text-xs text-muted-foreground">Score</p>
-                      <p className="text-2xl font-semibold text-foreground">{learner.currentScore}%</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-xs text-muted-foreground">Inactive</p>
-                      <p className="text-2xl font-semibold text-foreground">{learner.inactivityDays}d</p>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      {learner.status === 'at-risk' || learner.status === 'under-review' ? (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setSelectedLearner(learner);
-                              setShowNoteDialog(true);
-                            }}
-                            className="gap-1"
-                          >
-                            <MessageSquare className="w-3 h-3" />
-                            Note
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => {
-                              setSelectedLearner(learner);
-                              setShowRecommendDialog(true);
-                            }}
-                            className="gap-1"
-                          >
-                            <Flag className="w-3 h-3" />
-                            Recommend
-                          </Button>
-                        </>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedLearner(learner);
-                            setShowNoteDialog(true);
-                          }}
-                          className="gap-1"
-                        >
-                          <MessageSquare className="w-3 h-3" />
-                          Note
-                        </Button>
-                      )}
-                    </div>
-                  </div>
+          <div className="flex-1 p-6 overflow-y-auto">
+            {isLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3, 4, 5].map((i) => <LearnerSkeleton key={i} />)}
+              </div>
+            ) : filteredLearners.length > 0 ? (
+              <div className="space-y-4">
+                {filteredLearners.map((learner) => (
+                  <Card key={learner.id} className="group border-slate-100 hover:border-indigo-100 hover:shadow-md transition-all duration-300 rounded-[24px] overflow-hidden">
+                    <CardContent className="p-6">
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                        <div className="flex items-center gap-4 flex-1">
+                          <Avatar className="w-14 h-14 border-2 border-slate-50 ring-4 ring-slate-50/50 shadow-sm">
+                            <AvatarFallback className="bg-indigo-50 text-indigo-600 font-bold text-lg">
+                              {learner.firstName[0]}{learner.lastName[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-lg font-bold text-slate-800">
+                                {learner.firstName} {learner.lastName}
+                              </h3>
+                              <Badge className={cn(
+                                "px-2.5 py-0.5 rounded-full text-[10px] font-bold border-none shadow-sm",
+                                learner.status === 'on-track' ? "bg-emerald-100 text-emerald-700" :
+                                  learner.status === 'at-risk' ? "bg-orange-100 text-orange-700" :
+                                    learner.status === 'under-review' ? "bg-amber-100 text-amber-700" :
+                                      "bg-rose-100 text-rose-700"
+                              )}>
+                                {learner.status.replace('-', ' ').toUpperCase()}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-slate-500 font-medium">{learner.email}</p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 items-center gap-8 lg:gap-12 min-w-full lg:min-w-0">
+                          <div className="space-y-2 lg:w-32">
+                            <div className="flex justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                              <span>Score</span>
+                              <span className="text-slate-900">{learner.currentScore}%</span>
+                            </div>
+                            <Progress
+                              value={learner.currentScore}
+                              className="h-1.5 bg-slate-100"
+                              indicatorClassName={cn(
+                                learner.currentScore >= 75 ? "bg-emerald-500" :
+                                  learner.currentScore >= 60 ? "bg-orange-500" :
+                                    "bg-rose-500"
+                              )}
+                            />
+                          </div>
+
+                          <div className="text-center">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Inactivity</p>
+                            <div className="flex items-center justify-center gap-1.5">
+                              <span className={cn(
+                                "text-xl font-bold",
+                                learner.inactivityDays > 7 ? "text-rose-600" :
+                                  learner.inactivityDays > 3 ? "text-orange-600" :
+                                    "text-slate-800"
+                              )}>
+                                {learner.inactivityDays}
+                              </span>
+                              <span className="text-xs font-bold text-slate-400">days</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 col-span-2 sm:col-span-1 justify-end">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setSelectedLearner(learner);
+                                setShowNoteDialog(true);
+                              }}
+                              className="w-10 h-10 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all"
+                              title="Add Note"
+                            >
+                              <MessageSquare className="w-5 h-5" />
+                            </Button>
+                            {(learner.status === 'at-risk' || learner.status === 'under-review') && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setSelectedLearner(learner);
+                                  setShowRecommendDialog(true);
+                                }}
+                                className="w-10 h-10 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all"
+                                title="Recommend for Drop"
+                              >
+                                <Flag className="w-5 h-5" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-24 text-center">
+                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+                  <Users className="w-10 h-10 text-slate-300" />
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+                <h3 className="text-xl font-bold text-slate-900 mb-2">No learners found</h3>
+                <p className="text-slate-500 max-w-sm font-medium">
+                  We couldn't find any learners matching your current search or filter criteria.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
-
-        {/* Empty State */}
-        {filteredLearners.length === 0 && (
-          <Card className="border-border">
-            <CardContent className="pt-6 text-center space-y-3">
-              <Users className="w-12 h-12 text-muted-foreground mx-auto opacity-50" />
-              <p className="text-muted-foreground">No learners found</p>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Add Note Dialog */}
         <AlertDialog open={showNoteDialog} onOpenChange={setShowNoteDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Add Instructional Note</AlertDialogTitle>
-              <AlertDialogDescription>
-                Add a note for {selectedLearner?.firstName} {selectedLearner?.lastName}
+          <AlertDialogContent className="rounded-[32px] border-none shadow-2xl p-8 max-w-lg">
+            <AlertDialogHeader className="mb-6">
+              <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center mb-4">
+                <MessageSquare className="w-7 h-7 text-indigo-600" />
+              </div>
+              <AlertDialogTitle className="text-2xl font-bold text-slate-900">Add Instructional Note</AlertDialogTitle>
+              <AlertDialogDescription className="text-slate-500 font-medium">
+                Add a private note for <span className="text-slate-900 font-bold">{selectedLearner?.firstName} {selectedLearner?.lastName}</span>.
+                This will be used for internal evaluation.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <Textarea
-              placeholder="Enter your note..."
+              placeholder="e.g., Working on module 3, showing improvement in logical reasoning..."
               value={noteText}
               onChange={(e) => setNoteText(e.target.value)}
-              className="min-h-32"
+              className="min-h-32 bg-slate-50 border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium py-4 px-5"
             />
-            <div className="flex gap-2 justify-end">
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <div className="flex gap-3 justify-end mt-8">
+              <AlertDialogCancel className="rounded-xl font-bold h-12 px-6 border-slate-200">Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleAddNote}
-                className="bg-primary hover:bg-primary/90"
+                className="rounded-xl font-bold h-12 px-8 bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all"
               >
                 Add Note
               </AlertDialogAction>
@@ -322,47 +406,48 @@ export default function LearnersPage() {
 
         {/* Drop Recommendation Dialog */}
         <AlertDialog open={showRecommendDialog} onOpenChange={setShowRecommendDialog}>
-          <AlertDialogContent className="max-w-md">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-red-600" />
-                Recommend for Drop
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                Recommend {selectedLearner?.firstName} {selectedLearner?.lastName} for potential drop
+          <AlertDialogContent className="rounded-[32px] border-none shadow-2xl p-8 max-w-md">
+            <AlertDialogHeader className="mb-6">
+              <div className="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center mb-4 text-rose-600">
+                <Flag className="w-7 h-7" />
+              </div>
+              <AlertDialogTitle className="text-2xl font-bold text-slate-900">Recommend for Drop</AlertDialogTitle>
+              <AlertDialogDescription className="text-slate-500 font-medium">
+                Recommend <span className="text-slate-900 font-bold">{selectedLearner?.firstName} {selectedLearner?.lastName}</span> for potential drop due to lack of progress.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <label className="text-sm font-medium">Reason</label>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block ml-1">Reason</label>
                 <Input
                   placeholder="e.g., Consistent low performance"
                   value={recommendReason}
                   onChange={(e) => setRecommendReason(e.target.value)}
+                  className="bg-slate-50 border-slate-100 rounded-xl h-12 focus:ring-2 focus:ring-indigo-500/10 font-medium"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Evidence</label>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block ml-1">Evidence</label>
                 <Textarea
                   placeholder="Provide supporting evidence for this recommendation..."
                   value={recommendEvidence}
                   onChange={(e) => setRecommendEvidence(e.target.value)}
-                  className="min-h-24"
+                  className="min-h-24 bg-slate-50 border-slate-100 rounded-xl focus:ring-2 focus:ring-indigo-500/10 font-medium py-3 px-4"
                 />
               </div>
             </div>
-            <div className="flex gap-2 justify-end">
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <div className="flex gap-3 justify-end mt-8">
+              <AlertDialogCancel className="rounded-xl font-bold h-12 px-6 border-slate-200">Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleRecommendDrop}
-                className="bg-red-600 hover:bg-red-700"
+                className="rounded-xl font-bold h-12 px-8 bg-rose-600 hover:bg-rose-700 shadow-lg shadow-rose-100 transition-all"
               >
                 Submit Recommendation
               </AlertDialogAction>
             </div>
           </AlertDialogContent>
         </AlertDialog>
-      </div>
+      </main>
     </div>
   );
 }
