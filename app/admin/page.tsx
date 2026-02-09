@@ -132,6 +132,9 @@ export default function AdminDashboardPage() {
             </p>
           </div>
           <div className="flex gap-3">
+            <Button onClick={() => router.push('/admin/applications')} variant="outline" className="rounded-xl border-slate-200 shadow-sm hover:shadow-md transition-all">
+              Applications
+            </Button>
             <Button onClick={() => router.push('/admin/cohorts')} variant="outline" className="rounded-xl border-slate-200 shadow-sm hover:shadow-md transition-all">
               Manage Cohorts
             </Button>

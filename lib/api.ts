@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dexterhublms.onrender.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 export interface AuthResponse {
   user: {
@@ -193,6 +193,10 @@ class APIClient {
     return this.request(`/api/learner-progress/${learnerId}/tasks`);
   }
 
+  async getLearnerProgressDashboard(learnerId: string): Promise<any> {
+    return this.request(`/api/learner-progress/${learnerId}/dashboard`);
+  }
+
   async getEvents(): Promise<Event[]> {
     return this.request('/api/events');
   }
@@ -320,10 +324,27 @@ class APIClient {
     return this.request('/api/cohorts/applications/pending');
   }
 
+  async getMyApplications(): Promise<any[]> {
+    return this.request('/api/cohorts/applications/my');
+  }
+
   async handleApplication(id: string, action: 'approve' | 'reject', reason?: string): Promise<any> {
     return this.request(`/api/cohorts/applications/${id}/action`, {
       method: 'POST',
       body: JSON.stringify({ action, reason })
+    });
+  }
+
+  // Cohort Course Management
+  async addCourseToCohort(cohortId: string, courseId: string): Promise<any> {
+    return this.request(`/api/cohorts/${cohortId}/courses/${courseId}`, {
+      method: 'POST'
+    });
+  }
+
+  async removeCourseFromCohort(cohortId: string, courseId: string): Promise<any> {
+    return this.request(`/api/cohorts/${cohortId}/courses/${courseId}`, {
+      method: 'DELETE'
     });
   }
 }

@@ -29,7 +29,7 @@ export default function CourseDetailPage() {
         const loadCourse = async () => {
             try {
                 if (params.courseId) {
-                    const data = await api.request(`/api/courses/${params.courseId}`);
+                    const data = await api.getCourseDetails(params.courseId as string);
                     setCourse(data);
 
                     // Default to first lesson of first module
@@ -53,7 +53,18 @@ export default function CourseDetailPage() {
         try {
             setIsSubmitting(true);
             const progress = await api.getLearnerProgress(user!.id);
-            const activeProgress = progress.find(p => p.status === 'on-track' || p.status === 'at-risk');
+
+
+            // Find active progress for THIS specific course
+            const activeProgress = progress.find(p => {
+                const progressCourseId = typeof p.courseId === 'object' && (p.courseId as any)?._id
+                    ? (p.courseId as any)._id
+                    : p.courseId;
+                const currentCourseId = params.courseId;
+
+                return progressCourseId?.toString() === currentCourseId?.toString() &&
+                    (p.status === 'on-track' || p.status === 'at-risk');
+            });
 
             if (!activeProgress || !activeProgress.cohortId) {
                 toast.error('You are not currently enrolled in a cohort for this course.');

@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TopHeader } from '@/components/top-header';
 import { StatCard } from '@/components/stat-card';
 import { useAuth } from '@/lib/auth-context';
+import { api } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -30,9 +31,55 @@ import {
   Zap,
   Clock
 } from 'lucide-react';
+// ... imports ...
 
 export default function ProgressPage() {
   const { user } = useAuth();
+  const [stats, setStats] = useState<any>({
+    velocity: 0,
+    hours: 0,
+    streak: 0,
+    certificates: 0
+  });
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [assessments, setAssessments] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user) return;
+      try {
+        const data = await api.getLearnerProgressDashboard(user.id);
+        setStats(data.stats);
+        setChartData(data.chartData);
+        setAssessments(data.assessments);
+      } catch (error) {
+        console.error('Failed to fetch progress:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, [user]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="h-12 w-12 bg-indigo-100 rounded-full mb-4"></div>
+          <div className="h-4 w-32 bg-slate-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Use fetched data in render
+  // const scoreData = chartData; // Map if necessary, but backend format matches
+  const scoreData = chartData.length > 0 ? chartData : [
+    { week: 'W1', score: 0 }, { week: 'W8', score: 0 }
+  ];
+
 
   // Custom Gradient Tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -46,66 +93,6 @@ export default function ProgressPage() {
     }
     return null;
   };
-
-  const scoreData = [
-    { week: 'W1', score: 65 },
-    { week: 'W2', score: 68 },
-    { week: 'W3', score: 72 },
-    { week: 'W4', score: 70 },
-    { week: 'W5', score: 75 },
-    { week: 'W6', score: 78 },
-    { week: 'W7', score: 80 },
-    { week: 'W8', score: 82 },
-  ];
-
-  const learningHoursData = [
-    { day: 'Mon', hours: 2.5, intensity: 60 },
-    { day: 'Tue', hours: 3, intensity: 75 },
-    { day: 'Wed', hours: 2, intensity: 50 },
-    { day: 'Thu', hours: 3.5, intensity: 90 },
-    { day: 'Fri', hours: 2.5, intensity: 65 },
-    { day: 'Sat', hours: 4, intensity: 100 },
-    { day: 'Sun', hours: 1.5, intensity: 40 },
-  ];
-
-  const assessments = [
-    {
-      id: 1,
-      name: 'JavaScript Basics Quiz',
-      date: '2024-01-15',
-      score: 85,
-      maxScore: 100,
-      status: 'completed',
-      type: 'Quiz'
-    },
-    {
-      id: 2,
-      name: 'React Fundamentals Test',
-      date: '2024-01-20',
-      score: 78,
-      maxScore: 100,
-      status: 'completed',
-      type: 'Exam'
-    },
-    {
-      id: 3,
-      name: 'Advanced Patterns Project',
-      date: '2024-01-25',
-      score: 88,
-      maxScore: 100,
-      status: 'completed',
-      type: 'Project'
-    },
-    {
-      id: 4,
-      name: 'Final Portfolio Project',
-      date: '2024-02-10',
-      score: null,
-      maxScore: 100,
-      status: 'pending',
-      type: 'Project'
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -127,7 +114,7 @@ export default function ProgressPage() {
                 Powering Through <br />Your Journey.
               </h1>
               <p className="text-slate-300 max-w-lg text-lg leading-relaxed">
-                You've reached <span className="text-white font-semibold">82% of your target</span> this month. Keep up the momentum to reach your goals.
+                You've reached <span className="text-white font-semibold">{stats.velocity}% of your target</span> this month. Keep up the momentum to reach your goals.
               </p>
             </div>
 
@@ -153,31 +140,31 @@ export default function ProgressPage() {
           <StatCard
             icon={TrendingUp}
             label="Learning Velocity"
-            value="82%"
+            value={`${stats.velocity}%`}
             iconColor="text-indigo-600"
             iconBgColor="bg-indigo-50"
-            trend={{ value: "↑ 5% this week", isPositive: true }}
+            trend={{ value: "Based on recent output", isPositive: true }}
           />
           <StatCard
             icon={Clock}
             label="Hours Invested"
-            value="18.5h"
+            value={`${stats.hours}h`}
             iconColor="text-violet-600"
             iconBgColor="bg-violet-50"
-            trend={{ value: "On track", isPositive: true }}
+            trend={{ value: "Total tracked time", isPositive: true }}
           />
           <StatCard
             icon={Zap}
             label="Current Streak"
-            value="12 Days"
+            value={`${stats.streak} Days`}
             iconColor="text-amber-600"
             iconBgColor="bg-amber-50"
-            trend={{ value: "Personal best", isPositive: true }}
+            trend={{ value: "Keep it up!", isPositive: true }}
           />
           <StatCard
             icon={Award}
             label="Certificates"
-            value="3"
+            value={`${stats.certificates}`}
             iconColor="text-emerald-600"
             iconBgColor="bg-emerald-50"
           />

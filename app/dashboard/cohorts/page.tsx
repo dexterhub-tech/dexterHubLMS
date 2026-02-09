@@ -8,32 +8,54 @@ import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, Calendar, TrendingUp, Clock, Sparkles, BookOpen, ChevronRight, LayoutGrid } from 'lucide-react';
+import { Users, Calendar, TrendingUp, Clock, Sparkles, BookOpen, ChevronRight, LayoutGrid, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+
+interface Course {
+  _id: string;
+  id?: string;
+  name: string;
+  description: string;
+  icon?: string;
+  color?: string;
+}
 
 export default function CohortsPage() {
   const { user, refreshUser } = useAuth();
   const router = useRouter();
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadCohorts = async () => {
+    const loadData = async () => {
       try {
-        const data = await api.getCohorts();
-        setCohorts(data);
+        const [cohortsData, coursesData] = await Promise.all([
+          api.getCohorts(),
+          api.getCourses()
+        ]);
+        setCohorts(cohortsData);
+        setCourses(coursesData);
       } catch (error) {
-        console.error('Error loading cohorts:', error);
-        toast.error('Failed to load cohorts');
+        console.error('Error loading data:', error);
+        toast.error('Failed to load data');
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadCohorts();
+    loadData();
   }, []);
+
+  const handleCreateCourseClick = (cohortId: string) => {
+    router.push(`/instructor/courses/new?cohortId=${cohortId}`);
+  };
+
+  const getCohortCourses = (cohort: Cohort) => {
+    return courses.filter(course => cohort.courseIds?.includes(course._id || course.id || ''));
+  };
 
   const getStatusConfig = (status: string) => {
     switch (status) {
@@ -93,33 +115,6 @@ export default function CohortsPage() {
       <TopHeader user={user ? { name: `${user.firstName} ${user.lastName}`, email: user.email } : undefined} />
 
       <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-10">
-        {/* Hero Section */}
-        {/* <div className="relative overflow-hidden rounded-[32px] bg-slate-900 p-10 md:p-14 text-white shadow-2xl shadow-slate-200">
-          <div className="relative z-10 max-w-3xl space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs font-bold uppercase tracking-wider text-indigo-300">
-              <LayoutGrid className="w-3.5 h-3.5" /> Academic Directory
-            </div>
-            <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">Explore Cohorts</h1>
-            <p className="text-lg text-slate-400 leading-relaxed font-medium">
-              Navigate through our standard academic groups. Join an active or upcoming cohort to begin your structured curriculum and connect with peers.
-            </p>
-            <div className="flex items-center gap-6 pt-2 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-slate-300 font-semibold">{activeCohortsCount} Active Sessions</span>
-              </div>
-              <div className="w-1 h-1 rounded-full bg-slate-700" />
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-indigo-400" />
-                <span className="text-slate-300 font-semibold">{totalLearnersCount} Enrolled Globally</span>
-              </div>
-            </div>
-          </div>
-         
-          <div className="absolute right-[-5%] top-[-10%] w-[30%] h-[60%] rounded-full bg-indigo-500/10 blur-[100px]" />
-          <div className="absolute bottom-[-20%] left-[10%] w-[20%] h-[40%] rounded-full bg-blue-500/10 blur-[80px]" />
-        </div> */}
-
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatCard
@@ -149,7 +144,6 @@ export default function CohortsPage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-3">
-
               All Cohorts
             </h2>
           </div>
@@ -257,9 +251,41 @@ export default function CohortsPage() {
                             </Button>
                           )
                         ) : (
-                          <div className="space-y-3 w-full">
-                            <Button className="w-full h-12 rounded-xl bg-slate-900 border-none font-bold">Manage Learners</Button>
-                            <Button variant="outline" className="w-full h-12 rounded-xl border-slate-200 font-bold hover:bg-slate-50">Performance Logic</Button>
+                          <div className="space-y-4 w-full">
+                            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                              <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center justify-between">
+                                <span>Cohort Curriculum</span>
+                                <Badge variant="secondary" className="text-[10px]">{getCohortCourses(cohort).length} Courses</Badge>
+                              </h4>
+
+                              <div className="space-y-2 mb-4">
+                                {getCohortCourses(cohort).length === 0 ? (
+                                  <p className="text-xs text-slate-400 italic py-2 text-center">No courses assigned yet</p>
+                                ) : (
+                                  getCohortCourses(cohort).slice(0, 3).map(course => (
+                                    <div key={course._id || course.id} className="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-100 shadow-sm">
+                                      <span className="text-lg">{course.icon || '📚'}</span>
+                                      <span className="text-sm font-medium text-slate-700 truncate">{course.name}</span>
+                                    </div>
+                                  ))
+                                )}
+                                {getCohortCourses(cohort).length > 3 && (
+                                  <p className="text-xs text-slate-500 text-center pt-1">+{getCohortCourses(cohort).length - 3} more courses</p>
+                                )}
+                              </div>
+
+                              <Button
+                                onClick={() => handleCreateCourseClick(cohort._id)}
+                                className="w-full h-10 rounded-xl bg-white border border-dashed border-slate-300 text-slate-600 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-all font-semibold text-xs"
+                              >
+                                <Plus className="w-4 h-4 mr-1.5" /> Add Course
+                              </Button>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button className="h-10 rounded-xl bg-slate-900 border-none font-bold text-xs">Manage Learners</Button>
+                              <Button variant="outline" className="h-10 rounded-xl border-slate-200 font-bold hover:bg-slate-50 text-xs">Settings</Button>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -270,19 +296,6 @@ export default function CohortsPage() {
             })}
           </div>
         </div>
-
-        {/* Empty State */}
-        {cohorts.length === 0 && (
-          <div className="py-20 bg-white rounded-[32px] border border-dashed border-slate-200 text-center space-y-4 shadow-sm">
-            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
-              <LayoutGrid className="w-10 h-10 text-slate-300" />
-            </div>
-            <div className="max-w-xs mx-auto space-y-2">
-              <h3 className="text-xl font-semibold text-slate-900">Academic Grid Empty</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">No cohorts have been published to the directory yet. Please check back later.</p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

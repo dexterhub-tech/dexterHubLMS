@@ -54,28 +54,19 @@ export default function TasksPage() {
 
     useEffect(() => {
         const fetchTasks = async () => {
-            if (!user) {
-                // Show mock data even if user not fully loaded for demo
-                setTasks(MOCK_TASKS);
-                setIsLoading(false);
-                return;
-            }
+            if (!user) return;
             try {
                 const data = await api.getLearnerTasks(user.id);
+                // Backend now returns formatted tasks, but we can ensure defaults here
                 const mappedTasks = data.map((t: any, i: number) => ({
-                    title: t.title || t.assignment?.title || 'Untitled Task',
-                    subject: t.courseName || 'General',
-                    instructor: t.instructorName || 'Instructor',
-                    type: (t.type || 'Task') as 'Task' | 'Theory' | 'Assignment',
-                    status: (t.isCompleted ? 'completed' : 'pending') as 'pending' | 'completed',
+                    ...t,
                     color: t.color || ['mint', 'peach', 'lavender', 'yellow'][i % 4],
-                    dueDate: t.dueDate || new Date().toISOString(),
-                    id: t._id || t.lessonId
+                    dueDate: t.dueDate || new Date().toISOString()
                 }));
-                setTasks([...mappedTasks, ...MOCK_TASKS]);
+                setTasks(mappedTasks);
             } catch (error) {
                 console.error('Failed to fetch tasks:', error);
-                setTasks(MOCK_TASKS);
+                // toast.error('Failed to load tasks');
             } finally {
                 setIsLoading(false);
             }

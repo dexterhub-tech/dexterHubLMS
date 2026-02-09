@@ -17,7 +17,8 @@ import {
     Users,
     Settings,
     LogOut,
-    Sparkles
+    Sparkles,
+    FileText
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -44,6 +45,7 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
         { href: '/dashboard', label: 'Dashboard', icon: Grid },
         { href: '/dashboard/cohorts', label: 'Cohorts', icon: BookOpen },
         { href: '/dashboard/learners', label: 'Students', icon: Users },
+        { href: '/dashboard/applications', label: 'Applications', icon: FileText },
     ];
 
     const adminLinks = [

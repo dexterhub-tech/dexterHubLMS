@@ -1,25 +1,45 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { CourseForm } from '@/components/instructor/course-builder/course-form';
 import { ModuleManager } from '@/components/instructor/course-builder/module-manager';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, BookOpen, Layers, CheckCircle, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { api } from '@/lib/api';
+import { toast } from 'sonner';
 
-export default function CreateCoursePage() {
+function CreateCourseContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const cohortId = searchParams.get('cohortId');
     const [step, setStep] = useState<'details' | 'modules'>('details');
     const [courseId, setCourseId] = useState<string | null>(null);
 
-    const handleCourseCreated = (course: any) => {
+    const handleCourseCreated = async (course: any) => {
         setCourseId(course._id);
+
+        // If cohortId is present, add the course to the cohort
+        if (cohortId) {
+            try {
+                await api.addCourseToCohort(cohortId, course._id);
+                toast.success('Course automatically added to cohort!');
+            } catch (error) {
+                console.error('Failed to add course to cohort:', error);
+                toast.error('Course created but failed to link to cohort');
+            }
+        }
+
         setStep('modules');
     };
 
     const handleFinish = () => {
-        router.push('/dashboard');
+        if (cohortId) {
+            router.push('/dashboard/cohorts');
+        } else {
+            router.push('/dashboard');
+        }
     };
 
     return (
@@ -31,7 +51,13 @@ export default function CreateCoursePage() {
                         <Button
                             variant="ghost"
                             className="text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 -ml-2 font-bold transition-all"
-                            onClick={() => router.push('/dashboard')}
+                            onClick={() => {
+                                if (cohortId) {
+                                    router.push('/dashboard/cohorts');
+                                } else {
+                                    router.push('/dashboard');
+                                }
+                            }}
                         >
                             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Workspace
                         </Button>
@@ -90,5 +116,13 @@ export default function CreateCoursePage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function CreateCoursePage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <CreateCourseContent />
+        </Suspense>
     );
 }

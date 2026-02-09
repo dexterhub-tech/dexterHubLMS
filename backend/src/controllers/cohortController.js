@@ -134,7 +134,8 @@ exports.applyToCourse = async (req, res) => {
         const existingProgress = await LearnerProgress.findOne({
             learnerId,
             cohortId,
-            status: { $ne: 'dropped' }
+            status: { $ne: 'dropped' },
+            courseId: { $exists: true, $ne: null }
         });
 
         if (existingProgress) {
@@ -161,6 +162,20 @@ exports.applyToCourse = async (req, res) => {
 
         await application.save();
         res.status(201).json({ message: 'Application submitted successfully', application });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Get learner's own applications
+exports.getMyApplications = async (req, res) => {
+    try {
+        const learnerId = req.user.id;
+        const applications = await EnrollmentRequest.find({ learnerId })
+            .populate('courseId', 'name description icon color')
+            .populate('cohortId', 'name startDate endDate status')
+            .sort({ createdAt: -1 });
+        res.json(applications);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -243,6 +258,56 @@ exports.handleApplication = async (req, res) => {
         await application.save();
 
         res.json({ message: `Application ${action}d successfully`, application });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Add course to cohort
+exports.addCourseToCohort = async (req, res) => {
+    try {
+        const { cohortId, courseId } = req.params;
+
+        const cohort = await Cohort.findById(cohortId);
+        if (!cohort) {
+            return res.status(404).json({ error: 'Cohort not found' });
+        }
+
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({ error: 'Course not found' });
+        }
+
+        // Check if course is already in cohort
+        if (cohort.courseIds.includes(courseId)) {
+            return res.status(400).json({ error: 'Course already in cohort' });
+        }
+
+        // Add course to cohort
+        cohort.courseIds.push(courseId);
+        await cohort.save();
+
+        res.json({ message: 'Course added to cohort successfully', cohort });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Remove course from cohort
+exports.removeCourseFromCohort = async (req, res) => {
+    try {
+        const { cohortId, courseId } = req.params;
+
+        const cohort = await Cohort.findById(cohortId);
+        if (!cohort) {
+            return res.status(404).json({ error: 'Cohort not found' });
+        }
+
+        // Remove course from cohort
+        cohort.courseIds = cohort.courseIds.filter(id => id.toString() !== courseId);
+        await cohort.save();
+
+        res.json({ message: 'Course removed from cohort successfully', cohort });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
