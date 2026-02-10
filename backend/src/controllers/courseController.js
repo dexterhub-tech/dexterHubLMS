@@ -18,6 +18,21 @@ exports.createCourse = async (req, res) => {
     }
 };
 
+// Update a Course
+exports.updateCourse = async (req, res) => {
+    try {
+        const course = await Course.findByIdAndUpdate(
+            req.params.id,
+            { ...req.body },
+            { new: true }
+        );
+        if (!course) return res.status(404).json({ error: 'Course not found' });
+        res.json(course);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 // Get all courses
 exports.getAllCourses = async (req, res) => {
     try {
@@ -66,6 +81,21 @@ exports.createModule = async (req, res) => {
     }
 };
 
+// Update a Module
+exports.updateModule = async (req, res) => {
+    try {
+        const module = await Module.findByIdAndUpdate(
+            req.params.id,
+            { ...req.body },
+            { new: true }
+        );
+        if (!module) return res.status(404).json({ error: 'Module not found' });
+        res.json(module);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 // --- Lesson (Session) Operations ---
 
 // Create a Lesson and add to Module
@@ -87,6 +117,21 @@ exports.createLesson = async (req, res) => {
         await Module.findByIdAndUpdate(moduleId, { $push: { lessons: lesson._id } });
 
         res.status(201).json(lesson);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Update a Lesson
+exports.updateLesson = async (req, res) => {
+    try {
+        const lesson = await Lesson.findByIdAndUpdate(
+            req.params.id,
+            { ...req.body },
+            { new: true }
+        );
+        if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
+        res.json(lesson);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

@@ -11,9 +11,14 @@ import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import dynamic from 'next/dynamic';
+import 'react-quill-new/dist/quill.snow.css';
+
+const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
 
 interface ModuleManagerProps {
     courseId: string;
+    initialModules?: any[];
     onComplete: () => void;
 }
 
@@ -30,8 +35,8 @@ interface Assignment {
     }>;
 }
 
-export function ModuleManager({ courseId, onComplete }: ModuleManagerProps) {
-    const [modules, setModules] = useState<any[]>([]);
+export function ModuleManager({ courseId, initialModules, onComplete }: ModuleManagerProps) {
+    const [modules, setModules] = useState<any[]>(initialModules || []);
     const [isAddingModule, setIsAddingModule] = useState(false);
     const [newModuleName, setNewModuleName] = useState('');
     const [isSaving, setIsSaving] = useState(false);
@@ -251,7 +256,15 @@ export function ModuleManager({ courseId, onComplete }: ModuleManagerProps) {
                                                         </div>
                                                         <div className="space-y-2">
                                                             <Label className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 ml-1">Session Notes / Resources</Label>
-                                                            <Input value={newLesson.content} onChange={e => setNewLesson({ ...newLesson, content: e.target.value })} placeholder="Additional instructions..." className="bg-white border-indigo-100 h-12 rounded-xl" />
+                                                            <div className="bg-white rounded-xl border border-indigo-100 overflow-hidden min-h-[200px]">
+                                                                <ReactQuill
+                                                                    theme="snow"
+                                                                    value={newLesson.content}
+                                                                    onChange={content => setNewLesson({ ...newLesson, content })}
+                                                                    placeholder="Provide rich details for this session..."
+                                                                    className="h-[150px] border-none"
+                                                                />
+                                                            </div>
                                                         </div>
                                                     </div>
 

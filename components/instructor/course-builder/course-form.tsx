@@ -13,25 +13,39 @@ import { cn } from '@/lib/utils';
 
 interface CourseFormProps {
     onSuccess: (course: any) => void;
+    initialData?: {
+        id?: string;
+        _id?: string;
+        name: string;
+        description: string;
+        duration: number;
+    };
 }
 
-export function CourseForm({ onSuccess }: CourseFormProps) {
+export function CourseForm({ onSuccess, initialData }: CourseFormProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
-        name: '',
-        description: '',
-        duration: 0
+        name: initialData?.name || '',
+        description: initialData?.description || '',
+        duration: initialData?.duration || 0
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            const course = await api.createCourse(formData);
-            toast.success('Course fundamentals established.');
+            const courseId = initialData?.id || initialData?._id;
+            let course;
+            if (courseId) {
+                course = await api.updateCourse(courseId, formData);
+                toast.success('Course details updated.');
+            } else {
+                course = await api.createCourse(formData);
+                toast.success('Course fundamentals established.');
+            }
             onSuccess(course);
         } catch (error: any) {
-            toast.error(error.message || 'Failed to initialize course');
+            toast.error(error.message || 'Failed to save course');
         } finally {
             setIsLoading(false);
         }

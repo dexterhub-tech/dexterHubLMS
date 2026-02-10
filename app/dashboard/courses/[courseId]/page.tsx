@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { CurriculumView } from '@/components/course/curriculum-view';
+import { QuizPlayer } from '@/components/course/quiz-player';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useAuth } from '@/lib/auth-context';
@@ -11,6 +12,9 @@ import { Loader2, ArrowLeft, Video, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { RichTextRenderer } from '@/components/shared/rich-text-renderer';
+import { Menu } from 'lucide-react';
 
 export default function CourseDetailPage() {
     const params = useParams();
@@ -85,6 +89,33 @@ export default function CourseDetailPage() {
         }
     };
 
+    const handleQuizComplete = async (score: number) => {
+        if (!activeLesson?.assignment || !course) return;
+
+        try {
+            const progress = await api.getLearnerProgress(user!.id);
+            const activeProgress = progress.find(p => {
+                const progressCourseId = typeof p.courseId === 'object' && (p.courseId as any)?._id
+                    ? (p.courseId as any)._id
+                    : p.courseId;
+                const currentCourseId = params.courseId;
+                return progressCourseId?.toString() === currentCourseId?.toString();
+            });
+
+            if (!activeProgress || !activeProgress.cohortId) {
+                throw new Error('No active enrollment found.');
+            }
+
+            await api.submitAssignment({
+                lessonId: activeLesson._id,
+                cohortId: activeProgress.cohortId,
+                content: `Quiz Score: ${score}/${activeLesson.assignment.maxScore}`
+            });
+        } catch (error: any) {
+            throw error;
+        }
+    };
+
     if (isLoading) {
         return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>;
     }
@@ -97,20 +128,41 @@ export default function CourseDetailPage() {
         <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] bg-white">
             {/* Immersive Header */}
             <div className="border-b border-slate-200 bg-white px-6 py-4 flex items-center justify-between shadow-sm z-20 relative">
-                <div className="flex items-center gap-4">
+                <div className="flex ml-4 items-center gap-4">
                     <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-slate-500 hover:text-slate-900 hover:bg-slate-100/50">
                         <ArrowLeft className="w-5 h-5" />
                     </Button>
-                    <div className="h-8 w-px bg-slate-200 mx-2" />
-                    <div>
+                    <div className="h-8 w-px bg-slate-200 mx-2 hidden md:block" />
+                    <div className="hidden md:block">
                         <h1 className="font-semibold text-lg text-slate-900 tracking-tight">{course.name}</h1>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <span className="font-medium text-indigo-600">{activeLesson ? activeLesson.name : 'Welcome'}</span>
                             {activeLesson && <span>• {activeLesson.duration} mins</span>}
                         </div>
                     </div>
+                    <div className="md:hidden">
+                        <h1 className="font-semibold text-base text-slate-900 tracking-tight truncate max-w-[200px]">{activeLesson ? activeLesson.name : course.name}</h1>
+                    </div>
                 </div>
                 <div className="flex items-center gap-2">
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <Button variant="ghost" size="icon" className="md:hidden text-slate-500">
+                                <Menu className="w-5 h-5" />
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="p-0 w-80">
+                            <CurriculumView
+                                modules={course.modules}
+                                activeLessonId={activeLesson?._id}
+                                onSelectLesson={(lesson) => {
+                                    setActiveLesson(lesson);
+                                    // Close sheet logic would ideally be here but standard Sheet doesn't expose it easily without state. 
+                                    // Users can tap outside to close.
+                                }}
+                            />
+                        </SheetContent>
+                    </Sheet>
                     <Button variant="outline" size="sm" className="hidden md:flex">
                         Course Overview
                     </Button>
@@ -128,8 +180,9 @@ export default function CourseDetailPage() {
                 </div>
 
                 {/* Main Content */}
+                {/* Main Content */}
                 <div className="flex-1 overflow-y-auto bg-slate-50/50">
-                    <div className="max-w-5xl mx-auto p-6 md:p-12 space-y-8">
+                    <div className="max-w-5xl mx-auto p-4 md:p-6 lg:p-12 space-y-6 md:space-y-8">
                         {activeLesson ? (
                             <>
                                 {/* Video Player */}
@@ -143,7 +196,7 @@ export default function CourseDetailPage() {
                                     </div>
                                 )}
 
-                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-8 items-start">
                                     {/* Content Column */}
                                     <div className="lg:col-span-2 space-y-6">
                                         <div className="bg-white rounded-2xl p-8 border border-slate-100 shadow-sm">
@@ -153,62 +206,74 @@ export default function CourseDetailPage() {
                                                 </div>
                                                 <h2 className="text-xl font-semibold text-slate-900">Session Notes</h2>
                                             </div>
-                                            <article className="prose prose-slate prose-lg max-w-none text-slate-600 leading-relaxed">
+                                            <div className="text-slate-600 leading-relaxed">
                                                 {activeLesson.content ? (
-                                                    <p className="whitespace-pre-wrap">{activeLesson.content}</p>
+                                                    <RichTextRenderer
+                                                        content={activeLesson.content}
+                                                        className="prose-slate prose-base md:prose-lg max-w-none"
+                                                    />
                                                 ) : (
                                                     <p className="text-slate-400 italic">No textual content provided for this session.</p>
                                                 )}
-                                            </article>
+                                            </div>
                                         </div>
                                     </div>
 
                                     {/* Task / Action Column */}
-                                    <div className="lg:col-span-1 space-y-6">
+                                    <div className="xl:col-span-1 space-y-6">
                                         {activeLesson.assignment?.title && (
-                                            <div className="bg-white rounded-2xl border border-indigo-100 shadow-lg shadow-indigo-100/50 overflow-hidden sticky top-6">
-                                                <div className="bg-gradient-to-br from-indigo-600 to-violet-600 p-6 text-white">
-                                                    <h3 className="font-semibold text-lg flex items-center gap-2">
-                                                        <FileText className="w-5 h-5" /> Assignment
-                                                    </h3>
-                                                    <p className="text-indigo-100 text-sm mt-1 opacity-90">
-                                                        {activeLesson.assignment.title}
-                                                    </p>
-                                                </div>
-                                                <div className="p-6 space-y-4">
-                                                    <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                                        {activeLesson.assignment.description}
-                                                    </p>
+                                            <>
+                                                {activeLesson.assignment.type === 'quiz' ? (
+                                                    <QuizPlayer
+                                                        quiz={activeLesson.assignment}
+                                                        onComplete={handleQuizComplete}
+                                                    />
+                                                ) : (
+                                                    <div className="bg-white rounded-2xl border border-indigo-100 shadow-lg shadow-indigo-100/50 overflow-hidden sticky top-6">
+                                                        <div className="bg-gradient-to-br from-indigo-600 to-violet-600 p-6 text-white">
+                                                            <h3 className="font-semibold text-lg flex items-center gap-2">
+                                                                <FileText className="w-5 h-5" /> Assignment
+                                                            </h3>
+                                                            <p className="text-indigo-100 text-sm mt-1 opacity-90">
+                                                                {activeLesson.assignment.title}
+                                                            </p>
+                                                        </div>
+                                                        <div className="p-6 space-y-4">
+                                                            <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                                                {activeLesson.assignment.description}
+                                                            </p>
 
-                                                    {user?.role === 'learner' ? (
-                                                        <div className="space-y-4 pt-2">
-                                                            <div className="space-y-2">
-                                                                <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Your Submission</label>
-                                                                <Textarea
-                                                                    placeholder="Type your answer or paste a link..."
-                                                                    value={submissionLink}
-                                                                    onChange={(e) => setSubmissionLink(e.target.value)}
-                                                                    className="bg-slate-50 border-slate-200 focus:bg-white transition-colors min-h-[120px] resize-none"
-                                                                />
-                                                            </div>
-                                                            <Button
-                                                                onClick={handleSubmitTask}
-                                                                disabled={isSubmitting}
-                                                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200"
-                                                            >
-                                                                {isSubmitting ? (
-                                                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                                                ) : 'Submit Assignment'}
-                                                            </Button>
+                                                            {user?.role === 'learner' ? (
+                                                                <div className="space-y-4 pt-2">
+                                                                    <div className="space-y-2">
+                                                                        <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Your Submission</label>
+                                                                        <Textarea
+                                                                            placeholder="Type your answer or paste a link..."
+                                                                            value={submissionLink}
+                                                                            onChange={(e) => setSubmissionLink(e.target.value)}
+                                                                            className="bg-slate-50 border-slate-200 focus:bg-white transition-colors min-h-[120px] resize-none"
+                                                                        />
+                                                                    </div>
+                                                                    <Button
+                                                                        onClick={handleSubmitTask}
+                                                                        disabled={isSubmitting}
+                                                                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200"
+                                                                    >
+                                                                        {isSubmitting ? (
+                                                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                                                        ) : 'Submit Assignment'}
+                                                                    </Button>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="p-4 bg-amber-50 rounded-xl border border-amber-100 text-amber-800 text-sm flex gap-3">
+                                                                    <div className="mt-0.5">ℹ️</div>
+                                                                    <p>Instructor View: Learners see a submission form here.</p>
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                    ) : (
-                                                        <div className="p-4 bg-amber-50 rounded-xl border border-amber-100 text-amber-800 text-sm flex gap-3">
-                                                            <div className="mt-0.5">ℹ️</div>
-                                                            <p>Instructor View: Learners see a submission form here.</p>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
+                                                    </div>
+                                                )}
+                                            </>
                                         )}
                                     </div>
                                 </div>

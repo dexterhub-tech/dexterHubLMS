@@ -311,12 +311,24 @@ class APIClient {
     return this.request('/api/courses', { method: 'POST', body: JSON.stringify(data) });
   }
 
+  async updateCourse(id: string, data: any): Promise<any> {
+    return this.request(`/api/courses/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  }
+
   async createModule(data: any): Promise<any> {
     return this.request('/api/courses/modules', { method: 'POST', body: JSON.stringify(data) });
   }
 
+  async updateModule(id: string, data: any): Promise<any> {
+    return this.request(`/api/courses/modules/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  }
+
   async createLesson(data: any): Promise<any> {
     return this.request('/api/courses/lessons', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async updateLesson(id: string, data: any): Promise<any> {
+    return this.request(`/api/courses/lessons/${id}`, { method: 'PUT', body: JSON.stringify(data) });
   }
 
   // Course Application Methods
