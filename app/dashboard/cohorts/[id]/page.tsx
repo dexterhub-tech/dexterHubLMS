@@ -22,7 +22,9 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { ArrowLeft, UserX, AlertTriangle, CheckCircle } from 'lucide-react';
+import { ArrowLeft, UserX, AlertTriangle, CheckCircle, FileText, Clock, XCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 
 export default function CohortDetailsPage() {
     const { user } = useAuth();
@@ -40,6 +42,12 @@ export default function CohortDetailsPage() {
     const [kickoutReason, setKickoutReason] = useState('');
     const [kickoutEvidence, setKickoutEvidence] = useState('');
 
+    // Grading State
+    const [submissions, setSubmissions] = useState<any[]>([]);
+    const [gradingSubmission, setGradingSubmission] = useState<any>(null);
+    const [grade, setGrade] = useState('');
+    const [feedback, setFeedback] = useState('');
+
     useEffect(() => {
         const fetchData = async () => {
             if (!id || !user) return;
@@ -50,8 +58,12 @@ export default function CohortDetailsPage() {
                 setCohort(cohortData);
 
                 if (user.role === 'instructor' || user.role === 'admin') {
-                    const learnersData = await api.getCohortLearners(id);
+                    const [learnersData, submissionsData] = await Promise.all([
+                        api.getCohortLearners(id),
+                        api.getSubmissions(id)
+                    ]);
                     setLearners(learnersData);
+                    setSubmissions(submissionsData);
                 }
             } catch (error) {
                 console.error('Failed to fetch cohort details:', error);
@@ -87,6 +99,39 @@ export default function CohortDetailsPage() {
         } catch (error) {
             console.error('Failed to submit drop recommendation:', error);
             toast.error('Failed to submit request');
+        }
+    };
+
+    const handleGrade = async () => {
+        if (!gradingSubmission || !grade) return;
+
+        const numericGrade = parseFloat(grade);
+        if (numericGrade > 10) {
+            toast.error('Maximum grade is 10 points');
+            return;
+        }
+
+        try {
+            await api.gradeSubmission({
+                submissionId: gradingSubmission._id,
+                grade: numericGrade,
+                feedback: feedback
+            });
+
+            toast.success('Submission graded successfully');
+            setGradingSubmission(null);
+            setGrade('');
+            setFeedback('');
+
+            // Refresh data
+            const [submissionsData, learnersData] = await Promise.all([
+                api.getSubmissions(id),
+                api.getCohortLearners(id)
+            ]);
+            setSubmissions(submissionsData);
+            setLearners(learnersData);
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to grade submission');
         }
     };
 
@@ -150,66 +195,144 @@ export default function CohortDetailsPage() {
                     </Card>
                 </div>
 
-                {/* Instructor View: Learner Management */}
+                {/* Instructor View: Learner Management & Submissions */}
                 {(user?.role === 'instructor' || user?.role === 'admin') && (
-                    <Card className="mt-8">
-                        <CardHeader>
-                            <CardTitle>Learner Performance & Management</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Email</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Score</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {learners.map((learner) => (
-                                        <TableRow key={learner._id}>
-                                            <TableCell className="font-medium">{learner.firstName} {learner.lastName}</TableCell>
-                                            <TableCell>{learner.email}</TableCell>
-                                            <TableCell>
-                                                <Badge variant={
-                                                    learner.progress?.status === 'on-track' ? 'default' :
-                                                        learner.progress?.status === 'under-review' ? 'destructive' :
-                                                            learner.progress?.status === 'dropped' ? 'secondary' : 'outline'
-                                                }>
-                                                    {learner.progress?.status || 'Unknown'}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>{learner.progress?.currentScore ? `${Math.round(learner.progress.currentScore)}%` : 'N/A'}</TableCell>
-                                            <TableCell className="text-right">
-                                                {learner.progress?.status !== 'dropped' && (
-                                                    <Button
-                                                        variant="destructive"
-                                                        size="sm"
-                                                        onClick={() => {
-                                                            setSelectedLearner(learner);
-                                                            setIsKickoutOpen(true);
-                                                        }}
-                                                    >
-                                                        <UserX className="w-4 h-4 mr-2" />
-                                                        Drop
-                                                    </Button>
-                                                )}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                    {learners.length === 0 && (
-                                        <TableRow>
-                                            <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                                                No learners enrolled yet.
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </CardContent>
-                    </Card>
+                    <Tabs defaultValue="learners" className="mt-8">
+                        <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+                            <TabsTrigger value="learners">Learners</TabsTrigger>
+                            <TabsTrigger value="submissions">Submissions</TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="learners">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Learner Performance & Management</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Name</TableHead>
+                                                <TableHead>Email</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead>Score</TableHead>
+                                                <TableHead className="text-right">Actions</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {learners.map((learner) => (
+                                                <TableRow key={learner._id}>
+                                                    <TableCell className="font-medium">{learner.firstName} {learner.lastName}</TableCell>
+                                                    <TableCell>{learner.email}</TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={
+                                                            learner.progress?.status === 'on-track' ? 'default' :
+                                                                learner.progress?.status === 'under-review' ? 'destructive' :
+                                                                    learner.progress?.status === 'dropped' ? 'secondary' : 'outline'
+                                                        }>
+                                                            {learner.progress?.status || 'Unknown'}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>{learner.progress?.currentScore ? `${Math.round(learner.progress.currentScore)}%` : 'N/A'}</TableCell>
+                                                    <TableCell className="text-right">
+                                                        {learner.progress?.status !== 'dropped' && (
+                                                            <Button
+                                                                variant="destructive"
+                                                                size="sm"
+                                                                onClick={() => {
+                                                                    setSelectedLearner(learner);
+                                                                    setIsKickoutOpen(true);
+                                                                }}
+                                                            >
+                                                                <UserX className="w-4 h-4 mr-2" />
+                                                                Drop
+                                                            </Button>
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                            {learners.length === 0 && (
+                                                <TableRow>
+                                                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                                                        No learners enrolled yet.
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+
+                        <TabsContent value="submissions">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Assignment Submissions</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Learner</TableHead>
+                                                <TableHead>Assignment</TableHead>
+                                                <TableHead>Submission Status</TableHead>
+                                                <TableHead>Submitted At</TableHead>
+                                                <TableHead className="text-right">Grade</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {submissions.map((sub) => (
+                                                <TableRow key={sub._id}>
+                                                    <TableCell className="font-medium">
+                                                        {sub.learnerId?.firstName} {sub.learnerId?.lastName}
+                                                        <div className="text-xs text-muted-foreground">{sub.learnerId?.email}</div>
+                                                    </TableCell>
+                                                    <TableCell>{sub.lessonId?.assignment?.title || sub.lessonId?.name}</TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={sub.status === 'graded' ? 'default' : 'secondary'}>
+                                                            {sub.status.toUpperCase()}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>{new Date(sub.submittedAt).toLocaleDateString()}</TableCell>
+                                                    <TableCell className="text-right">
+                                                        {sub.status === 'graded' ? (
+                                                            <div className="flex items-center justify-end gap-2 font-bold">
+                                                                <span className={sub.grade >= 5 ? 'text-emerald-600' : 'text-rose-600'}>
+                                                                    {sub.grade}/10
+                                                                </span>
+                                                                <Button variant="ghost" size="sm" onClick={() => {
+                                                                    setGradingSubmission(sub);
+                                                                    setGrade(sub.grade.toString());
+                                                                    setFeedback(sub.feedback || '');
+                                                                }}>
+                                                                    Edit
+                                                                </Button>
+                                                            </div>
+                                                        ) : (
+                                                            <Button size="sm" onClick={() => {
+                                                                setGradingSubmission(sub);
+                                                                setGrade('');
+                                                                setFeedback('');
+                                                            }}>
+                                                                Grade
+                                                            </Button>
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                            {submissions.length === 0 && (
+                                                <TableRow>
+                                                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                                                        No submissions found.
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    </Tabs>
                 )}
 
                 {/* Kickout Dialog */}
@@ -250,6 +373,61 @@ export default function CohortDetailsPage() {
                         <DialogFooter>
                             <Button variant="outline" onClick={() => setIsKickoutOpen(false)}>Cancel</Button>
                             <Button variant="destructive" onClick={handleKickout}>Submit Recommendation</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Grading Dialog */}
+                <Dialog open={!!gradingSubmission} onOpenChange={(open) => !open && setGradingSubmission(null)}>
+                    <DialogContent className="sm:max-w-[500px]">
+                        <DialogHeader>
+                            <DialogTitle>Grade Submission</DialogTitle>
+                            <DialogDescription>
+                                Grading for <strong>{gradingSubmission?.learnerId?.firstName} {gradingSubmission?.learnerId?.lastName}</strong> on assignment <strong>{gradingSubmission?.lessonId?.assignment?.title}</strong>.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-4 py-2">
+                            <div className="bg-slate-50 p-4 rounded-lg text-sm border border-slate-100 max-h-40 overflow-y-auto">
+                                <Label className="text-xs text-muted-foreground mb-1 block">Submission Content</Label>
+                                {gradingSubmission?.content?.startsWith('http') ? (
+                                    <a href={gradingSubmission.content} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">
+                                        {gradingSubmission.content}
+                                    </a>
+                                ) : (
+                                    <p className="whitespace-pre-wrap text-slate-700">{gradingSubmission?.content}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="grade">Score (Max 10)</Label>
+                                <Input
+                                    id="grade"
+                                    type="number"
+                                    min="0"
+                                    max="10"
+                                    step="0.5"
+                                    value={grade}
+                                    onChange={(e) => setGrade(e.target.value)}
+                                    placeholder="Enter score out of 10"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="feedback">Feedback</Label>
+                                <Textarea
+                                    id="feedback"
+                                    value={feedback}
+                                    onChange={(e) => setFeedback(e.target.value)}
+                                    placeholder="Provide feedback..."
+                                    className="min-h-[100px]"
+                                />
+                            </div>
+                        </div>
+
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setGradingSubmission(null)}>Cancel</Button>
+                            <Button onClick={handleGrade}>Submit Grade</Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>

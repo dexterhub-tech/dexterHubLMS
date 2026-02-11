@@ -51,7 +51,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
         assignment: {
             title: '',
             description: '',
-            maxScore: 100,
+            maxScore: 10,
             type: 'task',
             questions: [] as Array<{ question: string; options: string[]; correctAnswer: number; }>
         }
@@ -99,7 +99,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                 content: '',
                 videoUrl: '',
                 duration: 0,
-                assignment: { title: '', description: '', maxScore: 100, type: 'task', questions: [] }
+                assignment: { title: '', description: '', maxScore: 10, type: 'task', questions: [] }
             });
             setActiveModuleId(null);
             toast.success('Learning session established.');
@@ -383,9 +383,11 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            className="w-full h-12 border-dashed border-2 border-indigo-100 rounded-xl text-indigo-600 font-bold hover:bg-indigo-50 transition-all border-spacing-4"
+                                                            disabled={(newLesson.assignment.questions || []).length >= 10}
+                                                            className="w-full h-12 border-dashed border-2 border-indigo-100 rounded-xl text-indigo-600 font-bold hover:bg-indigo-50 transition-all border-spacing-4 disabled:opacity-50 disabled:cursor-not-allowed"
                                                             onClick={() => {
                                                                 const currentQuestions = newLesson.assignment.questions || [];
+                                                                if (currentQuestions.length >= 10) return;
                                                                 setNewLesson({
                                                                     ...newLesson,
                                                                     assignment: {
@@ -395,8 +397,14 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                                 });
                                                             }}
                                                         >
-                                                            <Plus className="w-4 h-4 mr-2" /> Append Challenge Question
+                                                            <Plus className="w-4 h-4 mr-2" />
+                                                            {(newLesson.assignment.questions || []).length >= 10 ? 'MAXIMUM 10 QUESTIONS REACHED' : 'Append Challenge Question'}
                                                         </Button>
+                                                        {(newLesson.assignment.questions || []).length >= 10 && (
+                                                            <p className="text-center text-xs font-bold text-amber-600">
+                                                                Maximum of 10 questions allowed per quiz.
+                                                            </p>
+                                                        )}
                                                     </div>
                                                 )}
                                             </CardContent>

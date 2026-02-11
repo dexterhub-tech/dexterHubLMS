@@ -13,7 +13,7 @@ const learnerProgressSchema = new mongoose.Schema({
     }],
     currentScore: { type: Number, default: 0 },
     learningHoursThisWeek: { type: Number, default: 0 },
-    status: { type: String, enum: ['on-track', 'at-risk', 'under-review', 'dropped'], default: 'on-track' },
+    status: { type: String, enum: ['on-track', 'at-risk', 'under-review', 'dropped', 'failed'], default: 'on-track' },
     lastActivityDate: Date,
     inactivityDays: { type: Number, default: 0 },
     lastAssessmentDate: Date,

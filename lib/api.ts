@@ -302,8 +302,23 @@ class APIClient {
     });
   }
 
+  async getSubmissions(cohortId: string): Promise<any[]> {
+    return this.request(`/api/submissions?cohortId=${cohortId}`);
+  }
+
+  async gradeSubmission(data: { submissionId: string, grade: number, feedback: string }): Promise<any> {
+    return this.request('/api/submissions/grade', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  }
+
   async getMySubmission(lessonId: string, cohortId: string): Promise<any> {
     return this.request(`/api/submissions/my?lessonId=${lessonId}&cohortId=${cohortId}`);
+  }
+
+  async getAllSubmissions(): Promise<any[]> {
+    return this.request('/api/submissions/all');
   }
 
   // Instructor Course Helper Methods

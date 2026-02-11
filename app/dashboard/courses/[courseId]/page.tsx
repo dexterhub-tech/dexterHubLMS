@@ -6,15 +6,23 @@ import { api } from '@/lib/api';
 import { CurriculumView } from '@/components/course/curriculum-view';
 import { QuizPlayer } from '@/components/course/quiz-player';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useAuth } from '@/lib/auth-context';
-import { Loader2, ArrowLeft, Video, FileText } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Loader2, ArrowLeft, Video, FileText, Menu, CheckCircle2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { RichTextRenderer } from '@/components/shared/rich-text-renderer';
-import { Menu } from 'lucide-react';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function CourseDetailPage() {
     const params = useParams();
@@ -28,6 +36,8 @@ export default function CourseDetailPage() {
     // Submission State
     const [submissionLink, setSubmissionLink] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [existingSubmission, setExistingSubmission] = useState<any>(null);
+    const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
 
     useEffect(() => {
         const loadCourse = async () => {
@@ -50,6 +60,44 @@ export default function CourseDetailPage() {
         };
         loadCourse();
     }, [params.courseId]);
+
+    // Check for existing submission when active lesson changes
+    useEffect(() => {
+        const checkSubmission = async () => {
+            if (!activeLesson?._id || !course || !user) return;
+
+            try {
+                // We need the cohortId from the user's progress to check submission
+                const progress = await api.getLearnerProgress(user.id);
+                const activeProgress = progress.find(p => {
+                    const progressCourseId = typeof p.courseId === 'object' && (p.courseId as any)?._id
+                        ? (p.courseId as any)._id
+                        : p.courseId;
+                    const currentCourseId = params.courseId;
+                    return progressCourseId?.toString() === currentCourseId?.toString();
+                });
+
+                if (activeProgress?.cohortId) {
+                    const submission = await api.getMySubmission(activeLesson._id, activeProgress.cohortId);
+                    setExistingSubmission(submission);
+                    if (submission) {
+                        setSubmissionLink(submission.content);
+                    } else {
+                        setSubmissionLink('');
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to check submission", error);
+            }
+        };
+
+        if (activeLesson?.assignment) {
+            checkSubmission();
+        } else {
+            setExistingSubmission(null);
+            setSubmissionLink('');
+        }
+    }, [activeLesson, course, params.courseId, user]);
 
     const handleSubmitTask = async () => {
         if (!activeLesson?.assignment || !course) return;
@@ -80,8 +128,13 @@ export default function CourseDetailPage() {
                 cohortId: activeProgress.cohortId,
                 content: submissionLink
             });
+
+            // Refresh submission state
+            const newSubmission = await api.getMySubmission(activeLesson._id, activeProgress.cohortId);
+            setExistingSubmission(newSubmission);
+
             toast.success('Task submitted successfully!');
-            setSubmissionLink('');
+            setShowConfirmSubmit(false);
         } catch (error: any) {
             toast.error(error.message || 'Failed to submit task');
         } finally {
@@ -160,6 +213,7 @@ export default function CourseDetailPage() {
                                     // Close sheet logic would ideally be here but standard Sheet doesn't expose it easily without state. 
                                     // Users can tap outside to close.
                                 }}
+                                userId={user?.id}
                             />
                         </SheetContent>
                     </Sheet>
@@ -176,10 +230,10 @@ export default function CourseDetailPage() {
                         modules={course.modules}
                         activeLessonId={activeLesson?._id}
                         onSelectLesson={setActiveLesson}
+                        userId={user?.id}
                     />
                 </div>
 
-                {/* Main Content */}
                 {/* Main Content */}
                 <div className="flex-1 overflow-y-auto bg-slate-50/50">
                     <div className="max-w-5xl mx-auto p-4 md:p-6 lg:p-12 space-y-6 md:space-y-8">
@@ -206,11 +260,11 @@ export default function CourseDetailPage() {
                                                 </div>
                                                 <h2 className="text-xl font-semibold text-slate-900">Session Notes</h2>
                                             </div>
-                                            <div className="text-slate-600 leading-relaxed">
+                                            <div className="text-slate-600 leading-relaxed overflow-hidden break-words">
                                                 {activeLesson.content ? (
                                                     <RichTextRenderer
                                                         content={activeLesson.content}
-                                                        className="prose-slate prose-base md:prose-lg max-w-none"
+                                                        className="prose-slate prose-base md:prose-lg max-w-none break-words"
                                                     />
                                                 ) : (
                                                     <p className="text-slate-400 italic">No textual content provided for this session.</p>
@@ -224,48 +278,144 @@ export default function CourseDetailPage() {
                                         {activeLesson.assignment?.title && (
                                             <>
                                                 {activeLesson.assignment.type === 'quiz' ? (
-                                                    <QuizPlayer
-                                                        quiz={activeLesson.assignment}
-                                                        onComplete={handleQuizComplete}
-                                                    />
+                                                    existingSubmission ? (
+                                                        <div className="bg-white rounded-2xl border border-indigo-100 shadow-lg shadow-indigo-100/50 overflow-hidden sticky top-6">
+                                                            <div className="bg-gradient-to-br from-indigo-600 to-violet-600 p-5 text-white">
+                                                                <h3 className="font-semibold text-base flex items-center gap-2">
+                                                                    <FileText className="w-4 h-4" /> Quiz
+                                                                </h3>
+                                                                <p className="text-indigo-100 text-xs mt-1 opacity-90 font-medium">
+                                                                    {activeLesson.assignment.title}
+                                                                </p>
+                                                            </div>
+                                                            <div className="p-5 space-y-4">
+                                                                <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 space-y-3">
+                                                                    <div className="flex items-center gap-2 text-emerald-700 font-semibold text-sm">
+                                                                        <CheckCircle2 className="w-4 h-4" />
+                                                                        <span>Quiz Submitted</span>
+                                                                    </div>
+                                                                    <div className="text-sm text-slate-700 bg-white/50 p-3 rounded-lg border border-emerald-100/50">
+                                                                        {existingSubmission.content}
+                                                                    </div>
+                                                                    <div className="text-xs text-emerald-600 font-medium">
+                                                                        Submitted on {new Date(existingSubmission.submittedAt).toLocaleDateString()}
+                                                                    </div>
+
+                                                                    {existingSubmission.status === 'graded' && (
+                                                                        <div className="pt-2 border-t border-emerald-100 mt-2">
+                                                                            <p className="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-1">Grade</p>
+                                                                            <div className="flex items-center justify-between">
+                                                                                <span className="text-lg font-bold text-emerald-700">{existingSubmission.grade}/10</span>
+                                                                                {existingSubmission.grade >= 5 ?
+                                                                                    <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">PASSED</span> :
+                                                                                    <span className="text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full font-bold">FAILED</span>
+                                                                                }
+                                                                            </div>
+                                                                            {existingSubmission.feedback && (
+                                                                                <div className="mt-2 text-sm text-slate-600 bg-white p-2 rounded border border-emerald-100">
+                                                                                    <span className="font-semibold text-emerald-800 text-xs">Feedback: </span>
+                                                                                    {existingSubmission.feedback}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <QuizPlayer
+                                                            quiz={activeLesson.assignment}
+                                                            onComplete={handleQuizComplete}
+                                                        />
+                                                    )
                                                 ) : (
                                                     <div className="bg-white rounded-2xl border border-indigo-100 shadow-lg shadow-indigo-100/50 overflow-hidden sticky top-6">
-                                                        <div className="bg-gradient-to-br from-indigo-600 to-violet-600 p-6 text-white">
-                                                            <h3 className="font-semibold text-lg flex items-center gap-2">
-                                                                <FileText className="w-5 h-5" /> Assignment
+                                                        <div className="bg-gradient-to-br from-indigo-600 to-violet-600 p-5 text-white">
+                                                            <h3 className="font-semibold text-base flex items-center gap-2">
+                                                                <FileText className="w-4 h-4" /> Assignment
                                                             </h3>
-                                                            <p className="text-indigo-100 text-sm mt-1 opacity-90">
+                                                            <p className="text-indigo-100 text-xs mt-1 opacity-90 font-medium">
                                                                 {activeLesson.assignment.title}
                                                             </p>
                                                         </div>
-                                                        <div className="p-6 space-y-4">
+                                                        <div className="p-5 space-y-4">
                                                             <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
                                                                 {activeLesson.assignment.description}
                                                             </p>
 
-                                                            {user?.role === 'learner' ? (
-                                                                <div className="space-y-4 pt-2">
-                                                                    <div className="space-y-2">
-                                                                        <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Your Submission</label>
+                                                            <div className="space-y-2">
+                                                                <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Your Submission</label>
+                                                                {existingSubmission ? (
+                                                                    <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 space-y-3">
+                                                                        <div className="flex items-center gap-2 text-emerald-700 font-semibold text-sm">
+                                                                            <CheckCircle2 className="w-4 h-4" />
+                                                                            <span>Assignment Submitted</span>
+                                                                        </div>
+                                                                        <div className="text-sm text-slate-700 bg-white/50 p-3 rounded-lg border border-emerald-100/50 break-all">
+                                                                            {existingSubmission.content}
+                                                                        </div>
+                                                                        <div className="text-xs text-emerald-600 font-medium">
+                                                                            Submitted on {new Date(existingSubmission.submittedAt).toLocaleDateString()}
+                                                                        </div>
+
+                                                                        {existingSubmission.status === 'graded' && (
+                                                                            <div className="pt-2 border-t border-emerald-100 mt-2">
+                                                                                <p className="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-1">Grade</p>
+                                                                                <div className="flex items-center justify-between">
+                                                                                    <span className="text-lg font-bold text-emerald-700">{existingSubmission.grade}/10</span>
+                                                                                    {existingSubmission.grade >= 5 ?
+                                                                                        <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">PASSED</span> :
+                                                                                        <span className="text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full font-bold">FAILED</span>
+                                                                                    }
+                                                                                </div>
+                                                                                {existingSubmission.feedback && (
+                                                                                    <div className="mt-2 text-sm text-slate-600 bg-white p-2 rounded border border-emerald-100">
+                                                                                        <span className="font-semibold text-emerald-800 text-xs">Feedback: </span>
+                                                                                        {existingSubmission.feedback}
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                ) : (
+                                                                    <>
                                                                         <Textarea
                                                                             placeholder="Type your answer or paste a link..."
                                                                             value={submissionLink}
                                                                             onChange={(e) => setSubmissionLink(e.target.value)}
                                                                             className="bg-slate-50 border-slate-200 focus:bg-white transition-colors min-h-[120px] resize-none"
                                                                         />
-                                                                    </div>
-                                                                    <Button
-                                                                        onClick={handleSubmitTask}
-                                                                        disabled={isSubmitting}
-                                                                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200"
-                                                                    >
-                                                                        {isSubmitting ? (
-                                                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                                                        ) : 'Submit Assignment'}
-                                                                    </Button>
-                                                                </div>
-                                                            ) : (
-                                                                <div className="p-4 bg-amber-50 rounded-xl border border-amber-100 text-amber-800 text-sm flex gap-3">
+                                                                        <AlertDialog open={showConfirmSubmit} onOpenChange={setShowConfirmSubmit}>
+                                                                            <AlertDialogTrigger asChild>
+                                                                                <Button
+                                                                                    disabled={isSubmitting || !submissionLink.trim()}
+                                                                                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200 mt-4"
+                                                                                >
+                                                                                    {isSubmitting ? (
+                                                                                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                                                                    ) : 'Submit Assignment'}
+                                                                                </Button>
+                                                                            </AlertDialogTrigger>
+                                                                            <AlertDialogContent>
+                                                                                <AlertDialogHeader>
+                                                                                    <AlertDialogTitle>Submit Assignment?</AlertDialogTitle>
+                                                                                    <AlertDialogDescription>
+                                                                                        Are you sure you want to submit this assignment? You won't be able to edit it after submission.
+                                                                                    </AlertDialogDescription>
+                                                                                </AlertDialogHeader>
+                                                                                <AlertDialogFooter>
+                                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                                    <AlertDialogAction onClick={handleSubmitTask} className="bg-indigo-600 hover:bg-indigo-700">
+                                                                                        Confirm Submit
+                                                                                    </AlertDialogAction>
+                                                                                </AlertDialogFooter>
+                                                                            </AlertDialogContent>
+                                                                        </AlertDialog>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                            {user?.role !== 'learner' && (
+                                                                <div className="p-4 bg-amber-50 rounded-xl border border-amber-100 text-amber-800 text-sm flex gap-3 mt-4">
                                                                     <div className="mt-0.5">ℹ️</div>
                                                                     <p>Instructor View: Learners see a submission form here.</p>
                                                                 </div>

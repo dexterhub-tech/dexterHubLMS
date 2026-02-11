@@ -9,6 +9,25 @@ interface RichTextRendererProps {
 export function RichTextRenderer({ content, className }: RichTextRendererProps) {
     if (!content) return null;
 
+    // Helper to process content that might be escaped or quoted
+    let processedContent = content;
+
+    // Remove surrounding quotes if they exist (common artifact from some DBs/APIs)
+    if (processedContent.startsWith('"') && processedContent.endsWith('"')) {
+        processedContent = processedContent.slice(1, -1);
+    }
+
+    // Simple unescape for common entities if the content appears to be escaped HTML
+    // e.g. "&lt;h1&gt;" instead of "<h1>"
+    if (!processedContent.includes('<') && processedContent.includes('&lt;')) {
+        processedContent = processedContent
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/&amp;/g, '&');
+    }
+
     return (
         <div
             className={cn(
@@ -25,7 +44,7 @@ export function RichTextRenderer({ content, className }: RichTextRendererProps) 
                 'prose-code:text-indigo-600 prose-code:bg-indigo-50 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:font-medium prose-code:before:content-none prose-code:after:content-none',
                 className
             )}
-            dangerouslySetInnerHTML={{ __html: content }}
+            dangerouslySetInnerHTML={{ __html: processedContent }}
         />
     );
 }

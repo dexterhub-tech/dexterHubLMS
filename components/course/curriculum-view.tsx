@@ -10,7 +10,10 @@ interface Lesson {
     name: string;
     duration: number;
     videoUrl?: string;
-    assignment?: { title: string };
+    assignment?: {
+        title: string;
+        passingLearners?: string[];
+    };
 }
 
 interface Module {
@@ -25,9 +28,10 @@ interface CurriculumViewProps {
     activeLessonId?: string;
     onSelectLesson: (lesson: any) => void;
     completedLessonIds?: string[]; // For checking off items
+    userId?: string;
 }
 
-export function CurriculumView({ modules, activeLessonId, onSelectLesson, completedLessonIds = [] }: CurriculumViewProps) {
+export function CurriculumView({ modules, activeLessonId, onSelectLesson, completedLessonIds = [], userId }: CurriculumViewProps) {
     return (
         <div className="w-full h-full overflow-y-auto bg-white border-r border-slate-200">
             <div className="px-6 py-5 border-b border-slate-100 sticky top-0 bg-white/95 backdrop-blur z-10">
@@ -85,9 +89,23 @@ export function CurriculumView({ modules, activeLessonId, onSelectLesson, comple
                                                             {lesson.duration}m
                                                         </span>
                                                         {lesson.assignment?.title && (
-                                                            <div className="flex items-center gap-1 text-[10px] font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-sm border border-amber-100">
-                                                                <FileText className="w-3 h-3" />
-                                                                <span>Task</span>
+                                                            <div className={cn(
+                                                                "flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-sm border",
+                                                                (lesson.assignment.passingLearners?.some((id: any) => id.toString() === userId) || completedLessonIds.includes(lesson._id))
+                                                                    ? "text-emerald-600 bg-emerald-50 border-emerald-100"
+                                                                    : "text-amber-600 bg-amber-50 border-amber-100"
+                                                            )}>
+                                                                {lesson.assignment.passingLearners?.some((id: any) => id.toString() === userId) ? (
+                                                                    <>
+                                                                        <CheckCircle className="w-3 h-3" />
+                                                                        <span>PASSED</span>
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <FileText className="w-3 h-3" />
+                                                                        <span>Task</span>
+                                                                    </>
+                                                                )}
                                                             </div>
                                                         )}
                                                     </div>

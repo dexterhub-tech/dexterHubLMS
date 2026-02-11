@@ -118,17 +118,9 @@ export function QuizPlayer({ quiz, onComplete }: QuizPlayerProps) {
                     </div>
                 </CardContent>
                 <CardFooter className="p-8 bg-slate-50 border-t border-slate-100 flex justify-center">
-                    <Button
-                        variant="outline"
-                        onClick={() => {
-                            setIsSubmitted(false);
-                            setSelectedAnswers(new Array(quiz.questions.length).fill(-1));
-                            setCurrentQuestionIdx(0);
-                        }}
-                        className="rounded-xl font-bold border-slate-200"
-                    >
-                        Try Again
-                    </Button>
+                    <p className="text-sm text-slate-500 italic">
+                        Your quiz has been submitted and recorded.
+                    </p>
                 </CardFooter>
             </Card>
         );
@@ -136,22 +128,22 @@ export function QuizPlayer({ quiz, onComplete }: QuizPlayerProps) {
 
     return (
         <Card className="border-indigo-100 shadow-xl overflow-hidden">
-            <CardHeader className="bg-indigo-50/50 p-6 md:p-8 flex flex-row items-center justify-between border-b border-indigo-100/50">
+            <CardHeader className="bg-indigo-50/50 p-4 md:p-6 flex flex-row items-center justify-between border-b border-indigo-100/50">
                 <div className="space-y-1">
-                    <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold uppercase tracking-wider mb-2">
+                    <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold uppercase tracking-wider mb-1">
                         <HelpCircle className="w-3 h-3" /> Question {currentQuestionIdx + 1} of {quiz.questions.length}
                     </div>
-                    <CardTitle className="text-xl font-bold text-slate-900">{quiz.title}</CardTitle>
+                    <CardTitle className="text-base md:text-lg font-bold text-slate-900">{quiz.title}</CardTitle>
                 </div>
                 <div className="hidden md:block">
-                    <div className="w-16 h-16 rounded-2xl bg-white border border-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xl shadow-sm">
+                    <div className="w-12 h-12 rounded-xl bg-white border border-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-lg shadow-sm">
                         {Math.round(((currentQuestionIdx + 1) / quiz.questions.length) * 100)}%
                     </div>
                 </div>
             </CardHeader>
-            <CardContent className="p-6 md:p-10 space-y-8">
-                <div className="space-y-4">
-                    <h4 className="text-lg md:text-xl font-semibold text-slate-800 leading-tight">
+            <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6">
+                <div className="space-y-2">
+                    <h4 className="text-base md:text-lg font-semibold text-slate-800 leading-snug">
                         {currentQuestion.question}
                     </h4>
                 </div>
@@ -162,14 +154,14 @@ export function QuizPlayer({ quiz, onComplete }: QuizPlayerProps) {
                             key={idx}
                             onClick={() => handleSelect(idx)}
                             className={cn(
-                                "flex items-center gap-4 p-5 rounded-2xl border-2 text-left transition-all duration-300",
+                                "flex items-start gap-3 p-3 md:p-4 rounded-xl border-2 text-left transition-all duration-200",
                                 selectedAnswers[currentQuestionIdx] === idx
-                                    ? "bg-indigo-50 border-indigo-500 shadow-md shadow-indigo-100"
+                                    ? "bg-indigo-50 border-indigo-500 shadow-sm"
                                     : "bg-white border-slate-100 hover:border-indigo-200 hover:bg-slate-50"
                             )}
                         >
                             <div className={cn(
-                                "w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm transition-colors",
+                                "w-6 h-6 md:w-8 md:h-8 rounded-lg flex-shrink-0 flex items-center justify-center font-bold text-xs transition-colors mt-0.5",
                                 selectedAnswers[currentQuestionIdx] === idx
                                     ? "bg-indigo-600 text-white"
                                     : "bg-slate-100 text-slate-500"
@@ -177,7 +169,7 @@ export function QuizPlayer({ quiz, onComplete }: QuizPlayerProps) {
                                 {String.fromCharCode(65 + idx)}
                             </div>
                             <span className={cn(
-                                "font-medium flex-1",
+                                "text-sm md:text-base font-medium flex-1 leading-snug",
                                 selectedAnswers[currentQuestionIdx] === idx ? "text-indigo-900" : "text-slate-700"
                             )}>
                                 {option}
@@ -186,31 +178,34 @@ export function QuizPlayer({ quiz, onComplete }: QuizPlayerProps) {
                     ))}
                 </div>
             </CardContent>
-            <CardFooter className="p-6 md:p-8 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+            <CardFooter className="p-4 md:p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-4">
                 <Button
                     variant="ghost"
+                    size="sm"
                     disabled={currentQuestionIdx === 0}
                     onClick={() => setCurrentQuestionIdx(prev => prev - 1)}
-                    className="rounded-xl font-bold text-slate-500"
+                    className="rounded-lg font-medium text-slate-500"
                 >
-                    <ChevronLeft className="w-4 h-4 mr-2" /> Previous
+                    <ChevronLeft className="w-4 h-4 mr-1" /> Back
                 </Button>
 
                 {isLastQuestion ? (
                     <Button
                         onClick={handleSubmit}
+                        size="sm"
                         disabled={isSubmitting || selectedAnswers[currentQuestionIdx] === -1}
-                        className="rounded-xl px-10 h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg shadow-indigo-100"
+                        className="rounded-lg px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-sm ml-auto"
                     >
-                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Finalize & Submit'}
+                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit Quiz'}
                     </Button>
                 ) : (
                     <Button
                         onClick={() => setCurrentQuestionIdx(prev => prev + 1)}
+                        size="sm"
                         disabled={selectedAnswers[currentQuestionIdx] === -1}
-                        className="rounded-xl px-8 h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg shadow-indigo-100 group"
+                        className="rounded-lg px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-sm ml-auto group"
                     >
-                        Next Challenge <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        Next <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                     </Button>
                 )}
             </CardFooter>

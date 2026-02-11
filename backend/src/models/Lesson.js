@@ -18,7 +18,8 @@ const lessonSchema = new mongoose.Schema({
             options: [String],
             correctAnswer: Number
         }],
-        maxScore: { type: Number, default: 100 }
+        maxScore: { type: Number, default: 10 },
+        passingLearners: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
     },
     duration: Number,
     createdAt: { type: Date, default: Date.now },
