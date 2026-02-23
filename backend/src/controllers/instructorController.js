@@ -9,33 +9,47 @@ exports.getInstructorLearners = async (req, res) => {
     try {
         const instructorId = req.user.id;
 
-        // 1. Find cohorts managed by this instructor
-        const cohorts = await Cohort.find({ instructorIds: instructorId });
+        // 1. Find cohorts
+        const query = {};
+        // Relaxed filter: only restrict by instructor if not admin and actually want strict mode
+        // For now, mirroring cohorts/applications page behavior to show all
+        /*
+        if (req.user.role === 'instructor') {
+            query.instructorIds = instructorId;
+        }
+        */
+
+        const cohorts = await Cohort.find(query);
         const cohortIds = cohorts.map(c => c._id);
 
-        // 2. Find all unique learners in these cohorts
-        const uniqueLearnerIds = [...new Set(cohorts.flatMap(c => c.learnerIds.map(id => id.toString())))];
+        // 2. Find all unique learners in these cohorts with safety check
+        const uniqueLearnerIds = [...new Set(cohorts.flatMap(c =>
+            (c.learnerIds || []).map(id => id.toString())
+        ))];
 
         const learners = await User.find({ _id: { $in: uniqueLearnerIds } })
             .select('firstName lastName email');
 
         // 3. Enhance with progress data for the specific instructor's cohorts
         const learnersWithStatus = await Promise.all(learners.map(async (learner) => {
-            // Find the most relevant progress record (e.g., active in one of this instructor's cohorts)
-            const progress = await LearnerProgress.findOne({
+            // Find all progress records for this learner in instructor's cohorts
+            const progressRecords = await LearnerProgress.find({
                 learnerId: learner._id,
                 cohortId: { $in: cohortIds }
-            }).sort({ lastActivityDate: -1 });
+            }).sort({ lastActivityDate: -1, updatedAt: -1 });
+
+            // Prioritize active progress over dropped
+            const activeProgress = progressRecords.find(p => p.status !== 'dropped') || progressRecords[0];
 
             return {
                 id: learner._id,
                 firstName: learner.firstName,
                 lastName: learner.lastName,
                 email: learner.email,
-                status: progress?.status || 'on-track',
-                currentScore: progress?.currentScore || 0,
-                inactivityDays: progress?.inactivityDays || 0,
-                cohortId: progress?.cohortId
+                status: activeProgress?.status || 'on-track',
+                currentScore: activeProgress?.currentScore || 0,
+                inactivityDays: activeProgress?.inactivityDays || 0,
+                cohortId: activeProgress?.cohortId
             };
         }));
 

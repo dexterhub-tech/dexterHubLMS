@@ -88,27 +88,40 @@ exports.joinCohort = async (req, res) => {
         }
 
         // Handle Progress "Reset" / Archival
-        // Find any existing active progress and mark as dropped/archived if migrating
-        // For simple logic, we just create a new active progress record for this cohort
+        // Mark all existing progress in OTHER cohorts as dropped
         await LearnerProgress.updateMany(
-            { learnerId, status: { $in: ['on-track', 'at-risk', 'under-review'] } },
-            { $set: { status: 'dropped' } } // Or 'archived' depending on business logic
+            {
+                learnerId,
+                cohortId: { $ne: cohortId },
+                status: { $in: ['on-track', 'at-risk', 'under-review'] }
+            },
+            { $set: { status: 'dropped' } }
         );
 
-        // Create new progress record
-        const newProgress = new LearnerProgress({
-            learnerId,
-            cohortId,
-            status: 'on-track',
-            currentScore: 100, // Start with 100% or 0 depending on philosophy
-            learningHoursThisWeek: 0
-        });
-        await newProgress.save();
+        // Check if progress already exists for THIS cohort
+        let progress = await LearnerProgress.findOne({ learnerId, cohortId });
+
+        if (progress) {
+            // Re-activate existing record
+            progress.status = 'on-track';
+            progress.updatedAt = new Date();
+            await progress.save();
+        } else {
+            // Create new progress record
+            progress = new LearnerProgress({
+                learnerId,
+                cohortId,
+                status: 'on-track',
+                currentScore: 100,
+                learningHoursThisWeek: 0
+            });
+            await progress.save();
+        }
 
         // Update User's active cohort
         await User.findByIdAndUpdate(learnerId, { activeCohortId: cohortId });
 
-        res.json({ message: 'Successfully joined cohort', cohort, progress: newProgress });
+        res.json({ message: 'Successfully joined cohort', cohort, progress });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -185,11 +198,8 @@ exports.getMyApplications = async (req, res) => {
 exports.listPendingApplications = async (req, res) => {
     try {
         const query = {};
-        // If instructor, only show applications for cohorts they manage
-        if (req.user.role === 'instructor') {
-            const myCohorts = await Cohort.find({ instructorIds: req.user.id });
-            query.cohortId = { $in: myCohorts.map(c => c._id) };
-        }
+        // Note: Restrictions for instructors are currently relaxed per user request
+        // if (req.user.role === 'instructor') { ... }
 
         const applications = await EnrollmentRequest.find({ ...query, status: 'pending' })
             .populate('learnerId', 'firstName lastName email')

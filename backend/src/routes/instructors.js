@@ -6,6 +6,6 @@ const roleCheck = require('../middleware/roleCheck');
 
 router.post('/notes', authMiddleware, roleCheck(['instructor', 'admin']), instructorController.createNote);
 router.post('/drop-recommendations', authMiddleware, roleCheck(['instructor']), instructorController.createDropRecommendation);
-router.get('/learners', authMiddleware, roleCheck(['instructor']), instructorController.getInstructorLearners);
+router.get('/learners', authMiddleware, roleCheck(['instructor', 'admin', 'super-admin']), instructorController.getInstructorLearners);
 
 module.exports = router;

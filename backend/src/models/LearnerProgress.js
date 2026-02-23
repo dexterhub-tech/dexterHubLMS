@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
 const learnerProgressSchema = new mongoose.Schema({
-    learnerId: mongoose.Schema.Types.ObjectId,
-    cohortId: mongoose.Schema.Types.ObjectId,
-    courseId: mongoose.Schema.Types.ObjectId,
+    learnerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    cohortId: { type: mongoose.Schema.Types.ObjectId, ref: 'Cohort' },
+    courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
     completedLessons: [mongoose.Schema.Types.ObjectId],
     moduleProgress: [{
         moduleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Module' },

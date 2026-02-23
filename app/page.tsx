@@ -99,7 +99,7 @@ export default function Home() {
         </section>
 
         {/* Brand Bar */}
-        <section className="max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-16 border-y border-slate-50 overflow-hidden">
+        {/* <section className="max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-16 border-y border-slate-50 overflow-hidden">
           <div className="flex flex-wrap justify-center items-center gap-8 md:gap-20 opacity-20 grayscale">
             <p className="text-lg md:text-2xl font-black italic tracking-tighter">VERSACE</p>
             <p className="text-lg md:text-2xl font-black tracking-widest uppercase">Prada</p>
@@ -107,7 +107,7 @@ export default function Home() {
             <p className="text-lg md:text-2xl font-black italic">ROLEX</p>
             <p className="text-lg md:text-2xl font-black uppercase tracking-tighter">Gucci</p>
           </div>
-        </section>
+        </section> */}
 
         {/* Features Grid */}
         <section id="features" className="max-w-7xl mx-auto px-4 md:px-8 py-20 md:py-32">

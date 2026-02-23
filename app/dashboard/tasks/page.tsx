@@ -6,11 +6,9 @@ import { TopHeader } from '@/components/top-header';
 import { TaskCard } from '@/components/task-card';
 import { useAuth } from '@/lib/auth-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { api } from '@/lib/api';
+import { Lock } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function TasksPage() {
     const router = useRouter();
@@ -19,45 +17,15 @@ export default function TasksPage() {
     const [tasks, setTasks] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const MOCK_TASKS = [
-        {
-            id: 'mock-1',
-            title: 'CBT Exam: Advanced HTML & Accessibility',
-            subject: 'Frontend Dev',
-            instructor: 'Prof. Sarah Smith',
-            type: 'quiz',
-            status: 'pending',
-            color: 'mint',
-            dueDate: new Date(Date.now() + 86400000).toISOString(),
-        },
-        {
-            id: 'mock-2',
-            title: 'Project Submission: Portfolio Website',
-            subject: 'UI/UX Design',
-            instructor: 'Dr. Alex Chen',
-            type: 'task',
-            status: 'pending',
-            color: 'peach',
-            dueDate: new Date(Date.now() + 172800000).toISOString(),
-        },
-        {
-            id: 'mock-3',
-            title: 'Video Presentation: Self Introduction',
-            subject: 'Communication',
-            instructor: 'Ms. Emily White',
-            type: 'video',
-            status: 'completed',
-            color: 'lavender',
-            dueDate: new Date(Date.now() - 86400000).toISOString(),
-        }
-    ];
-
     useEffect(() => {
         const fetchTasks = async () => {
-            if (!user) return;
+            if (!user) {
+                setIsLoading(false);
+                return;
+            }
             try {
+                setIsLoading(true);
                 const data = await api.getLearnerTasks(user.id);
-                // Backend now returns formatted tasks, but we can ensure defaults here
                 const mappedTasks = data.map((t: any, i: number) => ({
                     ...t,
                     color: t.color || ['mint', 'peach', 'lavender', 'yellow'][i % 4],
@@ -66,7 +34,6 @@ export default function TasksPage() {
                 setTasks(mappedTasks);
             } catch (error) {
                 console.error('Failed to fetch tasks:', error);
-                // toast.error('Failed to load tasks');
             } finally {
                 setIsLoading(false);
             }
@@ -74,12 +41,51 @@ export default function TasksPage() {
         fetchTasks();
     }, [user]);
 
+    const handleTaskClick = (task: any) => {
+        if (task.isLocked) return; // locked tasks are not clickable
+
+        if (task.type === 'Assignment' && task.courseId && task.lessonId) {
+            // Navigate to the course session page with the lessonId query param
+            router.push(`/dashboard/courses/${task.courseId}?lessonId=${task.lessonId}`);
+        } else {
+            router.push(`/dashboard/tasks/${task.id}`);
+        }
+    };
+
     const pendingTasks = tasks.filter(t => t.status === 'pending');
-    const completedTasks = tasks.filter(t => t.status === 'completed');
+    const completedTasks = tasks.filter(t => t.status === 'completed' || t.status === 'submitted');
 
     const filteredTasks = tasks.filter(task =>
-        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.subject.toLowerCase().includes(searchTerm.toLowerCase())
+        (task.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (task.subject || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const renderTaskItem = (task: any, index: number) => (
+        <div
+            key={index}
+            onClick={() => handleTaskClick(task)}
+            className={cn("relative", task.isLocked ? "cursor-not-allowed" : "cursor-pointer")}
+        >
+            {task.isLocked && (
+                <div className="absolute inset-0 z-10 rounded-2xl bg-slate-900/10 backdrop-blur-[1px] flex items-center justify-end pr-5 pointer-events-none">
+                    <div className="flex items-center gap-1.5 bg-white/90 text-slate-500 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 shadow-sm">
+                        <Lock className="w-3 h-3" />
+                        <span>Complete previous module first</span>
+                    </div>
+                </div>
+            )}
+            <div className={cn(task.isLocked && "opacity-60 select-none pointer-events-none")}>
+                <TaskCard {...task} />
+            </div>
+        </div>
+    );
+
+    const EmptyState = ({ icon, title, subtitle }: { icon: string; title: string; subtitle: string }) => (
+        <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
+            <div className="text-4xl mb-4">{icon}</div>
+            <h3 className="text-lg font-medium text-slate-900">{title}</h3>
+            <p className="text-slate-500">{subtitle}</p>
+        </div>
     );
 
     return (
@@ -107,7 +113,7 @@ export default function TasksPage() {
                     </div>
                 </div>
 
-                {/* Search and Filters */}
+                {/* Search */}
                 <div className="flex flex-col md:flex-row items-center gap-4 justify-between">
                     <div className="relative w-full md:w-96">
                         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -138,49 +144,25 @@ export default function TasksPage() {
                         <>
                             <TabsContent value="all" className="mt-0 space-y-4">
                                 {filteredTasks.length > 0 ? (
-                                    filteredTasks.map((task, index) => (
-                                        <div key={index} onClick={() => router.push(`/dashboard/tasks/${task.id}`)}>
-                                            <TaskCard {...task} />
-                                        </div>
-                                    ))
+                                    filteredTasks.map((task, index) => renderTaskItem(task, index))
                                 ) : (
-                                    <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
-                                        <div className="text-4xl mb-4">📝</div>
-                                        <h3 className="text-lg font-medium text-slate-900">No tasks found</h3>
-                                        <p className="text-slate-500">You are all caught up!</p>
-                                    </div>
+                                    <EmptyState icon="📝" title="No tasks found" subtitle="You are all caught up!" />
                                 )}
                             </TabsContent>
 
                             <TabsContent value="pending" className="mt-0 space-y-4">
                                 {pendingTasks.length > 0 ? (
-                                    pendingTasks.map((task, index) => (
-                                        <div key={index} onClick={() => router.push(`/dashboard/tasks/${task.id}`)}>
-                                            <TaskCard {...task} />
-                                        </div>
-                                    ))
+                                    pendingTasks.map((task, index) => renderTaskItem(task, index))
                                 ) : (
-                                    <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
-                                        <div className="text-4xl mb-4">🎉</div>
-                                        <h3 className="text-lg font-medium text-slate-900">No pending tasks</h3>
-                                        <p className="text-slate-500">Great job staying on top of your work!</p>
-                                    </div>
+                                    <EmptyState icon="🎉" title="No pending tasks" subtitle="Great job staying on top of your work!" />
                                 )}
                             </TabsContent>
 
                             <TabsContent value="completed" className="mt-0 space-y-4">
                                 {completedTasks.length > 0 ? (
-                                    completedTasks.map((task, index) => (
-                                        <div key={index} onClick={() => router.push(`/dashboard/tasks/${task.id}`)}>
-                                            <TaskCard {...task} />
-                                        </div>
-                                    ))
+                                    completedTasks.map((task, index) => renderTaskItem(task, index))
                                 ) : (
-                                    <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
-                                        <div className="text-4xl mb-4">📂</div>
-                                        <h3 className="text-lg font-medium text-slate-900">No completed tasks yet</h3>
-                                        <p className="text-slate-500">Finish your first assignment to see it here.</p>
-                                    </div>
+                                    <EmptyState icon="📂" title="No completed tasks yet" subtitle="Finish your first assignment to see it here." />
                                 )}
                             </TabsContent>
                         </>

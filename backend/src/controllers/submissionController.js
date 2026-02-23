@@ -115,13 +115,25 @@ exports.submitAssignment = async (req, res) => {
                     }
                 }
 
+                // 3. Update completedLessons array - ANY submission counts as completion for unlocking
+                if (!progress.completedLessons.includes(lessonId)) {
+                    progress.completedLessons.push(lessonId);
+                }
+
                 await progress.save();
             }
 
             res.status(201).json(submission);
         } else {
-            // Non-quiz submission - save as pending
-            await submission.save();
+            // 3. Update completedLessons array - ANY submission counts as completion for unlocking
+            const progress = await LearnerProgress.findOne({ learnerId, cohortId });
+            if (progress) {
+                if (!progress.completedLessons.includes(lessonId)) {
+                    progress.completedLessons.push(lessonId);
+                }
+                await progress.save();
+            }
+
             res.status(201).json(submission);
         }
     } catch (error) {
@@ -238,6 +250,11 @@ exports.gradeSubmission = async (req, res) => {
 
                     // Graduation Check (70%)
                     modProgress.isGraduated = modProgress.averageScore >= 70;
+                }
+
+                // 3. Update completedLessons array - ensured it's in there (it should be from submission)
+                if (!progress.completedLessons.includes(submission.lessonId)) {
+                    progress.completedLessons.push(submission.lessonId);
                 }
             }
 

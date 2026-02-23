@@ -5,33 +5,26 @@ import { TopHeader } from '@/components/top-header';
 import { StatCard } from '@/components/stat-card';
 import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  AreaChart,
-  Area,
 } from 'recharts';
 import {
   TrendingUp,
-  Target,
-  Activity,
   Award,
-  Calendar,
-  ChevronRight,
-  Star,
   Zap,
-  Clock
+  Clock,
+  Target,
+  ChevronRight
 } from 'lucide-react';
-// ... imports ...
 
 export default function ProgressPage() {
   const { user } = useAuth();
@@ -47,8 +40,12 @@ export default function ProgressPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!user) return;
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
       try {
+        setIsLoading(true);
         const data = await api.getLearnerProgressDashboard(user.id);
         setStats(data.stats);
         setChartData(data.chartData);
@@ -62,276 +59,204 @@ export default function ProgressPage() {
     fetchData();
   }, [user]);
 
-  // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
-        <div className="animate-pulse flex flex-col items-center">
-          <div className="h-12 w-12 bg-indigo-100 rounded-full mb-4"></div>
-          <div className="h-4 w-32 bg-slate-200 rounded"></div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-slate-400 text-sm font-medium uppercase tracking-widest">Loading stats...</p>
         </div>
       </div>
     );
   }
 
-  // Use fetched data in render
-  // const scoreData = chartData; // Map if necessary, but backend format matches
   const scoreData = chartData.length > 0 ? chartData : [
     { week: 'W1', score: 0 }, { week: 'W8', score: 0 }
   ];
 
-
-  // Custom Gradient Tooltip
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white/80 backdrop-blur-md border border-slate-200 p-3 rounded-2xl shadow-xl">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1">{label}</p>
-          <p className="text-sm font-semibold text-indigo-600">{payload[0].value}% Score</p>
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <div className="min-h-screen bg-neutral-50/50">
       <TopHeader user={user ? { name: `${user.firstName} ${user.lastName}`, email: user.email } : undefined} />
 
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
-        {/* Glassmorphic Hero Section */}
-        <section className="relative overflow-hidden rounded-[40px] bg-slate-900 p-8 md:p-12 text-white shadow-2xl">
-          {/* Animated background blobs */}
-          <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-96 h-96 bg-indigo-500 rounded-full blur-[120px] opacity-30 animate-pulse" />
-          <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-96 h-96 bg-violet-600 rounded-full blur-[120px] opacity-20" />
-
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-            <div className="space-y-4">
-              <Badge className="bg-white/10 text-white border-white/20 px-3 py-1 backdrop-blur-md rounded-full text-[10px] font-semibold tracking-widest uppercase">
-                Active Learner
-              </Badge>
-              <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
-                Powering Through <br />Your Journey.
-              </h1>
-              <p className="text-slate-300 max-w-lg text-lg leading-relaxed">
-                You've reached <span className="text-white font-semibold">{stats.velocity}% of your target</span> this month. Keep up the momentum to reach your goals.
-              </p>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-[32px] w-40 text-center space-y-2">
-                <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-widest">Est. Rank</p>
-                <p className="text-4xl font-black">#{stats.streak > 0 ? Math.max(1, 100 - stats.streak) : '--'}</p>
-                <div className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-semibold leading-none">
-                  {stats.streak > 0 && <><TrendingUp className="w-3 h-3" /> Top 10%</>}
-                </div>
-              </div>
-              <div className="bg-indigo-600 p-6 rounded-[32px] w-40 text-center space-y-2 shadow-xl shadow-indigo-900/40">
-                <p className="text-indigo-200 text-[10px] font-semibold uppercase tracking-widest">Total XP</p>
-                <p className="text-4xl font-black">{Math.round(stats.hours * 100).toLocaleString()}</p>
-                <p className="text-[10px] text-indigo-400 font-semibold leading-none">Based on hours tracking</p>
-              </div>
-            </div>
+      <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-12">
+        {/* Minimal Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-200/60">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-900 uppercase">My Progress</h1>
+            <p className="text-muted-foreground mt-2 max-w-xl text-sm md:text-lg font-medium">
+              Overview of your learning performance and achievements.
+            </p>
           </div>
-        </section>
+          <div className="flex items-center gap-2 text-sm font-medium text-slate-500 bg-white px-4 py-2 rounded-xl border border-slate-100 shadow-sm">
+            <Target className="w-4 h-4 text-indigo-600" />
+            <span>{stats.velocity}% to Target</span>
+          </div>
+        </div>
 
-        {/* Quick Insights Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatMiniCard
             icon={TrendingUp}
-            label="Learning Velocity"
+            label="Accuracy"
             value={`${stats.velocity}%`}
-            iconColor="text-indigo-600"
-            iconBgColor="bg-indigo-50"
-            trend={{ value: "Average Score", isPositive: true }}
+            color="indigo"
           />
-          <StatCard
+          <StatMiniCard
             icon={Clock}
-            label="Hours Invested"
+            label="Hours"
             value={`${stats.hours}h`}
-            iconColor="text-violet-600"
-            iconBgColor="bg-violet-50"
-            trend={{ value: "Total tracked time", isPositive: true }}
+            color="violet"
           />
-          <StatCard
+          <StatMiniCard
             icon={Zap}
-            label="Current Streak"
-            value={`${stats.streak} Days`}
-            iconColor="text-amber-600"
-            iconBgColor="bg-amber-50"
-            trend={{ value: "Keep it up!", isPositive: true }}
+            label="Streak"
+            value={`${stats.streak}d`}
+            color="amber"
           />
-          <StatCard
+          <StatMiniCard
             icon={Award}
-            label="Certificates"
+            label="Badges"
             value={`${stats.certificates}`}
-            iconColor="text-emerald-600"
-            iconBgColor="bg-emerald-50"
+            color="emerald"
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Chart Area */}
-          <div className="lg:col-span-2 space-y-8">
-            <Card className="rounded-[32px] border-slate-100 shadow-sm overflow-hidden bg-white">
-              <CardHeader className="p-8 pb-0">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-2xl font-semibold">Performance Analytics</CardTitle>
-                    <CardDescription className="text-slate-500 mt-1">Consistency tracking across last 8 weeks</CardDescription>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+          {/* Main Chart Section */}
+          <div className="lg:col-span-3 space-y-6">
+            <Card className="rounded-[32px] border-none shadow-sm bg-white p-6 md:p-8">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900 uppercase tracking-tight">Performance Trend</h3>
+                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Weekly average scores</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-indigo-600"></div>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">Score</span>
                   </div>
-                  <Badge variant="outline" className="bg-slate-50">Last 8 Weeks</Badge>
                 </div>
-              </CardHeader>
-              <CardContent className="p-8 pt-4">
-                <div className="h-[300px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={scoreData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1} />
-                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis
-                        dataKey="week"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
-                        dy={10}
-                      />
-                      <YAxis
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
-                        domain={[0, 100]}
-                      />
-                      <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#6366f1', strokeWidth: 1, strokeDasharray: '4 4' }} />
-                      <Area
-                        type="monotone"
-                        dataKey="score"
-                        stroke="#6366f1"
-                        strokeWidth={4}
-                        fillOpacity={1}
-                        fill="url(#scoreGradient)"
-                        animationDuration={2000}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
+              </div>
+              <div className="h-[280px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={scoreData}>
+                    <defs>
+                      <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15} />
+                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0.01} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis
+                      dataKey="week"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
+                      dy={10}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
+                      domain={[0, 100]}
+                    />
+                    <Tooltip
+                      contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                      itemStyle={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase' }}
+                      labelStyle={{ display: 'none' }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="score"
+                      stroke="#6366f1"
+                      strokeWidth={3}
+                      fillOpacity={1}
+                      fill="url(#scoreGradient)"
+                      activeDot={{ r: 6, strokeWidth: 0, fill: '#6366f1' }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </Card>
 
-            {/* Performance Summary (Horizontal Layout) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="rounded-[32px] border-slate-100 shadow-sm bg-white p-8 space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
-                    <Target className="w-5 h-5" />
-                  </div>
-                  <h3 className="font-semibold text-lg">Goal Progression</h3>
-                </div>
-                <div className="space-y-4">
-                  {/* Remove hardcoded course completion if unknown */}
-                  <div>
-                    <div className="flex justify-between text-xs font-semibold mb-2">
-                      <span className="text-slate-400">ASSIGNMENT ACCURACY</span>
-                      <span className="text-violet-600">{stats.velocity}%</span>
-                    </div>
-                    <Progress value={stats.velocity} className="h-2 bg-slate-50" indicatorClassName="bg-violet-600" />
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="rounded-[32px] border-slate-100 shadow-sm bg-white p-8 space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
-                    <Award className="w-5 h-5" />
-                  </div>
-                  <h3 className="font-semibold text-lg">Milestones</h3>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {stats.streak >= 7 && <Badge className="bg-rose-50 text-rose-600 border-rose-100 py-1.5 px-3 rounded-xl text-[10px] font-semibold">Week Streak</Badge>}
-                  {stats.velocity > 80 && <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 py-1.5 px-3 rounded-xl text-[10px] font-semibold">High Performer</Badge>}
-                  {stats.hours > 50 && <Badge className="bg-violet-50 text-violet-600 border-violet-100 py-1.5 px-3 rounded-xl text-[10px] font-semibold">Dedicated</Badge>}
-                  {stats.certificates > 0 && <Badge className="bg-indigo-50 text-indigo-600 border-indigo-100 py-1.5 px-3 rounded-xl text-[10px] font-semibold">Certified</Badge>}
-                  {stats.streak === 0 && stats.velocity === 0 && <span className="text-xs text-slate-400">No milestones yet. Start learning!</span>}
-                </div>
-              </Card>
+            <div className="bg-indigo-600 rounded-[32px] p-8 text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
+              <div className="relative z-10 space-y-4">
+                <h3 className="text-xl font-bold uppercase tracking-tight">Level Up Your Journey</h3>
+                <p className="text-indigo-100/80 text-sm font-medium leading-relaxed max-w-md">
+                  Your consistent learning velocity is impressive. Maintaining a {stats.streak} day streak puts you ahead of 80% of your cohort.
+                </p>
+                <button className="flex items-center gap-2 bg-white text-indigo-600 px-6 py-2.5 rounded-2xl font-bold text-sm hover:bg-neutral-50 transition-colors uppercase">
+                  View Roadmap <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Assessment History Area */}
-          <div className="space-y-6">
-            <Card className="rounded-[32px] border-slate-100 shadow-sm bg-white overflow-hidden h-full flex flex-col">
+          {/* Activity Section */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="rounded-[32px] border-none shadow-sm bg-white h-full">
               <CardHeader className="p-8 pb-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl font-semibold">Recent Activity</CardTitle>
-                </div>
+                <CardTitle className="text-lg font-semibold text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                  Recent Activity
+                </CardTitle>
               </CardHeader>
-              <CardContent className="p-4 pt-0 flex-1">
-                <div className="space-y-4">
+              <CardContent className="p-6 pt-0">
+                <div className="space-y-3">
                   {assessments.length === 0 ? (
-                    <div className="text-center py-8 text-slate-400 text-sm">No recent activity</div>
+                    <div className="text-center py-12 text-slate-400 text-sm font-medium italic uppercase tracking-wider">No activity recorded</div>
                   ) : (
                     assessments.map((assessment) => (
                       <div
                         key={assessment.id}
-                        className="group p-4 rounded-2xl border border-slate-50 hover:border-indigo-100 hover:bg-slate-50/50 transition-all cursor-pointer"
+                        className="group flex items-center justify-between p-4 rounded-2xl bg-neutral-50/50 hover:bg-white border border-transparent hover:border-slate-100 hover:shadow-sm transition-all"
                       >
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className={cn(
-                            "text-[9px] font-black uppercase px-2 py-0.5 rounded-lg border-none shadow-none",
-                            assessment.type === 'Quiz' ? "bg-amber-100 text-amber-600" :
-                              assessment.type === 'Exam' ? "bg-rose-100 text-rose-600" :
-                                "bg-indigo-100 text-indigo-600"
-                          )}>
-                            {assessment.type}
-                          </Badge>
-                          <span className="text-[10px] font-semibold text-slate-400">
-                            {new Date(assessment.date).toLocaleDateString()}
-                          </span>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-0.5">{assessment.type}</span>
+                          <h4 className="font-bold text-slate-800 text-sm leading-tight uppercase tracking-tight">{assessment.name}</h4>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">{new Date(assessment.date).toLocaleDateString()}</span>
                         </div>
-                        <div className="flex items-end justify-between">
-                          <div>
-                            <h4 className="font-semibold text-slate-800 text-sm group-hover:text-indigo-600 transition-colors">
-                              {assessment.name}
-                            </h4>
-                          </div>
-                          <div className="text-right">
-                            {assessment.status === 'completed' ? (
-                              <div className="font-black text-lg text-slate-900 leading-none">
-                                {assessment.score}<span className="text-xs text-slate-400 font-semibold ml-0.5">/100</span>
-                              </div>
-                            ) : (
-                              <Badge className="bg-slate-100 text-slate-500 border-none font-semibold text-[9px] px-2">PENDING</Badge>
-                            )}
-                          </div>
+                        <div className="text-right">
+                          {assessment.status === 'completed' ? (
+                            <div className="flex flex-col items-end">
+                              <span className="text-xl font-black text-slate-900 leading-none">{assessment.score}</span>
+                              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">SCORE</span>
+                            </div>
+                          ) : (
+                            <Badge className="bg-slate-200 text-slate-500 border-none font-bold text-[8px] px-2 uppercase shadow-none">Pending</Badge>
+                          )}
                         </div>
                       </div>
                     )))}
                 </div>
-
-                {/* Summary Widget - Conditional */}
-                {assessments.some(a => a.status === 'pending') && (
-                  <div className="mt-8 p-6 rounded-[24px] bg-indigo-600 text-white space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                        <Star className="w-4 h-4 fill-white" />
-                      </div>
-                      <h4 className="font-semibold">Next Task</h4>
-                    </div>
-                    <p className="text-xs text-indigo-100 leading-relaxed">
-                      You have pending items to complete. Keep going!
-                    </p>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function StatMiniCard({ icon: Icon, label, value, color }: { icon: any, label: string, value: string, color: 'indigo' | 'violet' | 'amber' | 'emerald' }) {
+  const colorMap = {
+    indigo: 'text-indigo-600 bg-indigo-50',
+    violet: 'text-violet-600 bg-violet-50',
+    amber: 'text-amber-600 bg-amber-50',
+    emerald: 'text-emerald-600 bg-emerald-50',
+  };
+
+  return (
+    <Card className="rounded-[24px] border-none shadow-sm bg-white p-6 hover:-translate-y-1 transition-transform duration-300">
+      <div className="flex items-center gap-4">
+        <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", colorMap[color])}>
+          <Icon className="w-6 h-6" />
+        </div>
+        <div>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{label}</p>
+          <p className="text-2xl font-medium font-black text-slate-900 leading-none">{value}</p>
+        </div>
+      </div>
+    </Card>
   );
 }

@@ -94,7 +94,7 @@ export default function LearnersPage() {
   };
 
   useEffect(() => {
-    if (user?.role === 'instructor') {
+    if (user?.role === 'instructor' || user?.role === 'admin' || user?.role === 'super-admin') {
       fetchLearners();
     }
   }, [user]);
@@ -196,7 +196,7 @@ export default function LearnersPage() {
       <main className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-slate-900 tracking-tight">Learner Management</h1>
+            <h1 className="text-xl md:text-4xl font-bold text-slate-900 tracking-tight">Learner Management</h1>
             <p className="text-slate-500 mt-2 font-medium">Monitoring {learners.length} active learners across your cohorts</p>
           </div>
         </div>

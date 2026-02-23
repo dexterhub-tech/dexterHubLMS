@@ -5,7 +5,7 @@ import { api, Cohort } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Users, ArrowRight, Sparkles, BookOpen, Clock } from 'lucide-react';
+import { Calendar, Users, ArrowRight, Sparkles, BookOpen, Clock, Globe, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -46,114 +46,140 @@ export function JoinCohortView({ onJoinSuccess }: { onJoinSuccess: () => void })
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-neutral-50/50">
-                <div className="space-y-4 text-center">
-                    <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto" />
-                    <p className="text-slate-500 font-medium animate-pulse">Scanning for opportunities...</p>
+            <div className="min-h-screen flex items-center justify-center bg-white">
+                <div className="space-y-6 text-center">
+                    <div className="relative">
+                        <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto" />
+                        <Sparkles className="w-6 h-6 text-indigo-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                    </div>
+                    <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px] animate-pulse">Syncing Opportunities</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-neutral-50/50 py-20 px-6">
-            <div className="max-w-5xl mx-auto space-y-12">
-                <div className="text-center space-y-4">
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold uppercase tracking-wider border border-indigo-100">
-                        <Sparkles className="w-3 h-3" /> Get Started
-                    </div>
-                    <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-slate-900">Choose Your Learning Path</h1>
-                    <p className="text-lg text-slate-500 max-w-2xl mx-auto">
-                        Select an active academic group to begin your journey. Each cohort offers a unique schedule and peer network.
-                    </p>
+        <div className="min-h-screen bg-neutral-50/30">
+            {/* Elegant Hero Section */}
+            <section className="relative pt-20 pb-16 px-6 overflow-hidden">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full pointer-events-none">
+                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-50 rounded-full blur-[120px] opacity-60 -translate-y-1/2 translate-x-1/4" />
+                    <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-violet-50 rounded-full blur-[100px] opacity-40 translate-y-1/4 -translate-x-1/4" />
                 </div>
 
-                <div className="grid gap-8 md:grid-cols-2">
+                <div className="relative z-10 max-w-4xl mx-auto text-center space-y-8">
+                    <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white border font-medium border-slate-100 shadow-sm text-indigo-600 text-[10px] font-black uppercase tracking-widest">
+                        <ShieldCheck className="w-3.5 h-3.5" /> Secure Academic Gateway
+                    </div>
+                    <h1 className="text-4xl md:text-6xl font-bold font-black tracking-tight text-slate-900 leading-[1.1]">
+                        Welcome to Your <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">Learning Journey.</span>
+                    </h1>
+                    <p className="text-lg font-medium text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed">
+                        You're one step away from joining our elite community. Select an available cohort below to gain immediate access to your curriculum and peers.
+                    </p>
+                </div>
+            </section>
+
+            <div className="max-w-6xl mx-auto pb-32 px-4 md:px-6">
+                <div className="md:grid md:gap-8 md:grid-cols-2 lg:grid-cols-2">
                     {cohorts.map((cohort) => (
-                        <Card key={cohort._id} className="group relative flex flex-col bg-white rounded-[32px] border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 overflow-hidden">
-                            {/* Card Decor */}
-                            <div className={cn(
-                                "absolute top-0 right-0 w-32 h-32 blur-3xl opacity-10 transition-opacity group-hover:opacity-20",
-                                cohort.status === 'active' ? 'bg-emerald-500' : 'bg-indigo-500'
-                            )} />
+                        <div key={cohort._id} className="group relative">
+                            {/* Card Background Bloom */}
+                            <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-violet-500 rounded-[40px] opacity-0 group-hover:opacity-10 blur-xl transition-opacity duration-500" />
 
-                            <CardHeader className="p-8 pb-4">
-                                <div className="flex justify-between items-start mb-6">
-                                    <Badge className={cn(
-                                        "rounded-full px-4 py-1 text-[10px] font-bold uppercase tracking-widest border transition-colors",
-                                        cohort.status === 'active'
-                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                                            : 'bg-indigo-50 text-indigo-700 border-indigo-100'
-                                    )}>
-                                        {cohort.status === 'active' ? 'Ongoing Session' : 'Enrolling Soon'}
-                                    </Badge>
-                                    <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
-                                        <Users className="w-3.5 h-3.5 text-slate-400" />
-                                        <span className="text-[11px] font-bold text-slate-600">{cohort.learnerIds?.length || 0} Peers</span>
-                                    </div>
-                                </div>
-                                <CardTitle className="text-2xl font-semibold text-slate-900 leading-tight group-hover:text-indigo-600 transition-colors">
-                                    {cohort.name}
-                                </CardTitle>
-                                <CardDescription className="mt-3 text-slate-500 leading-relaxed line-clamp-2 italic">
-                                    "{cohort.description}"
-                                </CardDescription>
-                            </CardHeader>
-
-                            <CardContent className="p-8 pt-4 flex-1 space-y-6">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100/50">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Launch Date</p>
-                                        <div className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
-                                            <Calendar className="w-4 h-4 text-indigo-500" />
-                                            {new Date(cohort.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                            <Card className="relative h-full bg-white rounded-[40px] border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 overflow-hidden flex flex-col">
+                                <CardHeader className="p-10 pb-6">
+                                    <div className="flex justify-between items-start mb-8">
+                                        <Badge className={cn(
+                                            "rounded-xl px-4 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] border-none shadow-none",
+                                            cohort.status === 'active'
+                                                ? 'bg-emerald-100 text-emerald-700'
+                                                : 'bg-indigo-100 text-indigo-700'
+                                        )}>
+                                            {cohort.status === 'active' ? 'Ongoing Session' : 'Boarding Soon'}
+                                        </Badge>
+                                        <div className="flex items-center gap-2 bg-slate-50 px-4 py-1.5 rounded-xl border border-slate-100">
+                                            <Users className="w-4 h-4 text-slate-400" />
+                                            <span className="text-[11px] font-black text-slate-600">{cohort.learnerIds?.length || 0} Peers</span>
                                         </div>
                                     </div>
-                                    <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100/50">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Curriculum</p>
-                                        <div className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
-                                            <BookOpen className="w-4 h-4 text-indigo-500" />
-                                            {cohort.courseIds?.length || 0} Modules
+                                    <CardTitle className="text-2xl md:text-3xl font-black text-slate-900 font-medium leading-tight group-hover:text-indigo-600 transition-colors uppercase tracking-tight">
+                                        {cohort.name}
+                                    </CardTitle>
+                                </CardHeader>
+
+                                <CardContent className="px-10 pb-10 space-y-8 flex-1">
+                                    <p className="text-slate-500 font-medium leading-relaxed text-sm">
+                                        {cohort.description || "Embark on a transformative learning experience designed to accelerate your career in technology."}
+                                    </p>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-neutral-50/50 rounded-2xl md:p-5 border border-slate-100/50 group-hover:bg-white transition-colors duration-500">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <Calendar className="w-4 h-4 text-indigo-500" />
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Commences</span>
+                                            </div>
+                                            <p className="text-sm font-black text-slate-900 leading-none">
+                                                {new Date(cohort.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </p>
+                                        </div>
+                                        <div className="bg-neutral-50/50 rounded-2xl md:p-5 border border-slate-100/50 group-hover:bg-white transition-colors duration-500">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <BookOpen className="w-4 h-4 text-violet-500" />
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Scope</span>
+                                            </div>
+                                            <p className="text-sm font-black text-slate-900 leading-none uppercase">
+                                                {cohort.courseIds?.length || 0} Modules
+                                            </p>
                                         </div>
                                     </div>
-                                </div>
-                            </CardContent>
+                                </CardContent>
 
-                            <CardFooter className="p-8 pt-0">
-                                <Button
-                                    className={cn(
-                                        "w-full h-14 rounded-2xl text-base font-bold shadow-lg transition-all active:scale-95",
-                                        cohort.status === 'active'
-                                            ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100'
-                                            : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100'
-                                    )}
-                                    onClick={() => handleJoin(cohort._id)}
-                                    disabled={!!isJoining}
-                                >
-                                    {isJoining === cohort._id ? (
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                            Initializing...
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-center gap-2">
-                                            Start Your Journey
-                                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                        </div>
-                                    )}
-                                </Button>
-                            </CardFooter>
-                        </Card>
+                                <CardFooter className="px-10 pb-10 pt-0">
+                                    <Button
+                                        className={cn(
+                                            "w-full h-16 rounded-2xl text-sm font-black uppercase tracking-[0.1em] shadow-xl transition-all active:scale-95 group-hover:shadow-indigo-200/50",
+                                            cohort.status === 'active'
+                                                ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100'
+                                                : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100'
+                                        )}
+                                        onClick={() => handleJoin(cohort._id)}
+                                        disabled={!!isJoining}
+                                    >
+                                        {isJoining === cohort._id ? (
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                Requesting Access...
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-2">
+                                                Enter Cohort Workspace
+                                                <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-500" />
+                                            </div>
+                                        )}
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                        </div>
                     ))}
 
                     {cohorts.length === 0 && (
-                        <div className="col-span-full py-20 bg-white rounded-[32px] border border-dashed border-slate-200 text-center space-y-4">
-                            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
-                                <Clock className="w-8 h-8 text-slate-300" />
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-semibold text-slate-900">Quiet for a Moment</h3>
-                                <p className="text-slate-500 mt-1">No new cohorts are currently enrolling. Please check back later.</p>
+                        <div className="col-span-full py-32 px-10 bg-white rounded-[40px] border border-dashed border-slate-200 text-center space-y-8 relative overflow-hidden group">
+                            <div className="absolute inset-0 bg-slate-50/50 group-hover:scale-105 transition-transform duration-1000" />
+                            <div className="relative z-10">
+                                <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center mx-auto shadow-xl shadow-slate-200/50 mb-8 border border-slate-50">
+                                    <Globe className="w-10 h-10 text-slate-300 animate-pulse" />
+                                </div>
+                                <div className="max-w-md mx-auto space-y-4">
+                                    <h3 className="text-2xl font-black font-medium text-slate-900 uppercase tracking-tight">Waitlist Currently Active</h3>
+                                    <p className="text-slate-500 font-medium leading-relaxed">
+                                        We're currently preparing the next series of intensive learning cycles. Register your interest to be the first notified when enrollment re-opens.
+                                    </p>
+                                    <Button variant="outline" className="rounded-xl px-10 h-12 font-black uppercase tracking-widest text-[10px] border-slate-200 hover:bg-slate-50">
+                                        Get Notified
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     )}

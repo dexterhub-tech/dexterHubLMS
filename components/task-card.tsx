@@ -11,7 +11,7 @@ interface TaskCardProps {
     subject: string;
     instructor: string;
     type: 'Task' | 'Theory' | 'Assignment';
-    status: 'pending' | 'completed' | 'overdue';
+    status: 'pending' | 'completed' | 'submitted' | 'overdue';
     color: 'mint' | 'peach' | 'lavender' | 'yellow';
     onToggle?: () => void;
     onAction?: () => void;
@@ -53,9 +53,9 @@ export function TaskCard({
                     )}>
                         {type}
                     </span>
-                    {status === 'completed' && (
+                    {(status === 'completed' || status === 'submitted') && (
                         <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest bg-slate-900 text-white border-slate-900">
-                            Done
+                            {status === 'submitted' ? 'Submitted' : 'Done'}
                         </span>
                     )}
                 </div>

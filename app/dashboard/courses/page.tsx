@@ -8,10 +8,27 @@ import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Plus, AlertCircle, Lock, X, Edit3, Search } from 'lucide-react';
+import { Plus, AlertCircle, Lock, X, Edit3, Search, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { GraduationCap } from 'lucide-react';
 
 export default function CoursesPage() {
   const { user } = useAuth();
@@ -28,6 +45,10 @@ export default function CoursesPage() {
   const [enrollReason, setEnrollReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Cohort Selection for Course Creation
+  const [isCohortModalOpen, setIsCohortModalOpen] = useState(false);
+  const [targetCohortId, setTargetCohortId] = useState<string>("");
+
   const fetchData = async () => {
     if (!user) return;
 
@@ -43,13 +64,9 @@ export default function CoursesPage() {
       // Filter cohorts for instructors to only show what they manage
       let managedCohorts = allCohorts;
       if (user.role === 'instructor') {
-        managedCohorts = allCohorts.filter((c: any) =>
-          c.instructorIds?.some((id: any) => {
-            const idStr = typeof id === 'object' ? id._id : id;
-            return idStr === user.id;
-          })
-        );
+        managedCohorts = allCohorts
       }
+      console.log(managedCohorts)
       setCohorts(managedCohorts);
 
       // 3. Fetch learner progress & applications if learner
@@ -248,7 +265,16 @@ export default function CoursesPage() {
             </p>
           </div>
           {user?.role === 'instructor' && (
-            <Button onClick={() => router.push('/instructor/courses/new')} className="bg-indigo-600 hover:bg-indigo-700 shadow-sm transition-all hover:shadow-md">
+            <Button
+              onClick={() => {
+                if (cohorts.length === 1) {
+                  router.push(`/instructor/courses/new?cohortId=${cohorts[0]._id}`);
+                } else {
+                  setIsCohortModalOpen(true);
+                }
+              }}
+              className="bg-indigo-600 hover:bg-indigo-700 shadow-sm transition-all hover:shadow-md h-12 rounded-xl px-6 font-bold uppercase tracking-widest text-[10px]"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Create New Course
             </Button>
@@ -449,6 +475,66 @@ export default function CoursesPage() {
           </div>
         )}
       </div>
+
+      {/* Cohort Selection Modal for Instructors */}
+      <Dialog open={isCohortModalOpen} onOpenChange={setIsCohortModalOpen}>
+        <DialogContent className="sm:max-w-[450px] rounded-[32px] border-none shadow-2xl p-0 overflow-hidden bg-white">
+          <div className="p-8 space-y-8">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-black font-medium text-slate-900  tracking-tight">Select Cohort</DialogTitle>
+              <DialogDescription className="text-slate-500 font-medium text-sm">
+                Which academic group should this new course be associated with?
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Target Cohort</Label>
+                <Select onValueChange={setTargetCohortId} value={targetCohortId}>
+                  <SelectTrigger className="h-14 rounded-2xl border-slate-100 bg-slate-50 focus:ring-indigo-500 font-bold text-slate-900 px-6">
+                    <SelectValue placeholder="Choose a cohort..." />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl border-slate-100 shadow-xl p-2">
+                    {cohorts.map((cohort) => (
+                      <SelectItem
+                        key={cohort._id}
+                        value={cohort._id}
+                        className="rounded-xl py-3 px-4 focus:bg-indigo-50 focus:text-indigo-600 transition-colors cursor-pointer font-bold text-slate-700"
+                      >
+                        <div className="flex items-center gap-2">
+                          <GraduationCap className="w-4 h-4 opacity-50" />
+                          {cohort.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100/50 flex gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                <p className="text-[11px] text-amber-800 font-medium leading-relaxed">
+                  Courses must be linked to a cohort to manage student enrollment and performance tracking effectively.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="bg-slate-50 p-8 pt-6">
+            <Button
+              disabled={!targetCohortId}
+              onClick={() => {
+                setIsCohortModalOpen(false);
+                router.push(`/instructor/courses/new?cohortId=${targetCohortId}`);
+              }}
+              className="w-full h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black tracking-widest shadow-xl shadow-indigo-100 active:scale-95 transition-all"
+            >
+              Continue
+              <ChevronRight className="w-4 h-4 ml-2" />
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {showEnrollModal && selectedCourse && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
