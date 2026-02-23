@@ -121,20 +121,20 @@ export function InstructorDashboard() {
         <div className="min-h-screen bg-neutral-50/50">
             <TopHeader user={user ? { name: `${user.firstName} ${user.lastName}`, email: user.email } : undefined} />
 
-            <div className="p-8 max-w-7xl mx-auto space-y-8">
+            <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-8">
                 {/* Welcome Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Welcome Back, {user?.firstName}!</h1>
                         <p className="text-slate-500 mt-1">Manage your courses, students, and track their growth.</p>
                     </div>
-                    <div className="flex gap-3">
+                    {/* <div className="flex gap-3">
                         <Link href="/instructor/courses/new">
                             <Button className="bg-indigo-600 hover:bg-indigo-700 shadow-sm transition-all rounded-xl h-11 px-6">
                                 <Plus className="w-4 h-4 mr-2" /> Create Course
                             </Button>
                         </Link>
-                    </div>
+                    </div> */}
                 </div>
 
                 {/* Stats Grid */}
