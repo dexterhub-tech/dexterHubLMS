@@ -31,4 +31,7 @@ router.post('/appeals', authMiddleware, roleCheck(['learner']), async (req, res)
 // Audit logs
 router.get('/audit-logs', authMiddleware, roleCheck(['admin', 'super-admin']), adminController.getAuditLogs);
 
+// User management
+router.get('/users', authMiddleware, roleCheck(['admin', 'super-admin']), adminController.getAllUsers);
+
 module.exports = router;

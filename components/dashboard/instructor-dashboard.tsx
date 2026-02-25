@@ -29,28 +29,17 @@ import {
 import Link from 'next/link';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-// Mock Data for Charts
-const GROWTH_DATA = [
-    { name: 'Jan', students: 100 },
-    { name: 'Feb', students: 155 },
-    { name: 'Mar', students: 230 },
-    { name: 'Apr', students: 200 },
-    { name: 'May', students: 210 },
-    { name: 'Jun', students: 300 },
-    { name: 'Jul', students: 390 },
-    { name: 'Aug', students: 350 },
-    { name: 'Sep', students: 375 },
-    { name: 'Oct', students: 200 },
-    { name: 'Nov', students: 340 },
-    { name: 'Dec', students: 280 },
-];
+// Helper to format relative time
+function getRelativeTime(date: string | Date) {
+    const now = new Date();
+    const then = new Date(date);
+    const diffInSeconds = Math.floor((now.getTime() - then.getTime()) / 1000);
 
-const ACTIVITIES = [
-    { title: 'New Course Enrollment', sub: 'James enrolled in "UI Design Basics"', time: '2 mins ago' },
-    { title: 'New Message Alert', sub: 'You received a message from Ife', time: '2 hrs ago' },
-    { title: 'Course Rating', sub: 'Sandra rated "Design Basics" 5★', time: '3 hrs ago' },
-    { title: 'Course Update', sub: 'You updated "Design Basics" yesterday', time: '3 hrs ago' },
-];
+    if (diffInSeconds < 60) return 'just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} mins ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hrs ago`;
+    return `${Math.floor(diffInSeconds / 86400)} days ago`;
+}
 
 export function InstructorDashboard() {
     const { user } = useAuth();
@@ -60,25 +49,24 @@ export function InstructorDashboard() {
     const [stats, setStats] = useState({
         totalStudents: 0,
         activeCohorts: 0,
-        avgCompletion: 68 // Mock avg
+        avgCompletion: 0
     });
+    const [growthData, setGrowthData] = useState<any[]>([]);
+    const [activities, setActivities] = useState<any[]>([]);
 
     useEffect(() => {
         const loadData = async () => {
             try {
                 if (user?.id) {
+                    // Fetch dashboard stats (stats, growthData, recent activities)
+                    const dashboardStats = await api.getInstructorDashboardStats();
+                    setStats(dashboardStats.stats);
+                    setGrowthData(dashboardStats.growthData);
+                    setActivities(dashboardStats.activities);
+
                     const allCohorts = await api.getCohorts();
                     const myCohorts = allCohorts.filter(c => c.instructorIds.includes(user.id));
                     setCohorts(myCohorts);
-
-                    const activeCohortsCount = myCohorts.filter(c => c.status === 'active').length;
-                    const totalStudentsCount = myCohorts.reduce((acc, curr) => acc + (curr.learnerIds?.length || 0), 0);
-
-                    setStats(prev => ({
-                        ...prev,
-                        totalStudents: totalStudentsCount,
-                        activeCohorts: activeCohortsCount,
-                    }));
 
                     // Fetch pending enrollment requests
                     const requests = await api.getPendingApplications();
@@ -207,8 +195,8 @@ export function InstructorDashboard() {
                             <CardHeader className="bg-white border-b border-slate-50">
                                 <div className="flex justify-between items-center">
                                     <div>
-                                        <CardTitle className="text-lg font-semibold text-slate-900">Student Growth</CardTitle>
-                                        <CardDescription>Monthly student enrolment trends</CardDescription>
+                                        <CardTitle className="text-lg font-semibold text-slate-900">Completion Growth</CardTitle>
+                                        <CardDescription>Average student completion percentage trends</CardDescription>
                                     </div>
                                     <select className="text-xs font-medium border-0 bg-slate-50 rounded-lg p-2.5 text-slate-600 outline-none ring-1 ring-slate-100 cursor-pointer">
                                         <option>This Year</option>
@@ -219,7 +207,7 @@ export function InstructorDashboard() {
                             <CardContent className="pt-6">
                                 <div className="h-[300px] w-full">
                                     <ResponsiveContainer width="100%" height="100%">
-                                        <AreaChart data={GROWTH_DATA}>
+                                        <AreaChart data={growthData}>
                                             <defs>
                                                 <linearGradient id="colorStudents" x1="0" y1="0" x2="0" y2="1">
                                                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1} />
@@ -265,19 +253,24 @@ export function InstructorDashboard() {
                             </CardHeader>
                             <CardContent className="p-6">
                                 <div className="space-y-8">
-                                    {ACTIVITIES.map((activity, i) => (
+                                    {activities.map((activity, i) => (
                                         <div key={i} className="flex gap-4 group">
                                             <div className="flex flex-col items-center">
                                                 <div className="w-2.5 h-2.5 rounded-full bg-indigo-200 group-hover:bg-indigo-500 transition-colors" />
-                                                {i !== ACTIVITIES.length - 1 && <div className="w-0.5 grow bg-slate-100 mt-2 mb-2" />}
+                                                {i !== activities.length - 1 && <div className="w-0.5 grow bg-slate-100 mt-2 mb-2" />}
                                             </div>
                                             <div className="space-y-1 -mt-1">
                                                 <p className="text-sm font-semibold text-slate-800">{activity.title}</p>
                                                 <p className="text-xs text-slate-500 leading-relaxed">{activity.sub}</p>
-                                                <p className="text-[10px] text-slate-400 font-medium pt-0.5">{activity.time}</p>
+                                                <p className="text-[10px] text-slate-400 font-medium pt-0.5">{getRelativeTime(activity.time)}</p>
                                             </div>
                                         </div>
                                     ))}
+                                    {activities.length === 0 && (
+                                        <div className="text-center py-8 text-slate-400 italic text-sm">
+                                            No recent activity found.
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>

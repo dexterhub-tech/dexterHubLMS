@@ -242,23 +242,26 @@ class APIClient {
     return this.request(`/api/courses/${id}`);
   }
 
-  // Admin endpoints
+  async getInstructorDashboardStats(): Promise<any> {
+    return this.request('/api/instructors/dashboard-stats');
+  }
+
   async getDropRecommendations(): Promise<DropRecommendation[]> {
-    return this.request('/api/drop-recommendations');
+    return this.request('/api/admin/drop-recommendations');
   }
 
   async updateDropRecommendation(
     id: string,
     update: { status: string; reviewNotes: string }
   ): Promise<DropRecommendation> {
-    return this.request(`/api/drop-recommendations/${id}`, {
+    return this.request(`/api/admin/drop-recommendations/${id}`, {
       method: 'PUT',
       body: JSON.stringify(update),
     });
   }
 
   async grantGracePeriod(gracePeriod: any): Promise<any> {
-    return this.request('/api/grace-periods', {
+    return this.request('/api/admin/grace-periods', {
       method: 'POST',
       body: JSON.stringify(gracePeriod),
     });
@@ -273,14 +276,14 @@ class APIClient {
   }
 
   async getAppeals(): Promise<Appeal[]> {
-    return this.request('/api/appeals');
+    return this.request('/api/admin/appeals');
   }
 
   async updateAppeal(
     id: string,
     update: { status: string; reviewNotes: string }
   ): Promise<Appeal> {
-    return this.request(`/api/appeals/${id}`, {
+    return this.request(`/api/admin/appeals/${id}`, {
       method: 'PUT',
       body: JSON.stringify(update),
     });
@@ -288,7 +291,11 @@ class APIClient {
 
   // Audit logs
   async getAuditLogs(): Promise<any[]> {
-    return this.request('/api/audit-logs');
+    return this.request('/api/admin/audit-logs');
+  }
+
+  async getAllUsers(): Promise<any[]> {
+    return this.request('/api/admin/users');
   }
 
   // New Cohort & Submission Methods
