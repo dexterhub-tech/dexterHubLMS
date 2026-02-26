@@ -184,6 +184,19 @@ class APIClient {
     });
   }
 
+  async updateCohort(id: string, cohort: Partial<Cohort>): Promise<Cohort> {
+    return this.request(`/api/cohorts/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(cohort),
+    });
+  }
+
+  async deleteCohort(id: string): Promise<any> {
+    return this.request(`/api/cohorts/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Learner Progress endpoints
   async getLearnerProgress(learnerId: string): Promise<LearnerProgress[]> {
     return this.request(`/api/learner-progress/${learnerId}`);

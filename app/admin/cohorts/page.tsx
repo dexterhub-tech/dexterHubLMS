@@ -27,16 +27,38 @@ import {
   ArrowRight,
   MoreVertical,
   Activity,
-  Layers
+  Layers,
+  AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function CohortsManagementPage() {
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingCohort, setEditingCohort] = useState<Cohort | null>(null);
+  const [cohortToDelete, setCohortToDelete] = useState<Cohort | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -71,9 +93,10 @@ export default function CohortsManagementPage() {
     }
 
     try {
+      setIsSaving(true);
       if (editingCohort) {
-        // Update logic would go here
-        toast.success('Cohort updated');
+        await api.updateCohort(editingCohort._id, formData);
+        toast.success('Cohort updated successfully');
       } else {
         await api.createCohort({
           ...formData,
@@ -88,7 +111,23 @@ export default function CohortsManagementPage() {
       handleReset();
       loadCohorts();
     } catch (error) {
-      toast.error('Failed to save cohort');
+      toast.error(editingCohort ? 'Failed to update cohort' : 'Failed to create cohort');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!cohortToDelete) return;
+
+    try {
+      await api.deleteCohort(cohortToDelete._id);
+      toast.success('Cohort deleted successfully');
+      loadCohorts();
+      setIsDeleteDialogOpen(false);
+      setCohortToDelete(null);
+    } catch (error) {
+      toast.error('Failed to delete cohort');
     }
   };
 
@@ -317,8 +356,8 @@ export default function CohortsManagementPage() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 rounded-xl h-12 px-8 font-semibold text-white shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5">
-                  {editingCohort ? 'Save Changes' : 'Create Cohort'}
+                <Button type="submit" disabled={isSaving} className="bg-indigo-600 hover:bg-indigo-700 rounded-xl h-12 px-8 font-semibold text-white shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5">
+                  {isSaving ? 'Saving...' : (editingCohort ? 'Save Changes' : 'Create Cohort')}
                 </Button>
               </div>
             </form>
@@ -332,10 +371,35 @@ export default function CohortsManagementPage() {
           const statusInfo = getStatusInfo(cohort.status);
           return (
             <Card key={cohort._id} className="group relative bg-white rounded-[32px] border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
-              <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button variant="ghost" size="icon" className="rounded-full bg-slate-50">
-                  <MoreVertical className="w-4 h-4 text-slate-400" />
-                </Button>
+              <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full bg-slate-50 hover:bg-slate-100">
+                      <MoreVertical className="w-4 h-4 text-slate-400" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 rounded-2xl p-2 shadow-xl border-slate-100">
+                    <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-3 py-2">Actions</DropdownMenuLabel>
+                    <DropdownMenuItem
+                      onClick={() => handleEdit(cohort)}
+                      className="rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 cursor-pointer hover:bg-slate-50 focus:bg-slate-50 transition-colors gap-2"
+                    >
+                      <Edit2 className="w-4 h-4 text-indigo-500" />
+                      Edit Details
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-slate-50 mx-2" />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setCohortToDelete(cohort);
+                        setIsDeleteDialogOpen(true);
+                      }}
+                      className="rounded-xl px-3 py-2.5 text-sm font-medium text-rose-600 cursor-pointer hover:bg-rose-50 focus:bg-rose-50 transition-colors gap-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete Cohort
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               <CardHeader className="p-8 pb-4">
@@ -428,6 +492,33 @@ export default function CohortsManagementPage() {
           </CardContent>
         </Card>
       )}
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent className="rounded-[32px] border-none shadow-2xl p-8">
+          <AlertDialogHeader>
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600 mb-4">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <AlertDialogTitle className="text-2xl font-semibold text-slate-900">Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-500 text-base leading-relaxed">
+              This action cannot be undone. This will permanently delete the cohort
+              <span className="font-semibold text-slate-900 mx-1">"{cohortToDelete?.name}"</span>
+              and remove all associated data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-3 mt-8">
+            <AlertDialogCancel className="rounded-xl h-12 px-6 border-slate-200 text-slate-600 font-semibold hover:bg-slate-50">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="rounded-xl h-12 px-8 bg-rose-600 hover:bg-rose-700 text-white font-semibold shadow-lg shadow-rose-100 transition-all"
+            >
+              Delete Cohort
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -322,3 +322,32 @@ exports.removeCourseFromCohort = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+// Update a cohort
+exports.updateCohort = async (req, res) => {
+    try {
+        const cohort = await Cohort.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        if (!cohort) {
+            return res.status(404).json({ error: 'Cohort not found' });
+        }
+        res.json(cohort);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Delete a cohort
+exports.deleteCohort = async (req, res) => {
+    try {
+        const cohort = await Cohort.findByIdAndDelete(req.params.id);
+        if (!cohort) {
+            return res.status(404).json({ error: 'Cohort not found' });
+        }
+
+        // Optionally: clean up related records (EnrollmentRequests, LearnerProgress)
+        // For now, just deleting the cohort itself
+
+        res.json({ message: 'Cohort deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};

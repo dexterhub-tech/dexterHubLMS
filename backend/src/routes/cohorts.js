@@ -7,6 +7,8 @@ const roleCheck = require('../middleware/roleCheck');
 router.get('/', authMiddleware, cohortController.getAllCohorts);
 router.get('/:id', authMiddleware, cohortController.getCohortById);
 router.post('/', authMiddleware, roleCheck(['instructor', 'admin', 'super-admin']), cohortController.createCohort);
+router.put('/:id', authMiddleware, roleCheck(['instructor', 'admin', 'super-admin']), cohortController.updateCohort);
+router.delete('/:id', authMiddleware, roleCheck(['instructor', 'admin', 'super-admin']), cohortController.deleteCohort);
 router.post('/join', authMiddleware, cohortController.joinCohort);
 router.get('/:cohortId/learners', authMiddleware, cohortController.getCohortLearners);
 
