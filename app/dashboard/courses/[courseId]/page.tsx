@@ -40,6 +40,7 @@ export default function CourseDetailPage() {
     const [existingSubmission, setExistingSubmission] = useState<any>(null);
     const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
     const [completedLessonIds, setCompletedLessonIds] = useState<string[]>([]);
+    const [submissions, setSubmissions] = useState<any[]>([]);
 
     useEffect(() => {
         const loadCourse = async () => {
@@ -48,18 +49,31 @@ export default function CourseDetailPage() {
                     const data = await api.getCourseDetails(params.courseId as string);
                     setCourse(data);
 
-                    // Fetch learner progress for this course to get completed lesson IDs
+                    // Fetch learner progress and tasks for this course
                     if (user) {
-                        const progress = await api.getLearnerProgress(user.id);
+                        const [progress, tasks] = await Promise.all([
+                            api.getLearnerProgress(user.id),
+                            api.getLearnerTasks(user.id)
+                        ]);
+
                         const activeProgress = progress.find(p => {
                             const progressCourseId = typeof p.courseId === 'object' && (p.courseId as any)?._id
                                 ? (p.courseId as any)._id
                                 : p.courseId;
                             return progressCourseId?.toString() === params.courseId?.toString();
                         });
+
                         if (activeProgress?.completedLessons) {
                             setCompletedLessonIds(activeProgress.completedLessons.map((id: any) => id.toString()));
                         }
+
+                        // Filter tasks that are assignments for this course to act as "submissions"
+                        const courseSubmissions = tasks.filter(t =>
+                            t.type === 'Assignment' &&
+                            t.courseId?.toString() === params.courseId?.toString() &&
+                            (t.status === 'submitted' || t.status === 'completed')
+                        );
+                        setSubmissions(courseSubmissions);
                     }
 
                     // Check if a specific lessonId was requested via query param (e.g. from Tasks page)
@@ -91,7 +105,7 @@ export default function CourseDetailPage() {
             }
         };
         loadCourse();
-    }, [params.courseId, searchParams]);
+    }, [params.courseId, searchParams, user?.id]);
 
     // Check for existing submission when active lesson changes
     useEffect(() => {
@@ -106,11 +120,12 @@ export default function CourseDetailPage() {
                         ? (p.courseId as any)._id
                         : p.courseId;
                     const currentCourseId = params.courseId;
-                    return progressCourseId?.toString() === currentCourseId?.toString();
+                    return progressCourseId?.toString() === currentCourseId?.toString() &&
+                        (p.status === 'on-track' || p.status === 'at-risk' || p.status === 'under-review');
                 });
 
                 if (activeProgress?.cohortId) {
-                    const submission = await api.getMySubmission(activeLesson._id, activeProgress.cohortId);
+                    const submission = await api.getMySubmission(activeLesson._id, typeof activeProgress.cohortId === "object" ? (activeProgress.cohortId as any)._id : activeProgress.cohortId);
                     setExistingSubmission(submission);
                     if (submission) {
                         setSubmissionLink(submission.content);
@@ -147,7 +162,7 @@ export default function CourseDetailPage() {
                 const currentCourseId = params.courseId;
 
                 return progressCourseId?.toString() === currentCourseId?.toString() &&
-                    (p.status === 'on-track' || p.status === 'at-risk');
+                    (p.status === 'on-track' || p.status === 'at-risk' || p.status === 'under-review');
             });
 
             if (!activeProgress || !activeProgress.cohortId) {
@@ -157,26 +172,43 @@ export default function CourseDetailPage() {
 
             await api.submitAssignment({
                 lessonId: activeLesson._id,
-                cohortId: activeProgress.cohortId,
+                cohortId: typeof activeProgress.cohortId === "object" ? (activeProgress.cohortId as any)._id : activeProgress.cohortId,
                 content: submissionLink
             });
 
             // Refresh submission state
-            const newSubmission = await api.getMySubmission(activeLesson._id, activeProgress.cohortId);
+            const newSubmission = await api.getMySubmission(activeLesson._id, typeof activeProgress.cohortId === "object" ? (activeProgress.cohortId as any)._id : activeProgress.cohortId);
             setExistingSubmission(newSubmission);
 
             // Update completedLessonIds locally if it was a passing grade (for assignments, assume passing if submitted for now, or wait for grade)
             // But since locking depends on passing status (grade >= 5 in backend), we should ideally re-fetch progress
-            const updatedProgress = await api.getLearnerProgress(user!.id);
+            // Refresh progress and tasks to update sidebar status
+            const [updatedProgress, updatedTasks] = await Promise.all([
+                api.getLearnerProgress(user!.id),
+                api.getLearnerTasks(user!.id)
+            ]);
+
             const newActiveProgress = updatedProgress.find(p => {
                 const progressCourseId = typeof p.courseId === 'object' && (p.courseId as any)?._id
                     ? (p.courseId as any)._id
                     : p.courseId;
-                return progressCourseId?.toString() === params.courseId?.toString();
+                return progressCourseId?.toString() === params.courseId?.toString() && (p.status === "on-track" || p.status === "at-risk" || p.status === "under-review");
             });
+            if (newActiveProgress?.cohortId) {
+                const updatedSubmission = await api.getMySubmission(activeLesson._id, typeof newActiveProgress.cohortId === "object" ? (newActiveProgress.cohortId as any)._id : newActiveProgress.cohortId);
+                setExistingSubmission(updatedSubmission);
+            }
+
             if (newActiveProgress?.completedLessons) {
                 setCompletedLessonIds(newActiveProgress.completedLessons.map((id: any) => id.toString()));
             }
+
+            const newCourseSubmissions = updatedTasks.filter(t =>
+                t.type === 'Assignment' &&
+                t.courseId?.toString() === params.courseId?.toString() &&
+                (t.status === 'submitted' || t.status === 'completed')
+            );
+            setSubmissions(newCourseSubmissions);
 
             toast.success('Task submitted successfully!');
             setShowConfirmSubmit(false);
@@ -197,7 +229,7 @@ export default function CourseDetailPage() {
                     ? (p.courseId as any)._id
                     : p.courseId;
                 const currentCourseId = params.courseId;
-                return progressCourseId?.toString() === currentCourseId?.toString();
+                return progressCourseId?.toString() === currentCourseId?.toString() && (p.status === "on-track" || p.status === "at-risk" || p.status === "under-review");
             });
 
             if (!activeProgress || !activeProgress.cohortId) {
@@ -206,21 +238,38 @@ export default function CourseDetailPage() {
 
             await api.submitAssignment({
                 lessonId: activeLesson._id,
-                cohortId: activeProgress.cohortId,
+                cohortId: typeof activeProgress.cohortId === "object" ? (activeProgress.cohortId as any)._id : activeProgress.cohortId,
                 content: `Quiz Score: ${score}/${activeLesson.assignment.maxScore}`
             });
 
             // Refresh progress to get updated completedLessonIds
-            const updatedProgress = await api.getLearnerProgress(user!.id);
+            // Refresh progress and tasks
+            const [updatedProgress, updatedTasks] = await Promise.all([
+                api.getLearnerProgress(user!.id),
+                api.getLearnerTasks(user!.id)
+            ]);
+
             const newActiveProgress = updatedProgress.find(p => {
                 const progressCourseId = typeof p.courseId === 'object' && (p.courseId as any)?._id
                     ? (p.courseId as any)._id
                     : p.courseId;
-                return progressCourseId?.toString() === params.courseId?.toString();
+                return progressCourseId?.toString() === params.courseId?.toString() && (p.status === "on-track" || p.status === "at-risk" || p.status === "under-review");
             });
+            if (newActiveProgress?.cohortId) {
+                const newSubmission = await api.getMySubmission(activeLesson._id, typeof newActiveProgress.cohortId === "object" ? (newActiveProgress.cohortId as any)._id : newActiveProgress.cohortId);
+                setExistingSubmission(newSubmission);
+            }
+
             if (newActiveProgress?.completedLessons) {
                 setCompletedLessonIds(newActiveProgress.completedLessons.map((id: any) => id.toString()));
             }
+
+            const newCourseSubmissions = updatedTasks.filter(t =>
+                t.type === 'Assignment' &&
+                t.courseId?.toString() === params.courseId?.toString() &&
+                (t.status === 'submitted' || t.status === 'completed')
+            );
+            setSubmissions(newCourseSubmissions);
         } catch (error: any) {
             throw error;
         }
@@ -267,10 +316,9 @@ export default function CourseDetailPage() {
                                 activeLessonId={activeLesson?._id}
                                 onSelectLesson={(lesson) => {
                                     setActiveLesson(lesson);
-                                    // Close sheet logic would ideally be here but standard Sheet doesn't expose it easily without state. 
-                                    // Users can tap outside to close.
                                 }}
                                 completedLessonIds={completedLessonIds}
+                                submissions={submissions}
                                 userId={user?.id}
                             />
                         </SheetContent>
@@ -289,6 +337,7 @@ export default function CourseDetailPage() {
                         activeLessonId={activeLesson?._id}
                         onSelectLesson={setActiveLesson}
                         completedLessonIds={completedLessonIds}
+                        submissions={submissions}
                         userId={user?.id}
                     />
                 </div>

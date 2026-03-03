@@ -161,7 +161,15 @@ export default function CoursesPage() {
         };
       });
 
-      setCourses(enhancedData);
+      let finalData = enhancedData;
+      if (user.role === 'learner') {
+        const enrolledCourses = enhancedData.filter(c => (c.learnerStatus === 'enrolled' || c.learnerStatus === 'pending'));
+        if (enrolledCourses.length > 0) {
+          finalData = enrolledCourses;
+        }
+      }
+
+      setCourses(finalData);
     } catch (error) {
       console.error('Failed to fetch courses:', error);
       toast.error('Failed to load courses');
@@ -259,9 +267,13 @@ export default function CoursesPage() {
       <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-200/60">
           <div>
-            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-900 uppercase">Explore Courses</h1>
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-900 uppercase">
+              {user?.role === 'learner' && courses.some(c => c.learnerStatus === 'enrolled') ? 'My Curriculum' : 'Explore Courses'}
+            </h1>
             <p className="text-muted-foreground mt-2 max-w-xl text-sm md:text-lg font-medium">
-              Manage your curriculum, track progress, and access learning materials.
+              {user?.role === 'learner' && courses.some(c => c.learnerStatus === 'enrolled')
+                ? 'Access your learning materials and track your academic progress.'
+                : 'Manage your curriculum, track progress, and access learning materials.'}
             </p>
           </div>
           {user?.role === 'instructor' && (
@@ -305,20 +317,22 @@ export default function CoursesPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="flex items-center gap-4 bg-white p-2 rounded-xl border border-slate-100 shadow-sm w-full md:w-fit">
-              <div className="relative flex-1 md:w-80">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  <Search className="w-4 h-4" />
+            {!(user?.role === 'learner' && courses.length === 1 && courses[0].learnerStatus === 'enrolled') && (
+              <div className="flex items-center gap-4 bg-white p-2 rounded-xl border border-slate-100 shadow-sm w-full md:w-fit">
+                <div className="relative flex-1 md:w-80">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    <Search className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search courses..."
+                    className="w-full pl-9 pr-4 py-2 text-sm outline-none bg-transparent"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
                 </div>
-                <input
-                  type="text"
-                  placeholder="Search courses..."
-                  className="w-full pl-9 pr-4 py-2 text-sm outline-none bg-transparent"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
               </div>
-            </div>
+            )}
 
             <Tabs defaultValue="all" className="w-full">
               <TabsList className="bg-slate-100/50 p-1 mb-8 h-auto rounded-xl w-full flex overflow-x-auto overflow-y-hidden no-scrollbar justify-start gap-1">
@@ -427,7 +441,7 @@ export default function CoursesPage() {
                           className="absolute inset-0 z-30 flex flex-col items-center justify-center p-6 bg-slate-900/60 backdrop-blur-[2px] rounded-[32px] cursor-pointer"
                           onClick={(e) => { e.stopPropagation(); if (course.learnerStatus !== 'pending') openEnrollModal(course); }}
                         >
-                          <div className="bg-white/95 p-5 rounded-2xl shadow-xl w-full max-w-[200px] text-center space-y-3">
+                          <div className="bg-white/95 p-5 rounded-2xl shadow-xl w-full max-w-[300px] text-center space-y-3">
                             {course.learnerStatus === 'pending' ? (
                               <>
                                 <AlertCircle className="w-6 h-6 mx-auto text-amber-600" />
@@ -436,7 +450,8 @@ export default function CoursesPage() {
                             ) : (
                               <>
                                 <Lock className="w-6 h-6 mx-auto text-slate-600" />
-                                <p className="text-sm font-semibold text-slate-800">Course Locked</p>
+                                <h1 className="text-md font-bold">{course.name}</h1>
+                                {/* <p className="text-sm font-semibold text-slate-800">Course Locked</p> */}
                                 <Button size="sm" className="w-full bg-indigo-600 text-[11px] h-8 rounded-xl" onClick={(e) => { e.stopPropagation(); openEnrollModal(course); }}>Apply to Enroll</Button>
                               </>
                             )}
@@ -543,7 +558,9 @@ export default function CoursesPage() {
               <button onClick={() => setShowEnrollModal(false)} className="absolute top-4 right-4"><X className="w-6 h-6" /></button>
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">{selectedCourse.icon || '📚'}</div>
-                <div><h3 className="text-xl font-bold">Apply to Enroll</h3><p className="text-white/80 text-sm">{selectedCourse.name}</p></div>
+                <div><h3 className="text-xl font-bold">Apply to Enroll</h3>
+                <p className="text-white/80 text-sm">{selectedCourse.name}</p>
+                </div>
               </div>
             </div>
             <div className="p-6 space-y-4">

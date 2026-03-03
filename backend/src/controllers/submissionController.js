@@ -147,7 +147,18 @@ exports.getMySubmission = async (req, res) => {
         const { lessonId, cohortId } = req.query;
         const learnerId = req.user.id;
 
-        const submission = await Submission.findOne({ learnerId, lessonId, cohortId });
+        let query = { learnerId, lessonId };
+        if (cohortId) {
+            query.cohortId = cohortId;
+        }
+
+        let submission = await Submission.findOne(query);
+
+        // Fallback: If cohortId was provided but no submission found, try without cohortId
+        if (!submission && cohortId) {
+            submission = await Submission.findOne({ learnerId, lessonId });
+        }
+
         res.json(submission || null);
     } catch (error) {
         res.status(500).json({ error: error.message });

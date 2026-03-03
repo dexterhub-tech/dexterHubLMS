@@ -27,27 +27,28 @@ interface CurriculumViewProps {
     activeLessonId?: string;
     onSelectLesson: (lesson: any) => void;
     completedLessonIds?: string[];
+    submissions?: any[];
     userId?: string;
 }
 
 /**
- * Determines which modules are "completed" based on completed lesson IDs.
- * A module is complete if every lesson that has an assignment has been completed.
- * If a module has no assignments, it's treated as complete.
+ * Determines which modules are "completed" based on completed lesson IDs and submissions.
  */
-function getModuleCompletionStatus(modules: Module[], completedLessonIds: string[], userId?: string): boolean[] {
+function getModuleCompletionStatus(modules: Module[], completedLessonIds: string[], submissions: any[] = [], userId?: string): boolean[] {
     return modules.map(module => {
         const assignmentLessons = (module.lessons || []).filter(l => !!l.assignment?.title);
-        if (assignmentLessons.length === 0) return true; // No assignments => consider complete
-        return assignmentLessons.every(l =>
-            completedLessonIds.includes(l._id) ||
-            l.assignment?.passingLearners?.some((id: any) => id.toString() === userId)
-        );
+        if (assignmentLessons.length === 0) return true;
+        return assignmentLessons.every(l => {
+            const hasSubmission = submissions.some(s => s.lessonId.toString() === l._id.toString());
+            return completedLessonIds.includes(l._id) ||
+                l.assignment?.passingLearners?.some((id: any) => id.toString() === userId) ||
+                hasSubmission;
+        });
     });
 }
 
-export function CurriculumView({ modules, activeLessonId, onSelectLesson, completedLessonIds = [], userId }: CurriculumViewProps) {
-    const moduleCompletionStatus = getModuleCompletionStatus(modules, completedLessonIds, userId);
+export function CurriculumView({ modules, activeLessonId, onSelectLesson, completedLessonIds = [], submissions = [], userId }: CurriculumViewProps) {
+    const moduleCompletionStatus = getModuleCompletionStatus(modules, completedLessonIds, submissions, userId);
 
     return (
         <div className="w-full h-full overflow-y-auto bg-white border-r border-slate-200">
@@ -60,7 +61,6 @@ export function CurriculumView({ modules, activeLessonId, onSelectLesson, comple
             <div className="py-2">
                 <Accordion type="single" collapsible className="w-full" defaultValue={modules[0]?._id}>
                     {modules.map((module, idx) => {
-                        // A module is locked if it's not the first AND the previous module is not completed
                         const isModuleLocked = idx > 0 && !moduleCompletionStatus[idx - 1];
 
                         return (
@@ -94,9 +94,14 @@ export function CurriculumView({ modules, activeLessonId, onSelectLesson, comple
                                         <div className="flex flex-col gap-1 pl-2">
                                             {module.lessons?.map((lesson) => {
                                                 const isActive = activeLessonId === lesson._id;
+                                                const submission = submissions.find(s => s.lessonId.toString() === lesson._id.toString());
+                                                const isGraded = submission?.status === 'graded';
+                                                const isSubmitted = !!submission;
+
                                                 const isCompleted =
                                                     completedLessonIds.includes(lesson._id) ||
-                                                    lesson.assignment?.passingLearners?.some((id: any) => id.toString() === userId);
+                                                    lesson.assignment?.passingLearners?.some((id: any) => id.toString() === userId) ||
+                                                    isGraded;
 
                                                 return (
                                                     <button
@@ -112,6 +117,8 @@ export function CurriculumView({ modules, activeLessonId, onSelectLesson, comple
                                                         <div className="mt-0.5 flex-shrink-0">
                                                             {isCompleted ? (
                                                                 <CheckCircle className="w-4 h-4 text-emerald-500" />
+                                                            ) : isSubmitted ? (
+                                                                <CheckCircle className="w-4 h-4 text-indigo-400 opacity-70" />
                                                             ) : lesson.videoUrl ? (
                                                                 <PlayCircle className={cn("w-4 h-4", isActive ? "text-indigo-600" : "text-slate-400")} />
                                                             ) : (
@@ -131,12 +138,19 @@ export function CurriculumView({ modules, activeLessonId, onSelectLesson, comple
                                                                         "flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-sm border",
                                                                         isCompleted
                                                                             ? "text-emerald-600 bg-emerald-50 border-emerald-100"
-                                                                            : "text-amber-600 bg-amber-50 border-amber-100"
+                                                                            : isSubmitted
+                                                                                ? "text-indigo-600 bg-indigo-50 border-indigo-100"
+                                                                                : "text-amber-600 bg-amber-50 border-amber-100"
                                                                     )}>
                                                                         {isCompleted ? (
                                                                             <>
                                                                                 <CheckCircle className="w-3 h-3" />
                                                                                 <span>PASSED</span>
+                                                                            </>
+                                                                        ) : isSubmitted ? (
+                                                                            <>
+                                                                                <CheckCircle className="w-3 h-3 text-indigo-500" />
+                                                                                <span>DONE</span>
                                                                             </>
                                                                         ) : (
                                                                             <>

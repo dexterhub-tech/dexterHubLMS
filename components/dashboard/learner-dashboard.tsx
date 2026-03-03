@@ -20,7 +20,7 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 export function LearnerDashboard() {
-    const { user } = useAuth();
+    const { user, refreshUser } = useAuth();
     const router = useRouter();
     const [cohort, setCohort] = useState<Cohort | null>(null);
     const [progress, setProgress] = useState<LearnerProgress | null>(null);
@@ -70,7 +70,7 @@ export function LearnerDashboard() {
 
     useEffect(() => {
         loadData();
-    }, [user?.id]);
+    }, [user?.id, user?.activeCohortId]);
 
     if (isLoading) {
         return (
@@ -89,7 +89,14 @@ export function LearnerDashboard() {
     }
 
     if (needsCohort) {
-        return <JoinCohortView onJoinSuccess={loadData} />;
+        return (
+            <JoinCohortView
+                onJoinSuccess={async () => {
+                    await refreshUser();
+                    await loadData();
+                }}
+            />
+        );
     }
 
     return (
@@ -218,21 +225,42 @@ export function LearnerDashboard() {
                             <div className="space-y-4">
                                 {tasks.length > 0 ? (
                                     tasks.map((task: any) => (
-                                        <div key={task.id} className="group relative overflow-hidden rounded-[24px] border border-slate-100 bg-white p-6 transition-all hover:shadow-xl hover:border-indigo-100 hover:-translate-y-1">
-                                            <div className="flex items-center gap-6">
-                                                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                                        <div key={task.id} className={cn(
+                                            "group relative overflow-hidden rounded-[24px] border transition-all hover:shadow-xl hover:-translate-y-1",
+                                            task.status !== 'pending' ? "bg-slate-50/50 border-slate-100" : "bg-white border-slate-100 hover:border-indigo-100"
+                                        )}>
+                                            <div className="flex items-center gap-6 p-6">
+                                                <div className={cn(
+                                                    "flex h-14 w-14 items-center justify-center rounded-2xl transition-all duration-300",
+                                                    task.status === 'completed' ? "bg-emerald-100 text-emerald-600" :
+                                                        task.status === 'submitted' ? "bg-amber-100 text-amber-600" :
+                                                            "bg-slate-50 text-slate-400 group-hover:bg-indigo-600 group-hover:text-white"
+                                                )}>
                                                     <FileText className="h-7 w-7" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-widest text-slate-400 border-slate-100">{task.type || 'Standard'}</Badge>
                                                         {task.priority === 'high' && <Badge className="bg-rose-50 text-rose-600 border-rose-100 text-[9px] font-bold uppercase tracking-widest">Priority</Badge>}
+                                                        {task.status === 'submitted' && <Badge className="bg-amber-50 text-amber-600 border-amber-100 text-[9px] font-bold uppercase tracking-widest">Answered</Badge>}
+                                                        {task.status === 'completed' && <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 text-[9px] font-bold uppercase tracking-widest">Graded</Badge>}
                                                     </div>
-                                                    <h4 className="font-semibold text-lg text-slate-900 truncate group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{task.title}</h4>
+                                                    <h4 className={cn(
+                                                        "font-semibold text-lg truncate transition-colors uppercase tracking-tight",
+                                                        task.status !== 'pending' ? "text-slate-500" : "text-slate-900 group-hover:text-indigo-600"
+                                                    )}>{task.title}</h4>
                                                     <p className="text-sm text-slate-500 font-medium">Domain: {task.subject || 'LMS Core'}</p>
                                                 </div>
-                                                <Button size="sm" variant="outline" className="rounded-xl px-5 h-10 font-bold border-slate-200 opacity-0 group-hover:opacity-100 transition-all hover:bg-slate-50" onClick={() => router.push(`/dashboard/courses/${cohort?.courseIds?.[0]}`)}>
-                                                    Open Ref
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className={cn(
+                                                        "rounded-xl px-5 h-10 font-bold border-slate-200 transition-all",
+                                                        task.status !== 'pending' ? "opacity-100 bg-slate-50" : "opacity-0 group-hover:opacity-100 hover:bg-slate-50"
+                                                    )}
+                                                    onClick={() => router.push(`/dashboard/courses/${cohort?.courseIds?.[0]}`)}
+                                                >
+                                                    {task.status !== 'pending' ? 'View Work' : 'Open Ref'}
                                                 </Button>
                                             </div>
                                         </div>
