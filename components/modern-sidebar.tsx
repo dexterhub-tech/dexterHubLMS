@@ -108,18 +108,20 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
             </nav>
 
             {/* Upgrade / Promo Card (Optional/Aesthetic) */}
-            <div className="px-6 py-4">
-                <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:scale-125 transition-transform">
-                        <Sparkles className="w-12 h-12" />
+            {(role === 'learner' || role === 'user') && (
+                <div className="px-6 py-4">
+                    <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:scale-125 transition-transform">
+                            <Sparkles className="w-12 h-12" />
+                        </div>
+                        <p className="text-xs font-semibold opacity-80 mb-1">Upgrade to Pro</p>
+                        <p className="text-sm font-semibold mb-3 leading-tight">Get unlimited access to premium courses.</p>
+                        <button className="w-full py-2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl text-xs font-semibold transition-all">
+                            Upgrade Now
+                        </button>
                     </div>
-                    <p className="text-xs font-semibold opacity-80 mb-1">Upgrade to Pro</p>
-                    <p className="text-sm font-semibold mb-3 leading-tight">Get unlimited access to premium courses.</p>
-                    <button className="w-full py-2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl text-xs font-semibold transition-all">
-                        Upgrade Now
-                    </button>
                 </div>
-            </div>
+            )}
 
             {/* User Profile info & Actions */}
             <div className="p-4 mt-auto border-t border-slate-100">

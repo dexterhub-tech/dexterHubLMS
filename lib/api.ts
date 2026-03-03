@@ -402,6 +402,14 @@ class APIClient {
       method: 'DELETE'
     });
   }
+
+  // AI Methods
+  async generateAIQuiz(data: { title: string, description?: string, difficulty: 'easy' | 'hard' }): Promise<any[]> {
+    return this.request('/api/ai/generate-quiz', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  }
 }
 
 export const api = new APIClient();
