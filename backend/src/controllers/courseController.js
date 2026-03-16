@@ -57,6 +57,30 @@ exports.getAllCourses = async (req, res) => {
     }
 };
 
+// Search public courses
+exports.searchPublicCourses = async (req, res) => {
+    try {
+        const { query } = req.query;
+        let filters = { learnerStatus: 'available' };
+
+        if (query) {
+            filters.$or = [
+                { name: { $regex: query, $options: 'i' } },
+                { description: { $regex: query, $options: 'i' } }
+            ];
+        }
+
+        const courses = await Course.find(filters)
+            .select('-registrars -instructorId') // Exclude sensitive info
+            .populate('modules', 'name duration') // Optionally get basic module info
+            .limit(10); // Limit returns for public view
+            
+        res.json(courses);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 // --- Module (Class) Operations ---
 
 // Create a Module and add to Course

@@ -370,6 +370,12 @@ class APIClient {
     return this.request(`/api/courses/lessons/${id}`, { method: 'PUT', body: JSON.stringify(data) });
   }
 
+  // Search Public Courses
+  async searchPublicCourses(query?: string): Promise<any[]> {
+    const url = query ? `/api/courses/public/search?query=${encodeURIComponent(query)}` : '/api/courses/public/search';
+    return this.request(url);
+  }
+
   // Course Application Methods
   async applyToCourse(data: { cohortId: string, courseId: string, reason?: string }): Promise<any> {
     return this.request('/api/cohorts/apply', { method: 'POST', body: JSON.stringify(data) });

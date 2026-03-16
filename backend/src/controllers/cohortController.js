@@ -14,6 +14,26 @@ exports.getAllCohorts = async (req, res) => {
     }
 };
 
+// Search public cohorts
+exports.searchPublicCohorts = async (req, res) => {
+    try {
+        const { query } = req.query;
+        let filters = { status: { $in: ['upcoming', 'active', 'published'] } }; // Adjust valid status as per your schema
+
+        if (query) {
+            filters.$or = [
+                { name: { $regex: query, $options: 'i' } },
+                { description: { $regex: query, $options: 'i' } }
+            ];
+        }
+
+        const cohorts = await Cohort.find(filters).select('-learnerIds -courseIds'); // Don't expose private data
+        res.json(cohorts);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 // Get cohort by ID
 exports.getCohortById = async (req, res) => {
     try {

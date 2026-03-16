@@ -4,6 +4,9 @@ const cohortController = require('../controllers/cohortController');
 const authMiddleware = require('../middleware/auth');
 const roleCheck = require('../middleware/roleCheck');
 
+// Public routes
+router.get('/public/search', cohortController.searchPublicCohorts);
+
 router.get('/', authMiddleware, cohortController.getAllCohorts);
 router.get('/:id', authMiddleware, cohortController.getCohortById);
 router.post('/', authMiddleware, roleCheck(['instructor', 'admin', 'super-admin']), cohortController.createCohort);

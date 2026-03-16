@@ -5,6 +5,8 @@ const authMiddleware = require('../middleware/auth');
 const roleCheck = require('../middleware/roleCheck');
 
 // Public/Learner routes
+router.get('/public/search', courseController.searchPublicCourses);
+
 router.get('/', authMiddleware, courseController.getAllCourses);
 router.get('/:id', authMiddleware, courseController.getCourseDetails);
 
