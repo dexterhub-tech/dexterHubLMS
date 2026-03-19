@@ -10,7 +10,9 @@ import { Card } from '@/components/ui/card';
 import { 
   MapPin, Mail, Phone, Search, ShoppingCart, 
   Play, Tag, ArrowRight, ArrowUpRight, 
-  Clock, BookOpen, Star, Heart, Lightbulb, TrendingUp, MonitorPlay
+  Clock, BookOpen, Star, Heart, Lightbulb, TrendingUp, MonitorPlay,
+  ShieldCheck, Megaphone, BarChart3, Layout, Code, Quote, MessageSquare, Send,
+  Twitter, Linkedin, Github, User
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -61,7 +63,7 @@ export default function Home() {
     <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-indigo-100">
       
       {/* Top Bar */}
-      <div className="bg-[#4F46E5] text-white/90 text-[13px] py-2.5 hidden lg:block">
+      {/* <div className="bg-[#4F46E5] text-white/90 text-[13px] py-2.5 hidden lg:block">
         <div className="max-w-7xl mx-auto px-4 md:px-8 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4 text-indigo-300" />
@@ -78,14 +80,14 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Navbar */}
       <nav className="sticky top-0 z-50 w-full bg-white border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="text-3xl font-bold tracking-tight text-slate-900 flex items-center">
-              <span className="text-orange-500 mr-1">Fi</span>Study
+              <span className="text-orange-500 mr-1">Dexter</span>Hub
             </div>
           </div>
 
@@ -235,11 +237,11 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 w-full flex justify-between items-center text-lg lg:text-2xl font-bold whitespace-nowrap">
             <span>20+ Mentors</span>
             <span className="text-indigo-400">+</span>
-            <span>500+ Active Cohorts</span>
+            <span>100+ Active Courses</span>
             <span className="text-indigo-400">+</span>
             <span>24 Hours Support</span>
             <span className="text-indigo-400">+</span>
-            <span>Cohorts Certificate</span>
+            <span>Course Certificate</span>
           </div>
         </div>
 
@@ -252,21 +254,21 @@ export default function Home() {
                   <span className="w-2 h-2 bg-yellow-400 rounded-full"></span> CATEGORY
                 </span>
                 <h2 className="text-4xl lg:text-5xl font-bold leading-tight">
-                  Browse Our Categories <br/> To Find Exactly <span className="font-serif italic font-normal border-b-2 border-yellow-400">Cohorts</span>
+                  Browse Our Categories <br/> To Find Exactly <span className="font-serif italic font-normal border-b-2 border-yellow-400">Courses</span>
                 </h2>
               </div>
 
               <div className="space-y-4">
                 {[
                   { title: 'Tech & Programming', count: '20 Cohorts', active: true },
-                  { title: 'Art & Design', count: '50 Cohorts' },
-                  { title: 'Online Marketing', count: '12 Cohorts' },
-                  { title: 'Content Creation', count: '30 Cohorts' }
+                  { title: 'Digital Marketing', count: '50 Cohorts' },
+                  { title: 'UI/UX Design', count: '12 Cohorts' },
+                  { title: 'CyberSecurity', count: '30 Cohorts' }
                 ].map((cat, idx) => (
                   <div key={idx} className={`flex items-center justify-between p-6 rounded-2xl cursor-pointer transition-colors ${cat.active ? 'bg-white/10' : 'hover:bg-white/5 border border-white/10'}`}>
                     <div>
                       <h3 className="text-xl font-semibold mb-1">{cat.title}</h3>
-                      <p className="text-indigo-300 text-sm font-medium">{cat.count}</p>
+                      {/* <p className="text-indigo-300 text-sm font-medium">{cat.count}</p> */}
                     </div>
                     <div className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center">
                       <ArrowUpRight className="w-5 h-5" />
@@ -286,12 +288,12 @@ export default function Home() {
             </div>
 
              {/* Floating text right */}
-            <div className="hidden lg:flex absolute right-4 top-1/2 -translate-y-1/2 flex-col gap-12 text-white/50 font-bold text-2xl" style={{ writingMode: 'vertical-rl' }}>
+            {/* <div className="hidden lg:flex absolute right-4 top-1/2 -translate-y-1/2 flex-col gap-12 text-white/50 font-bold text-2xl" style={{ writingMode: 'vertical-rl' }}>
               <span className="rotate-180 flex items-center gap-2"><div className="w-6 h-6 bg-white/50 rounded-full"></div> DexterHub</span>
               <span className="rotate-180">innovation</span>
               <span className="rotate-180">growth</span>
               <span className="rotate-180">success</span>
-            </div>
+            </div> */}
           </div>
           
           {/* Background pattern */}
@@ -324,7 +326,7 @@ export default function Home() {
               </div>
               
               {/* Badges */}
-              <Card className="absolute top-12 -right-8 z-30 p-4 rounded-2xl shadow-xl flex items-center gap-4">
+              {/* <Card className="absolute top-12 -right-8 z-30 p-4 rounded-2xl shadow-xl flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-white shadow-inner p-1">
                    <div className="w-full h-full bg-blue-100 rounded-full flex items-center justify-center">
                      <span className="text-xl px-1">🎓</span>
@@ -334,12 +336,12 @@ export default function Home() {
                   <div className="font-bold text-xl text-slate-900">25+ <span className="text-sm font-medium text-slate-500">Years</span></div>
                   <div className="text-xs text-slate-500 font-medium whitespace-nowrap">of experience</div>
                 </div>
-              </Card>
+              </Card> */}
 
-              <Card className="absolute bottom-12 left-8 z-30 p-6 rounded-2xl shadow-xl border-none">
+              {/* <Card className="absolute bottom-12 left-8 z-30 p-6 rounded-2xl shadow-xl border-none">
                 <div className="text-4xl font-bold text-slate-900 mb-1">45+</div>
                 <div className="text-xs text-orange-500 font-bold uppercase tracking-wider">Awards Winning</div>
-              </Card>
+              </Card> */}
 
               <svg className="absolute top-1/2 left-1/2 z-30 w-32 h-32 text-indigo-100 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M10 90 Q 30 10 90 30" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeDasharray="8 8"/>
@@ -355,12 +357,12 @@ export default function Home() {
                   <span className="w-2 h-2 bg-indigo-600 rounded-full"></span> ABOUT US
                 </span>
                 <h2 className="text-4xl lg:text-5xl font-bold leading-tight text-slate-900">
-                  Our Story: Built On Values, <br/> Driven By <span className="font-serif italic font-normal text-indigo-500 border-b-2 border-indigo-200">Innovation</span>
+                  Our Story: Bridging the Gap <br/> Between Learning and <span className="font-serif italic font-normal text-indigo-500 border-b-2 border-indigo-200">Industry Excellence</span>
                 </h2>
               </div>
               
               <p className="text-slate-500 leading-relaxed max-w-lg">
-                We are dedicated to transforming education through digital innovation, making learning more accessible, engaging, and effective for everyone. By integrating cutting-edge technology, we aim to create an inclusive and dynamic learning environment.
+                DexterHub is more than an e-learning platform; it's a launchpad for the next generation of tech leaders. We combine cutting-edge curriculum with project-based learning to ensure our students don't just learn—they master the skills that drive the global digital economy.
               </p>
 
               <div className="grid sm:grid-cols-2 gap-8 pt-4">
@@ -369,10 +371,10 @@ export default function Home() {
                     <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-xl">
                       🎯
                     </div>
-                    <h3 className="font-bold text-lg text-slate-900">Our Mission:</h3>
+                    <h3 className="font-bold text-lg text-slate-900">Our Mission</h3>
                   </div>
                   <p className="text-sm text-slate-500 leading-relaxed">
-                    To provide innovative digital education solutions that empower learners and educators, fostering a culture of growing your value.
+                    To democratize high-impact tech education by providing accessible, expert-led training that transforms ambitious learners into industry-ready professionals.
                   </p>
                 </div>
                 <div className="space-y-3">
@@ -383,7 +385,7 @@ export default function Home() {
                     <h3 className="font-bold text-lg text-slate-900">Our Vision</h3>
                   </div>
                   <p className="text-sm text-slate-500 leading-relaxed">
-                    To provide innovative digital education solutions that empower learners and educators, fostering a culture of growing your value.
+                    To be the primary catalyst for digital empowerment, building a future where technical mastery is within reach for everyone, everywhere.
                   </p>
                 </div>
               </div>
@@ -394,10 +396,12 @@ export default function Home() {
                 </Button>
               </div>
             </div>
+
           </div>
         </section>
 
         {/* Courses Section */}
+        
         <section className="py-24 bg-slate-50 relative overflow-hidden">
           <div className="absolute left-0 bottom-0 w-full h-[500px] bg-white rounded-tr-[100px] z-0"></div>
           
@@ -412,63 +416,213 @@ export default function Home() {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {isLoadingCourses ? (
-                // Loading Skelton
-                Array.from({ length: 3 }).map((_, i) => (
-                  <Card key={i} className="rounded-[2rem] overflow-hidden border border-slate-100 bg-white p-6 space-y-4 animate-pulse">
-                    <div className="h-56 bg-slate-200 rounded-[1.5rem] w-full"></div>
-                    <div className="h-4 bg-slate-200 rounded w-1/3"></div>
-                    <div className="h-6 bg-slate-200 rounded w-3/4"></div>
-                    <div className="h-4 bg-slate-200 rounded w-1/2"></div>
-                  </Card>
-                ))
-              ) : courses.length > 0 ? (
-                courses.map((course) => (
-                  <Card key={course._id} className="rounded-[2rem] overflow-hidden border border-slate-100 bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col">
-                    <div className="h-56 relative m-4 rounded-[1.5rem] overflow-hidden bg-slate-100 flex items-center justify-center text-4xl">
-                       {/* Display course icon or fallback to image/emoji based on data */}
-                       {course.icon || '📚'}
-                       {/* If you add an image URL to schema later, use Image component here */}
-                    </div>
-                    <div className="p-6 pt-2 space-y-4 flex flex-col flex-1">
-                      <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
-                        <span className="text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full">{course.learnerStatus || 'Available'}</span>
-                        <span className="flex items-center gap-1"><BookOpen className="w-3.5 h-3.5" /> {course.modules?.length || 0} Modules</span>
-                        <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {course.duration || 0}h</span>
-                      </div>
-                      <h3 className="text-xl font-bold text-slate-900 leading-snug flex-1">
-                        {course.name}
-                      </h3>
-                      <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-                        <div className="flex items-center gap-2">
-                          <div className="flex -space-x-1">
-                            {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />)}
-                          </div>
-                          <span className="text-sm text-slate-500 font-medium">New</span>
-                        </div>
-                        <button className="text-slate-300 hover:text-red-500 transition-colors"><Heart className="w-5 h-5" /></button>
-                      </div>
-                      <div className="flex items-center justify-between pt-2">
-                        <Link href="/login">
-                          <Button className="rounded-full px-6 bg-[#818cf8] hover:bg-[#6366f1] text-white">Enroll Now <ArrowRight className="w-4 h-4 ml-1" /></Button>
-                        </Link>
-                        {/* Courses don't have price in schema atm, making it free/TBD style */}
-                        <span className="text-lg font-bold text-orange-500">Free</span>
-                      </div>
-                    </div>
-                  </Card>
-                ))
-              ) : (
-                <div className="col-span-full text-center py-12 text-slate-500">
-                  <p>Check back soon! We are spinning up new cohorts.</p>
-                </div>
-              )}
+              {[
+                {
+                  id: 1,
+                  name: "Software Development",
+                  title: "Comprehensive Full-Stack Development",
+                  icon: <Code className="w-12 h-12 text-indigo-600" />,
+                  color: "bg-indigo-50"
+                },
+                {
+                  id: 2,
+                  name: "Cyber Security",
+                  title: "Advanced Network Security & Ethical Hacking",
+                  icon: <ShieldCheck className="w-12 h-12 text-red-600" />,
+                  color: "bg-red-50"
+                },
+                {
+                  id: 3,
+                  name: "Digital Marketing",
+                  title: "Digital Marketing Strategy & Growth",
+                  icon: <Megaphone className="w-12 h-12 text-orange-600" />,
+                  color: "bg-orange-50"
+                }
+              ].map((course) => (
+                <Card key={course.id} className="rounded-[2rem] overflow-hidden border border-slate-100 bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group cursor-pointer h-full">
+                  <div className={cn("h-56 relative m-4 rounded-[1.5rem] overflow-hidden flex items-center justify-center transition-transform group-hover:scale-[1.02]", course.color)}>
+                     {course.icon}
+                  </div>
+                  <div className="p-6 pt-2 pb-8 space-y-4 flex flex-col items-center text-center">
+                    <span className="text-indigo-500 bg-indigo-50 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">{course.name}</span>
+                    <h3 className="text-2xl font-bold text-slate-900 leading-tight">
+                      {course.title}
+                    </h3>
+                  </div>
+                </Card>
+              ))}
             </div>
             
-            <div className="flex justify-center mt-12 gap-2 pb-12">
-               <button className="w-3 h-3 rounded-full bg-orange-500"></button>
-               <button className="w-3 h-3 rounded-full bg-indigo-200"></button>
-               <button className="w-3 h-3 rounded-full bg-indigo-200"></button>
+            <div className="flex flex-col items-center justify-center mt-16 space-y-6 pb-12">
+               <Button className="rounded-full px-12 h-14 bg-[#4F46E5] hover:bg-indigo-700 text-white font-bold text-lg shadow-xl shadow-indigo-100 transition-all hover:scale-105">
+                 Explore All Courses <ArrowRight className="w-5 h-5 ml-2" />
+               </Button>
+               <div className="flex gap-2">
+                 <button className="w-3 h-3 rounded-full bg-orange-500"></button>
+                 <button className="w-3 h-3 rounded-full bg-indigo-200"></button>
+                 <button className="w-3 h-3 rounded-full bg-indigo-200"></button>
+               </div>
+            </div>
+          </div>
+        </section>
+        {/* Testimonials Section */}
+        <section className="py-24 bg-white relative overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
+            <div className="text-center space-y-4 mb-16">
+              <span className="text-indigo-600 text-sm font-bold tracking-widest uppercase flex items-center justify-center gap-2">
+                <span className="w-2 h-2 bg-indigo-600 rounded-full"></span> TESTIMONIALS
+              </span>
+              <h2 className="text-4xl lg:text-5xl font-bold leading-tight text-slate-900">
+                Success Stories From <br/> Our <span className="font-serif italic font-normal text-indigo-500 border-b-2 border-indigo-200">Global Alumni</span>
+              </h2>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                {
+                  name: "Sarah Johnson",
+                  role: "Software Engineer at Google",
+                  image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+                  quote: "DexterHub transformed my career. The project-based learning in the Software Development cohort was exactly what I needed to land my dream job."
+                },
+                {
+                  name: "David Chen",
+                  role: "Security Analyst",
+                  image: "https://api.dicebear.com/7.x/avataaars/svg?seed=David",
+                  quote: "The Cyber Security training is world-class. I went from knowing nothing to being able to identify and mitigate complex network threats."
+                },
+                {
+                  name: "Elena Rodriguez",
+                  role: "Digital Marketing Lead",
+                  image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Elena",
+                  quote: "The mentorship at DexterHub is unparalleled. They don't just teach you the tools; they teach you how to think like a digital strategist."
+                }
+              ].map((testimonial, idx) => (
+                <Card key={idx} className="p-8 rounded-[2rem] border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-xl transition-all duration-300 relative group">
+                  <Quote className="absolute top-6 right-8 w-12 h-12 text-indigo-100 group-hover:text-indigo-200 transition-colors" />
+                  <div className="space-y-6 relative z-10">
+                    <p className="text-slate-600 leading-relaxed italic text-lg">
+                      "{testimonial.quote}"
+                    </p>
+                    <div className="flex items-center gap-4 pt-4">
+                      <div className="w-14 h-14 rounded-full overflow-hidden bg-white shadow-md border-2 border-white">
+                        <img src={testimonial.image} alt={testimonial.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900">{testimonial.name}</h4>
+                        <p className="text-sm text-indigo-600 font-medium">{testimonial.role}</p>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Contact Us Section */}
+        <section className="py-24 bg-slate-900 text-white relative overflow-hidden">
+          {/* Background decoration */}
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[120px] -z-0" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-500/10 rounded-full blur-[100px] -z-0" />
+
+          <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
+              {/* Left Column: Info */}
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <span className="text-indigo-400 text-sm font-bold tracking-widest uppercase flex items-center gap-2">
+                    <span className="w-2 h-2 bg-indigo-400 rounded-full"></span> CONTACT US
+                  </span>
+                  <h2 className="text-4xl lg:text-5xl font-bold leading-tight">
+                    Let's Build Your <br/> <span className="text-indigo-400">Digital Future</span> Together
+                  </h2>
+                  <p className="text-slate-400 max-w-md leading-relaxed">
+                    Have questions about our cohorts? Want to partner with us? Reach out and our team will get back to you within 24 hours.
+                  </p>
+                </div>
+
+                <div className="space-y-6 pt-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 border border-indigo-500/30">
+                      <Mail className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-500 font-medium">Email Us</p>
+                      <p className="font-bold text-lg">hello@dexterhub.com</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 border border-indigo-500/30">
+                      <Phone className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-500 font-medium">Call Us</p>
+                      <p className="font-bold text-lg">+1 (234) 567 890</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 border border-indigo-500/30">
+                      <MapPin className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-500 font-medium">Our Campus</p>
+                      <p className="font-bold text-lg">Kampala, Uganda | Global Remote</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-8">
+                  {[Twitter, Linkedin, Github].map((Icon, i) => (
+                    <button key={i} className="w-12 h-12 rounded-full border border-slate-700 flex items-center justify-center hover:bg-indigo-500 hover:border-indigo-500 transition-all text-slate-400 hover:text-white">
+                      <Icon className="w-5 h-5" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right Column: Form */}
+              <Card className="p-8 lg:p-10 rounded-[2.5rem] bg-white text-slate-900 shadow-2xl overflow-hidden relative">
+                <form className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-900 ml-1">Full Name</label>
+                      <input 
+                        type="text" 
+                        placeholder="John Doe" 
+                        className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-900 ml-1">Email Address</label>
+                      <input 
+                        type="email" 
+                        placeholder="john@example.com" 
+                        className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium" 
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-900 ml-1">Subject</label>
+                    <input 
+                      type="text" 
+                      placeholder="I'm interested in the Software Development cohort" 
+                      className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-900 ml-1">Message</label>
+                    <textarea 
+                      placeholder="Tell us a bit about your goals..." 
+                      rows={4}
+                      className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium resize-none" 
+                    />
+                  </div>
+                  <Button className="w-full rounded-2xl h-14 bg-[#4F46E5] hover:bg-indigo-700 text-white font-bold text-lg shadow-xl shadow-indigo-100 transition-all flex items-center justify-center gap-2">
+                    Send Message <Send className="w-5 h-5" />
+                  </Button>
+                </form>
+              </Card>
             </div>
           </div>
         </section>
