@@ -12,7 +12,7 @@ import {
   Play, Tag, ArrowRight, ArrowUpRight, 
   Clock, BookOpen, Star, Heart, Lightbulb, TrendingUp, MonitorPlay,
   ShieldCheck, Megaphone, BarChart3, Layout, Code, Quote, MessageSquare, Send,
-  Twitter, Linkedin, Github, User
+  Twitter, Linkedin, Github, User, Menu, X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -22,6 +22,7 @@ export default function Home() {
   const router = useRouter();
   const [courses, setCourses] = useState<any[]>([]);
   const [isLoadingCourses, setIsLoadingCourses] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -86,8 +87,8 @@ export default function Home() {
       <nav className="sticky top-0 z-50 w-full bg-white border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="text-3xl font-bold tracking-tight text-slate-900 flex items-center">
-              <span className="text-orange-500 mr-1">Dexter</span>Hub
+            <div className="text-lg md:text-3xl font-bold tracking-tight text-slate-900 flex items-center">
+              <span className="text-orange-500">Dexter</span>Hub
             </div>
           </div>
 
@@ -102,12 +103,13 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-3 text-slate-600">
-            <button className="w-10 h-10 flex items-center justify-center hover:bg-slate-100 rounded-full transition-colors border border-slate-200">
+            <button className="hidden lg:flex w-10 h-10 items-center justify-center hover:bg-slate-100 rounded-full transition-colors border border-slate-200">
               <Search className="w-4 h-4" />
             </button>
-            <button className="w-10 h-10 flex items-center justify-center hover:bg-slate-100 rounded-full transition-colors border border-slate-200">
+            <button className="hidden lg:flex w-10 h-10 items-center justify-center hover:bg-slate-100 rounded-full transition-colors border border-slate-200">
               <ShoppingCart className="w-4 h-4" />
             </button>
+            
             <div className="hidden md:flex items-center gap-3 ml-2">
               <Link href="/login">
                 <Button variant="outline" className="rounded-full px-6 h-10 border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold hover:text-[#4F46E5]">
@@ -120,8 +122,37 @@ export default function Home() {
                 </Button>
               </Link>
             </div>
+
+            {/* Mobile Menu Button */}
+            <button 
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="lg:hidden w-10 h-10 flex items-center justify-center hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile menu overlay */}
+        {isMenuOpen && (
+          <div className="lg:hidden absolute top-20 left-0 w-full bg-white border-b border-slate-100 shadow-xl z-50 animate-in slide-in-from-top duration-300">
+            <div className="flex flex-col p-6 gap-4 font-semibold text-slate-700">
+              <Link href="#" className="text-[#4F46E5] py-2 border-b border-slate-50" onClick={() => setIsMenuOpen(false)}>Home</Link>
+              <Link href="#" className="hover:text-[#4F46E5] py-2 border-b border-slate-50" onClick={() => setIsMenuOpen(false)}>About</Link>
+              <Link href="#" className="hover:text-[#4F46E5] py-2 border-b border-slate-50" onClick={() => setIsMenuOpen(false)}>Course</Link>
+              <Link href="#" className="hover:text-[#4F46E5] py-2 border-b border-slate-50" onClick={() => setIsMenuOpen(false)}>Team</Link>
+              <Link href="#" className="hover:text-[#4F46E5] py-2 border-b border-slate-50" onClick={() => setIsMenuOpen(false)}>Testimonial</Link>
+              <div className="flex items-center gap-3 pt-4">
+                <Link href="/login" className="flex-1">
+                  <Button variant="outline" className="w-full rounded-full h-12 border-slate-300 text-slate-700" onClick={() => setIsMenuOpen(false)}>Login</Button>
+                </Link>
+                <Link href="/register" className="flex-1">
+                  <Button className="w-full rounded-full h-12 bg-[#4F46E5] text-white" onClick={() => setIsMenuOpen(false)}>Register</Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
       <main className="relative z-10 overflow-hidden">
@@ -138,7 +169,7 @@ export default function Home() {
               <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 leading-[1.1]">
                 Our Online Class <br /> 
                 Will Grow Your <br />
-                <span className="text-[#4F46E5]">Creativity.</span>
+                <span className="text-[#4F46E5]">Skills.</span>
               </h1>
               
               <p className="text-lg text-slate-500 max-w-md leading-relaxed">
@@ -567,7 +598,7 @@ export default function Home() {
                     </div>
                     <div>
                       <p className="text-sm text-slate-500 font-medium">Our Campus</p>
-                      <p className="font-bold text-lg">Kampala, Uganda | Global Remote</p>
+                      <p className="font-bold text-lg">Nigeria</p>
                     </div>
                   </div>
                 </div>
