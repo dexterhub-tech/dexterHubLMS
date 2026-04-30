@@ -88,7 +88,7 @@ export default function NotificationsPage() {
             <div
                 onClick={() => handleNotificationClick(notification)}
                 className={cn(
-                    "group flex items-start gap-4 p-5 bg-white rounded-[24px] border border-slate-100 hover:shadow-md hover:border-indigo-100 transition-all cursor-pointer relative overflow-hidden",
+                    "group flex items-start gap-4 p-5 bg-white rounded-md border border-slate-100 hover:shadow-md hover:border-indigo-100 transition-all cursor-pointer relative overflow-hidden",
                     !notification.read && "border-l-4 border-l-indigo-500 shadow-sm"
                 )}
             >
@@ -98,10 +98,10 @@ export default function NotificationsPage() {
 
                 <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-4 mb-1">
-                        <h3 className={cn("font-bold text-slate-900 leading-tight uppercase tracking-tight", !notification.read ? "text-slate-900" : "text-slate-600")}>
+                        <h3 className={cn("font-bold text-slate-900 leading-tight capitalize tracking-tight", !notification.read ? "text-slate-900" : "text-slate-600")}>
                             {notification.title}
                         </h3>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap mt-1">
+                        <span className="text-[10px] font-bold text-slate-400 capitalize tracking-wider whitespace-nowrap mt-1">
                             {new Date(notification.time).toLocaleDateString()}
                         </span>
                     </div>
@@ -109,7 +109,7 @@ export default function NotificationsPage() {
                         {notification.message}
                     </p>
                     {notification.link && (
-                        <div className="flex items-center gap-1.5 text-[10px] font-black text-indigo-600 uppercase tracking-widest group-hover:translate-x-1 transition-transform">
+                        <div className="flex items-center gap-1.5 text-[10px] font-black text-indigo-600 capitalize tracking-widest group-hover:translate-x-1 transition-transform">
                             View Details <ArrowRight className="w-3 h-3" />
                         </div>
                     )}
@@ -126,8 +126,8 @@ export default function NotificationsPage() {
             <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
                 <Bell className="w-10 h-10 text-slate-300" />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 uppercase tracking-tight mb-2">Clean Slate!</h3>
-            <p className="text-slate-400 font-medium max-w-xs uppercase text-xs tracking-widest leading-relaxed">
+            <h3 className="text-xl font-bold text-slate-900 capitalize tracking-tight mb-2">Clean Slate!</h3>
+            <p className="text-slate-400 font-medium max-w-xs capitalize text-xs tracking-widest leading-relaxed">
                 {message}
             </p>
         </div>
@@ -141,7 +141,7 @@ export default function NotificationsPage() {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-200/60">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-900 uppercase">Updates & Alerts</h1>
+                        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-900 capitalize">Notifications</h1>
                         <p className="text-muted-foreground mt-2 max-w-xl text-sm md:text-lg font-medium">
                             Stay informed about your assignments, grades, and upcoming events.
                         </p>
@@ -150,7 +150,7 @@ export default function NotificationsPage() {
                         <Button
                             onClick={markAllAsRead}
                             variant="outline"
-                            className="rounded-2xl border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-widest h-10 px-6 hover:bg-slate-50"
+                            className="rounded-2xl border-slate-200 text-slate-600 font-bold capitalize text-[10px] tracking-widest h-10 px-6 hover:bg-slate-50"
                         >
                             <CheckCheck className="w-4 h-4 mr-2" />
                             Mark all as read
@@ -160,21 +160,21 @@ export default function NotificationsPage() {
 
                 <Tabs defaultValue="all" className="w-full">
                     <TabsList className="bg-slate-100/50 p-1 mb-8 rounded-2xl w-full md:w-auto flex overflow-x-auto no-scrollbar justify-start gap-1">
-                        <TabsTrigger value="all" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-2.5 text-xs font-bold uppercase tracking-widest">
+                        <TabsTrigger value="all" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-2.5 text-xs font-bold capitalize tracking-widest">
                             All ({notifications.length})
                         </TabsTrigger>
-                        <TabsTrigger value="unread" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-2.5 text-xs font-bold uppercase tracking-widest">
+                        <TabsTrigger value="unread" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-2.5 text-xs font-bold capitalize tracking-widest">
                             Unread ({unreadNotifications.length})
                         </TabsTrigger>
-                        <TabsTrigger value="read" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-2.5 text-xs font-bold uppercase tracking-widest">
-                            Archive ({readNotifications.length})
+                        <TabsTrigger value="read" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-2.5 text-xs font-bold capitalize tracking-widest">
+                            Read ({readNotifications.length})
                         </TabsTrigger>
                     </TabsList>
 
                     {isLoading ? (
                         <div className="py-20 flex flex-col items-center gap-4">
                             <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Syncing feeds...</p>
+                            <p className="text-slate-400 text-xs font-bold capitalize tracking-widest">Syncing feeds...</p>
                         </div>
                     ) : (
                         <>

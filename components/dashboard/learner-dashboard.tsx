@@ -42,19 +42,32 @@ export function LearnerDashboard() {
                 setTasks(tasksData);
 
                 // Filter for active progress
-                const activeProgress = progressData.find(p =>
-                    p.status === 'on-track' || p.status === 'at-risk' || p.status === 'under-review'
+                // Filter for active progress - prioritize records with an assigned courseId
+                let activeProgress = progressData.find(p =>
+                    (p.status === 'on-track' || p.status === 'at-risk' || p.status === 'under-review') && p.courseId
                 );
+                
+                if (!activeProgress) {
+                    activeProgress = progressData.find(p =>
+                        p.status === 'on-track' || p.status === 'at-risk' || p.status === 'under-review'
+                    );
+                }
 
                 if (activeProgress) {
                     setProgress(activeProgress);
                     if (activeProgress.cohortId) {
-                        const cohortData = await api.getCohort(activeProgress.cohortId);
-                        setCohort(cohortData);
+                        const cohortIdString = typeof activeProgress.cohortId === 'string' 
+                            ? activeProgress.cohortId 
+                            : activeProgress.cohortId._id;
 
-                        // Filter events for this specific cohort
-                        const cohortEvents = eventsData.filter(e => e.cohortId === activeProgress.cohortId);
-                        setEvents(cohortEvents);
+                        if (cohortIdString) {
+                            const cohortData = await api.getCohort(cohortIdString);
+                            setCohort(cohortData);
+
+                            // Filter events for this specific cohort
+                            const cohortEvents = eventsData.filter(e => e.cohortId === cohortIdString);
+                            setEvents(cohortEvents);
+                        }
                     }
                     setNeedsCohort(false);
                 } else {
@@ -140,7 +153,7 @@ export function LearnerDashboard() {
                 {/* Stats Section */}
                 <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-xl md:text-2xl font-semibold tracking-tight flex items-center gap-3 text-slate-900">
+                        <h2 className="text-md md:text-xl font-semibold tracking-tight flex items-center gap-3 text-slate-900">
                             Performance Metrics
                         </h2>
                     </div>
@@ -154,7 +167,7 @@ export function LearnerDashboard() {
                         />
                         <StatCard
                             icon={GraduationCap}
-                            label="Milestones"
+                            label="Completed Modules"
                             value={progress?.completedLessons?.length || 0}
                             iconColor="text-emerald-600"
                             iconBgColor="bg-emerald-50"
@@ -168,8 +181,8 @@ export function LearnerDashboard() {
                         />
                         <StatCard
                             icon={Users}
-                            label="Network Size"
-                            value={cohort?.learnerIds?.length || 0}
+                            label="Performance Status"
+                            value={progress?.status || 'On Track'}
                             iconColor="text-blue-600"
                             iconBgColor="bg-blue-50"
                         />
@@ -182,27 +195,29 @@ export function LearnerDashboard() {
                         {/* Current Courses */}
                         <div className="space-y-6">
                             <div className="flex items-center justify-between lg:pr-4">
-                                <h2 className="text-xl md:text-2xl font-semibold tracking-tight text-slate-900 flex items-center gap-3">
+                                <h2 className="text-md md:text-xl font-semibold tracking-tight text-slate-900 flex items-center gap-3">
                                     Assigned Curriculum
                                 </h2>
                                 <Button variant="ghost" onClick={() => router.push('/dashboard/courses')} className="text-indigo-600 font-bold hover:bg-indigo-50 rounded-xl">Explore All</Button>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {cohort && cohort.courseIds && cohort.courseIds.length > 0 ? (
-                                    (cohort.courseIds as any[]).map((course: any) => (
-                                        <div key={course._id} onClick={() => router.push(`/dashboard/courses/${course._id}`)} className="cursor-pointer group">
-                                            <CourseCard
-                                                title={course.name}
-                                                subtitle={course.description?.substring(0, 100) + '...'}
-                                                icon="📚"
-                                                progress={progress?.currentScore || 0}
-                                                duration={`${course.duration || 0}h Total`}
-                                                instructor="DexterHub Faculty"
-                                                color="lavender"
-                                            />
-                                        </div>
-                                    ))
+                                {progress?.courseId ? (
+                                    <div 
+                                        key={(progress.courseId as any)._id} 
+                                        onClick={() => router.push(`/dashboard/courses/${(progress.courseId as any)._id}`)} 
+                                        className="cursor-pointer group"
+                                    >
+                                        <CourseCard
+                                            title={(progress.courseId as any).name}
+                                            subtitle={(progress.courseId as any).description?.substring(0, 100) + '...'}
+                                            icon={(progress.courseId as any).icon || "📚"}
+                                            progress={progress.currentScore || 0}
+                                            duration={`${(progress.courseId as any).duration || 0}h Total`}
+                                            instructor="DexterHub Faculty"
+                                            color={(progress.courseId as any).color || "lavender"}
+                                        />
+                                    </div>
                                 ) : (
                                     <div className="col-span-full rounded-[32px] border-dashed border-2 border-slate-200 p-14 text-center space-y-4 bg-slate-50/50">
                                         <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto shadow-sm">
@@ -219,7 +234,7 @@ export function LearnerDashboard() {
 
                         {/* Recent Tasks */}
                         <div className="space-y-6">
-                            <h2 className="md:text-2xl text-xl font-semibold tracking-tight text-slate-900">
+                            <h2 className="text-md md:text-xl font-semibold tracking-tight text-slate-900">
                                 Required Submissions
                             </h2>
                             <div className="space-y-4">
@@ -258,7 +273,7 @@ export function LearnerDashboard() {
                                                         "rounded-xl px-5 h-10 font-bold border-slate-200 transition-all",
                                                         task.status !== 'pending' ? "opacity-100 bg-slate-50" : "opacity-0 group-hover:opacity-100 hover:bg-slate-50"
                                                     )}
-                                                    onClick={() => router.push(`/dashboard/courses/${cohort?.courseIds?.[0]}`)}
+                                                    onClick={() => router.push(`/dashboard/courses/${(progress?.courseId as any)?._id}`)}
                                                 >
                                                     {task.status !== 'pending' ? 'View Work' : 'Open Ref'}
                                                 </Button>

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const lessonSchema = new mongoose.Schema({
-    moduleId: mongoose.Schema.Types.ObjectId,
+    moduleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Module' },
     name: String,
     content: String,
     videoUrl: String,

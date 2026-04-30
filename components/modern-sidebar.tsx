@@ -38,8 +38,8 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
         { href: '/dashboard', label: 'Overview', icon: Home },
         { href: '/dashboard/courses', label: 'My Courses', icon: BookOpen },
         { href: '/dashboard/tasks', label: 'Tasks', icon: CheckSquare },
-        { href: '/dashboard/progress', label: 'Achievements', icon: TrendingUp },
-        { href: '/dashboard/notifications', label: 'Alerts', icon: Bell },
+        // { href: '/dashboard/progress', label: 'Achievements', icon: TrendingUp },
+        { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
     ];
 
     const instructorLinks = [
@@ -108,7 +108,7 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
             </nav>
 
             {/* Upgrade / Promo Card (Optional/Aesthetic) */}
-            {(role === 'learner' || role === 'user') && (
+            {/* {(role === 'learner' || role === 'user') && (
                 <div className="px-6 py-4">
                     <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:scale-125 transition-transform">
@@ -121,7 +121,7 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
                         </button>
                     </div>
                 </div>
-            )}
+            )} */}
 
             {/* User Profile info & Actions */}
             <div className="p-4 mt-auto border-t border-slate-100">

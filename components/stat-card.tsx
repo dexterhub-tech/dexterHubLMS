@@ -33,7 +33,7 @@ export function StatCard({
                         <Icon className={cn("w-6 h-6", iconColor)} />
                     </div>
                     <p className="text-sm font-medium text-muted-foreground mb-1">{label}</p>
-                    <p className="md:text-3xl text-lg font-semibold text-slate-800 tracking-tight">{value}</p>
+                    <p className="md:text-xl text-lg font-semibold text-slate-800 tracking-tight">{value}</p>
                     {trend && (
                         <p className={cn(
                             "text-sm mt-2 font-medium flex items-center gap-1",

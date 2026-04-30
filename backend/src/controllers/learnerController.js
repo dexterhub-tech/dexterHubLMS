@@ -132,7 +132,7 @@ exports.getLearnerTasks = async (req, res) => {
                 for (const module of modules) {
                     const assignmentLessons = await Lesson.find({
                         _id: { $in: module.lessons },
-                        'assignment.title': { $exists: true }
+                        'assignment.title': { $exists: true, $nin: ["", null] }
                     });
 
                     if (assignmentLessons.length === 0) {
@@ -156,7 +156,7 @@ exports.getLearnerTasks = async (req, res) => {
 
                     const lessons = await Lesson.find({
                         _id: { $in: module.lessons },
-                        'assignment.title': { $exists: true }
+                        'assignment.title': { $exists: true, $nin: ["", null] }
                     });
 
                     console.log(`[getLearnerTasks] Module ${module.name} (locked: ${isModuleLocked}) - found ${lessons.length} lessons`);
@@ -226,48 +226,105 @@ exports.getLearnerProgressDashboard = async (req, res) => {
         // Fetch progress records
         const progressRecords = await LearnerProgress.find({ learnerId });
 
-        // Calculate velocity (avg score across all records)
-        const totalScore = progressRecords.reduce((acc, curr) => acc + (curr.currentScore || 0), 0);
-        const avgScore = progressRecords.length ? Math.round(totalScore / progressRecords.length) : 0;
-
         // Calculate hours
         const totalHours = progressRecords.reduce((acc, curr) => acc + (curr.learningHoursThisWeek || 0), 0);
 
-        // Recent Submissions (Assessments)
-        const submissions = await Submission.find({ learnerId })
-            .sort({ submittedAt: -1 })
-            .limit(5)
+        // Fetch all submissions for the learner
+        const allSubmissions = await Submission.find({ learnerId })
+            .sort({ submittedAt: 1 })
             .populate({
                 path: 'lessonId',
                 select: 'title type'
             });
 
-        const assessments = submissions.map(s => ({
+        // 1. Calculate Velocity (Avg grade)
+        const gradedSubmissions = allSubmissions.filter(s => s.status === 'graded' && s.grade !== null);
+        const velocity = gradedSubmissions.length > 0
+            ? Math.round(gradedSubmissions.reduce((sum, s) => sum + s.grade, 0) / gradedSubmissions.length)
+            : 0;
+
+        // 2. Calculate Streak
+        // Get unique days learner submitted something (in format YYYY-MM-DD)
+        const uniqueDays = [...new Set(allSubmissions.map(s => {
+            if (!s.submittedAt) return null;
+            return new Date(s.submittedAt).toISOString().split('T')[0];
+        }).filter(Boolean))].sort().reverse();
+
+        let streak = 0;
+        const todayStr = new Date().toISOString().split('T')[0];
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+        if (uniqueDays.length > 0) {
+            if (uniqueDays[0] === todayStr || uniqueDays[0] === yesterdayStr) {
+                let checkDate = new Date(uniqueDays[0]);
+                for (const day of uniqueDays) {
+                    if (day === checkDate.toISOString().split('T')[0]) {
+                        streak++;
+                        checkDate.setDate(checkDate.getDate() - 1);
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+
+        // 3. Certificates (Number of graduated modules)
+        let certificates = 0;
+        progressRecords.forEach(pr => {
+            if (pr.moduleProgress) {
+                certificates += pr.moduleProgress.filter(m => m.isGraduated).length;
+            }
+        });
+
+        // 4. Formulate Weekly Chart Data (Last 8 weeks)
+        const chartData = [];
+        const weeksCount = 8;
+        const msInWeek = 7 * 24 * 60 * 60 * 1000;
+        const nowMs = Date.now();
+
+        for (let i = weeksCount - 1; i >= 0; i--) {
+            const weekStartMs = nowMs - (i + 1) * msInWeek;
+            const weekEndMs = nowMs - i * msInWeek;
+
+            const weekSubmissions = gradedSubmissions.filter(s => {
+                const sTime = new Date(s.submittedAt).getTime();
+                return sTime > weekStartMs && sTime <= weekEndMs;
+            });
+
+            const weekAvg = weekSubmissions.length > 0
+                ? Math.round(weekSubmissions.reduce((sum, s) => sum + s.grade, 0) / weekSubmissions.length)
+                : (chartData.length > 0 ? chartData[chartData.length - 1].score : 0); // carry over previous week
+
+            chartData.push({
+                week: `W${weeksCount - i}`,
+                score: weekAvg
+            });
+        }
+
+        // 5. Recent Submissions (Assessments)
+        const recentSubmissions = [...allSubmissions]
+            .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt))
+            .slice(0, 5);
+
+        const assessments = recentSubmissions.map(s => ({
             id: s._id,
             name: s.lessonId?.title || 'Untitled Assessment',
             date: s.submittedAt,
             score: s.grade,
             status: s.status === 'graded' ? 'completed' : 'pending',
-            type: 'Assignment' // Could be quiz if lesson type was available
+            type: 'Assignment' // Could map from s.lessonId.type if available
         }));
 
         res.json({
             stats: {
-                velocity: avgScore,
+                velocity,
                 hours: totalHours,
-                streak: 5, // Mock streak for now
-                certificates: 0
+                streak,
+                certificates
             },
-            chartData: [ // Mock chart data for visualization structure
-                { week: 'W1', score: 65 },
-                { week: 'W2', score: 68 },
-                { week: 'W3', score: 72 },
-                { week: 'W4', score: 70 },
-                { week: 'W5', score: 75 },
-                { week: 'W6', score: 78 },
-                { week: 'W7', score: 80 },
-                { week: 'W8', score: avgScore }, // Current week
-            ],
+            chartData,
             assessments
         });
 

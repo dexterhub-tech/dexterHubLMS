@@ -32,7 +32,7 @@ export interface Cohort {
   status: 'upcoming' | 'active' | 'completed' | 'archived';
   instructorIds: string[];
   learnerIds: string[];
-  courseIds: string[];
+  courseIds: (string | any)[];
   performanceThreshold: number;
   weeklyTarget: number;
   gracePeriodDays: number;
@@ -42,15 +42,23 @@ export interface Cohort {
 export interface LearnerProgress {
   _id: string;
   learnerId: string;
-  cohortId: string;
-  courseId: string;
+  cohortId: { _id: string; name: string } | null;
+  courseId: { _id: string; name: string } | null;
   completedLessons: string[];
   currentScore: number;
   learningHoursThisWeek: number;
-  status: 'on-track' | 'at-risk' | 'under-review' | 'dropped';
+  status: 'on-track' | 'at-risk' | 'under-review' | 'dropped' | 'failed';
   lastActivityDate: string;
   inactivityDays: number;
   lastAssessmentScore: number;
+  lastAssessmentDate?: string;
+  updatedAt?: string;
+  moduleProgress?: Array<{
+    moduleId: string;
+    scores: number[];
+    averageScore: number;
+    isGraduated: boolean;
+  }>;
 }
 
 export interface DropRecommendation {

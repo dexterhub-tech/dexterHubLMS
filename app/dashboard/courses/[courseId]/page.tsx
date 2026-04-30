@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
+import { TopHeader } from '@/components/top-header';
 import { CurriculumView } from '@/components/course/curriculum-view';
 import { QuizPlayer } from '@/components/course/quiz-player';
 import { Button } from '@/components/ui/button';
@@ -285,9 +286,11 @@ export default function CourseDetailPage() {
 
     return (
         <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] bg-white">
+             <TopHeader user={user ? { name: `${user.firstName} ${user.lastName}`, email: user.email } : undefined} />
+            
             {/* Immersive Header */}
-            <div className="border-b border-slate-200 bg-white px-6 py-4 flex items-center justify-between shadow-sm z-20 relative">
-                <div className="flex ml-4 items-center gap-4">
+            <div className="border-b border-slate-200 bg-white px-2 py-4 flex items-center justify-between shadow-sm z-20 relative">
+                <div className="flex ml-0 items-center gap-4">
                     <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-slate-500 hover:text-slate-900 hover:bg-slate-100/50">
                         <ArrowLeft className="w-5 h-5" />
                     </Button>
@@ -361,7 +364,7 @@ export default function CourseDetailPage() {
                                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-8 items-start">
                                     {/* Content Column */}
                                     <div className="lg:col-span-2 space-y-6">
-                                        <div className="bg-white rounded-2xl p-8 border border-slate-100 shadow-sm">
+                                        <div className="bg-white rounded-2xl p-0 md:p-4 md:border md:border-slate-100 md:shadow-sm">
                                             <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-50">
                                                 <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
                                                     <FileText className="w-5 h-5" />

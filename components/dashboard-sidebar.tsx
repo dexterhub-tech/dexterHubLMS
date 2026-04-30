@@ -19,7 +19,7 @@ const MENU_ITEMS = {
   learner: [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/dashboard/courses', label: 'My Courses', icon: BookOpen },
-    { href: '/dashboard/progress', label: 'My Progress', icon: Users },
+    // { href: '/dashboard/progress', label: 'My Progress', icon: Users },
     { href: '/dashboard/settings', label: 'Settings', icon: Settings },
   ],
   instructor: [

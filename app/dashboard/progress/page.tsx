@@ -50,6 +50,7 @@ export default function ProgressPage() {
         setStats(data.stats);
         setChartData(data.chartData);
         setAssessments(data.assessments);
+        console.log(data);
       } catch (error) {
         console.error('Failed to fetch progress:', error);
       } finally {
@@ -82,8 +83,8 @@ export default function ProgressPage() {
         {/* Minimal Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-200/60">
           <div>
-            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-900 uppercase">My Progress</h1>
-            <p className="text-muted-foreground mt-2 max-w-xl text-sm md:text-lg font-medium">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">My Progress</h1>
+            <p className="text-slate-500 mt-1 max-w-xl text-sm md:text-base">
               Overview of your learning performance and achievements.
             </p>
           </div>
@@ -124,11 +125,11 @@ export default function ProgressPage() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* Main Chart Section */}
           <div className="lg:col-span-3 space-y-6">
-            <Card className="rounded-[32px] border-none shadow-sm bg-white p-6 md:p-8">
+            <Card className="rounded-2xl border border-slate-200 shadow-sm bg-white p-6 md:p-8">
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-900 uppercase tracking-tight">Performance Trend</h3>
-                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Weekly average scores</p>
+                  <h3 className="text-lg font-bold text-slate-900 tracking-tight">Performance Trend</h3>
+                  <p className="text-sm font-medium text-slate-500 mt-0.5">Weekly average scores</p>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-1.5">
@@ -179,14 +180,14 @@ export default function ProgressPage() {
               </div>
             </Card>
 
-            <div className="bg-indigo-600 rounded-[32px] p-8 text-white relative overflow-hidden">
+            <div className="bg-indigo-600 rounded-2xl p-8 text-white relative overflow-hidden shadow-sm">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
               <div className="relative z-10 space-y-4">
-                <h3 className="text-xl font-bold uppercase tracking-tight">Level Up Your Journey</h3>
+                <h3 className="text-xl font-semibold tracking-tight">Level Up Your Journey</h3>
                 <p className="text-indigo-100/80 text-sm font-medium leading-relaxed max-w-md">
                   Your consistent learning velocity is impressive. Maintaining a {stats.streak} day streak puts you ahead of 80% of your cohort.
                 </p>
-                <button className="flex items-center gap-2 bg-white text-indigo-600 px-6 py-2.5 rounded-2xl font-bold text-sm hover:bg-neutral-50 transition-colors uppercase">
+                <button className="flex items-center gap-2 bg-white text-indigo-600 px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-neutral-50 transition-colors mt-2 w-fit">
                   View Roadmap <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
@@ -195,16 +196,16 @@ export default function ProgressPage() {
 
           {/* Activity Section */}
           <div className="lg:col-span-2 space-y-6">
-            <Card className="rounded-[32px] border-none shadow-sm bg-white h-full">
-              <CardHeader className="p-8 pb-4">
-                <CardTitle className="text-lg font-semibold text-slate-900 uppercase tracking-tight flex items-center gap-2">
+            <Card className="rounded-2xl border border-slate-200 shadow-sm bg-white h-full">
+              <CardHeader className="p-6 md:p-8 pb-4">
+                <CardTitle className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
                   Recent Activity
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6 pt-0">
                 <div className="space-y-3">
                   {assessments.length === 0 ? (
-                    <div className="text-center py-12 text-slate-400 text-sm font-medium italic uppercase tracking-wider">No activity recorded</div>
+                    <div className="text-center py-12 text-slate-400 text-sm font-medium italic">No activity recorded</div>
                   ) : (
                     assessments.map((assessment) => (
                       <div
@@ -212,18 +213,18 @@ export default function ProgressPage() {
                         className="group flex items-center justify-between p-4 rounded-2xl bg-neutral-50/50 hover:bg-white border border-transparent hover:border-slate-100 hover:shadow-sm transition-all"
                       >
                         <div className="flex flex-col">
-                          <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-0.5">{assessment.type}</span>
-                          <h4 className="font-bold text-slate-800 text-sm leading-tight uppercase tracking-tight">{assessment.name}</h4>
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">{new Date(assessment.date).toLocaleDateString()}</span>
+                          <span className="text-[11px] font-semibold text-indigo-600 tracking-wide mb-1 uppercase">{assessment.type}</span>
+                          <h4 className="font-semibold text-slate-900 text-sm leading-tight">{assessment.name}</h4>
+                          <span className="text-xs font-medium text-slate-500 mt-1.5">{new Date(assessment.date).toLocaleDateString()}</span>
                         </div>
                         <div className="text-right">
                           {assessment.status === 'completed' ? (
                             <div className="flex flex-col items-end">
-                              <span className="text-xl font-black text-slate-900 leading-none">{assessment.score}</span>
-                              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">SCORE</span>
+                              <span className="text-lg font-bold text-slate-900 leading-none">{assessment.score}</span>
+                              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mt-1">Score</span>
                             </div>
                           ) : (
-                            <Badge className="bg-slate-200 text-slate-500 border-none font-bold text-[8px] px-2 uppercase shadow-none">Pending</Badge>
+                            <Badge className="bg-slate-100 text-slate-600 border-none font-medium text-[10px] px-2.5 py-0.5 shadow-none rounded-full">Pending</Badge>
                           )}
                         </div>
                       </div>
@@ -247,14 +248,14 @@ function StatMiniCard({ icon: Icon, label, value, color }: { icon: any, label: s
   };
 
   return (
-    <Card className="rounded-[24px] border-none shadow-sm bg-white p-6 hover:-translate-y-1 transition-transform duration-300">
+    <Card className="rounded-2xl border border-slate-200 shadow-sm bg-white p-6 hover:-translate-y-0.5 hover:shadow-md transition-all duration-300">
       <div className="flex items-center gap-4">
-        <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", colorMap[color])}>
-          <Icon className="w-6 h-6" />
+        <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center", colorMap[color])}>
+          <Icon className="w-5 h-5" />
         </div>
         <div>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{label}</p>
-          <p className="text-2xl font-medium font-black text-slate-900 leading-none">{value}</p>
+          <p className="text-xs font-medium text-slate-500 mb-1">{label}</p>
+          <p className="text-2xl font-bold text-slate-900 leading-none">{value}</p>
         </div>
       </div>
     </Card>
