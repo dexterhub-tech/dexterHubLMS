@@ -415,7 +415,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                 </div>
                                             </CardHeader>
                                             <CardContent className="p-2 md:p-8 space-y-6">
-                                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                                <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
                                                     <div className="space-y-4">
                                                         <div className="space-y-2">
                                                             <Label className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 ml-1">Session Title</Label>
@@ -430,13 +430,13 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                         </div>
                                                         <div className="space-y-2">
                                                             <Label className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 ml-1">Session Notes / Resources</Label>
-                                                            <div className="bg-white rounded-xl border border-indigo-100 overflow-hidden min-h-[180px] md:min-h-[200px]">
+                                                            <div className="bg-white rounded-xl border border-indigo-100 overflow-hidden min-h-[180px] md:min-h-[400px]">
                                                                 <ReactQuill
                                                                     theme="snow"
                                                                     value={newLesson.content}
                                                                     onChange={content => setNewLesson({ ...newLesson, content })}
                                                                     placeholder="Provide rich details for this session..."
-                                                                    className="h-[120px] md:h-[150px] border-none"
+                                                                    className="h-[120px] md:h-[350px] border-none"
                                                                 />
                                                             </div>
                                                         </div>

@@ -166,7 +166,7 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <div className="space-y-3">
+              {/* <div className="space-y-3">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">
                   Select Your Role
                 </label>
@@ -213,7 +213,7 @@ export default function RegisterPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               <Button
                 type="submit"
