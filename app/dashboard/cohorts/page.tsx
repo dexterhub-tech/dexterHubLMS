@@ -104,21 +104,7 @@ export default function CohortsPage() {
       setIsCreating(false);
     }
   };
-
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const handleCreateCourseClick = (cohortId: string) => {
-    router.push(`/instructor/courses/new?cohortId=${cohortId}`);
-  };
-
-  const handleCreateCohort = async (e: React.FormEvent) => {
+  const getCohortCourses = (cohort: Cohort) => {
     return courses.filter(course => cohort.courseIds?.includes(course._id || course.id || ''));
   };
 
@@ -538,8 +524,6 @@ export default function CohortsPage() {
           </div>
         </div>
       </div>
-
-    </div>
     </div>
   );
 }
