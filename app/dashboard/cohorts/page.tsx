@@ -42,6 +42,8 @@ export default function CohortsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [isAccessDeniedOpen, setIsAccessDeniedOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [selectedCohortForJoin, setSelectedCohortForJoin] = useState<Cohort | null>(null);
   const [denialMessage, setDenialMessage] = useState('');
   const [newCohort, setNewCohort] = useState({
     name: '',
@@ -419,6 +421,15 @@ export default function CohortsPage() {
                                 <Button 
                                   onClick={(e) => {
                                     e.stopPropagation();
+                                    // Security Check: Even if enrolled, check if still on the authorized list if one exists
+                                    const userEmail = user?.email?.toLowerCase();
+                                    if (cohort.allowedLearners && cohort.allowedLearners.length > 0) {
+                                      if (!userEmail || !cohort.allowedLearners.includes(userEmail)) {
+                                        setDenialMessage('Your access to this workspace has been restricted. Please contact your instructor for re-authorization.');
+                                        setIsAccessDeniedOpen(true);
+                                        return;
+                                      }
+                                    }
                                     router.push('/dashboard');
                                   }} 
                                   className="w-full h-12 rounded-xl bg-slate-900 border-none font-black uppercase tracking-widest text-[10px] shadow-lg shadow-slate-200 active:scale-95 transition-all"
@@ -428,24 +439,10 @@ export default function CohortsPage() {
                               </div>
                             ) : (
                               <Button
-                                onClick={async (e) => {
+                                onClick={(e) => {
                                   e.stopPropagation();
-                                  if (confirm('Switching cohorts will reset your course progress tracking. Proceed to join?')) {
-                                    try {
-                                      await api.joinCohort(cohort._id);
-                                      toast.success('Successfully joined ' + cohort.name);
-                                      loadData();
-                                      await refreshUser();
-                                    } catch (error: any) {
-                                      console.error(error);
-                                      if (error.status === 403) {
-                                        setDenialMessage(error.message || 'You are not eligible to join this current cohort. Please message the necessary authority for access.');
-                                        setIsAccessDeniedOpen(true);
-                                      } else {
-                                        toast.error(error.message || 'Failed to join cohort');
-                                      }
-                                    }
-                                  }
+                                  setSelectedCohortForJoin(cohort);
+                                  setIsConfirmModalOpen(true);
                                 }}
                                 className={cn(
                                   "w-full h-20 rounded-[28px] font-black uppercase tracking-[0.2em] text-xs shadow-2xl transition-all active:scale-95",
@@ -554,6 +551,67 @@ export default function CohortsPage() {
             >
               Acknowledged
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
+        <DialogContent className="sm:max-w-[480px] rounded-[32px] border-none shadow-2xl p-0 overflow-hidden bg-white">
+          <div className="bg-indigo-50 p-12 text-center space-y-6">
+            <div className="w-20 h-20 rounded-[24px] bg-white flex items-center justify-center text-indigo-600 shadow-xl shadow-indigo-100 mx-auto">
+              <UserPlus2 className="w-10 h-10" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight leading-none">Join Cohort</h2>
+              <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em]">Deployment Confirmation</p>
+            </div>
+          </div>
+          
+          <div className="p-12 space-y-8">
+            <div className="space-y-4">
+              <p className="text-slate-600 font-medium text-lg leading-relaxed text-center">
+                Are you sure you want to join <span className="font-black text-slate-900">{selectedCohortForJoin?.name}</span>?
+              </p>
+              <div className="bg-amber-50 rounded-2xl p-6 border border-amber-100/50 flex gap-4">
+                <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-xs font-bold text-amber-800 leading-relaxed uppercase tracking-wider">
+                  Important: Switching cohorts will reset your current course progress tracking.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex gap-4">
+              <Button 
+                variant="ghost"
+                onClick={() => setIsConfirmModalOpen(false)}
+                className="flex-1 h-16 rounded-2xl font-black uppercase tracking-widest text-[10px]"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={async () => {
+                  if (!selectedCohortForJoin) return;
+                  try {
+                    setIsConfirmModalOpen(false);
+                    await api.joinCohort(selectedCohortForJoin._id);
+                    toast.success('Successfully joined ' + selectedCohortForJoin.name);
+                    loadData();
+                    await refreshUser();
+                  } catch (error: any) {
+                    console.error(error);
+                    if (error.status === 403) {
+                      setDenialMessage(error.message || 'You are not eligible to join this current cohort.');
+                      setIsAccessDeniedOpen(true);
+                    } else {
+                      toast.error(error.message || 'Failed to join cohort');
+                    }
+                  }
+                }}
+                className="flex-2 h-16 px-8 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest shadow-xl shadow-indigo-100 active:scale-95 transition-all"
+              >
+                Confirm Join
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
