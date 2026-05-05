@@ -28,8 +28,12 @@ import {
   MoreVertical,
   Activity,
   Layers,
-  AlertCircle
+  AlertCircle,
+  ShieldCheck,
+  Upload,
+  FileText
 } from 'lucide-react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
@@ -68,6 +72,10 @@ export default function CohortsManagementPage() {
     weeklyTarget: 10,
     gracePeriodDays: 3,
   });
+  const [isAccessModalOpen, setIsAccessModalOpen] = useState(false);
+  const [selectedCohortId, setSelectedCohortId] = useState<string | null>(null);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     loadCohorts();
@@ -114,6 +122,35 @@ export default function CohortsManagementPage() {
       toast.error(editingCohort ? 'Failed to update cohort' : 'Failed to create cohort');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleUploadCsv = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!csvFile || !selectedCohortId) return;
+
+    try {
+      setIsUploading(true);
+      const text = await csvFile.text();
+      const lines = text.split(/\r?\n/);
+      const emails = lines
+        .map(line => line.split(',')[0].trim())
+        .filter(email => email.length > 0 && email.includes('@'));
+
+      if (emails.length === 0) {
+        toast.error('No valid emails found in CSV');
+        return;
+      }
+
+      await api.updateAllowedLearners(selectedCohortId, emails);
+      toast.success(`Successfully uploaded ${emails.length} authorized emails`);
+      setIsAccessModalOpen(false);
+      setCsvFile(null);
+      loadCohorts();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to upload CSV');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -412,9 +449,11 @@ export default function CohortsManagementPage() {
                     ID: {cohort._id?.toString().slice(-6)}
                   </Badge>
                 </div>
-                <CardTitle className="text-2xl font-semibold text-slate-900 leading-tight group-hover:text-indigo-600 transition-colors">
-                  {cohort.name}
-                </CardTitle>
+                <Link href={`/dashboard/cohorts/${cohort._id}`} className="block group/title">
+                  <CardTitle className="text-2xl font-semibold text-slate-900 leading-tight group-hover/title:text-indigo-600 transition-colors">
+                    {cohort.name}
+                  </CardTitle>
+                </Link>
                 <CardDescription className="text-slate-500 line-clamp-2 mt-2 leading-relaxed">
                   {cohort.description || "No description provided for this cohort."}
                 </CardDescription>
@@ -456,13 +495,18 @@ export default function CohortsManagementPage() {
 
                 <div className="flex gap-3 pt-2">
                   <Button
-                    onClick={() => handleEdit(cohort)}
+                    onClick={() => {
+                      setSelectedCohortId(cohort._id);
+                      setIsAccessModalOpen(true);
+                    }}
                     variant="outline"
-                    className="flex-1 rounded-2xl h-11 border-slate-200 text-slate-600 font-semibold text-xs hover:bg-slate-50"
+                    className="flex-1 rounded-2xl h-11 border-slate-200 text-slate-600 font-semibold text-xs hover:bg-slate-50 gap-2"
                   >
-                    Edit Config
+                    <ShieldCheck className="w-4 h-4" />
+                    Access
                   </Button>
                   <Button
+                    onClick={() => router.push(`/dashboard/cohorts/${cohort._id}`)}
                     className="flex-1 rounded-2xl h-11 bg-slate-900 text-white font-semibold text-xs hover:bg-slate-800 group"
                   >
                     Manage Learners
@@ -519,6 +563,74 @@ export default function CohortsManagementPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Access Control Modal */}
+      <Dialog open={isAccessModalOpen} onOpenChange={setIsAccessModalOpen}>
+        <DialogContent className="sm:max-w-[450px] rounded-[32px] border-none shadow-2xl p-0 overflow-hidden bg-white">
+          <form onSubmit={handleUploadCsv}>
+            <div className="bg-slate-900 p-8 text-white">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-semibold uppercase tracking-tight">Access Control</DialogTitle>
+                <DialogDescription className="text-slate-400 font-medium text-sm">
+                  Restrict registration for this cohort to a specific list of emails.
+                </DialogDescription>
+              </DialogHeader>
+            </div>
+
+            <div className="p-8 space-y-6">
+              <div className="space-y-4">
+                <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-8 hover:bg-slate-50 transition-all cursor-pointer relative group">
+                  <input
+                    type="file"
+                    accept=".csv"
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
+                  />
+                  <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-4 group-hover:scale-110 transition-transform">
+                    <Upload className="w-6 h-6" />
+                  </div>
+                  <p className="text-sm font-bold text-slate-900 uppercase tracking-widest">
+                    {csvFile ? csvFile.name : 'Select CSV File'}
+                  </p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">
+                    Format: email@domain.com (First column)
+                  </p>
+                </div>
+
+                {csvFile && (
+                  <div className="bg-emerald-50 rounded-xl p-4 flex items-center gap-3 border border-emerald-100">
+                    <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-emerald-500 shadow-sm">
+                      <FileText className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">File Ready</p>
+                      <p className="text-xs font-bold text-slate-900 truncate">{csvFile.name}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-slate-50 p-8 border-t border-slate-100 flex gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsAccessModalOpen(false)}
+                className="flex-1 rounded-xl h-12 px-6"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isUploading || !csvFile}
+                className="flex-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl h-12 px-8 shadow-lg shadow-indigo-100 transition-all"
+              >
+                {isUploading ? 'Processing...' : 'Apply List'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

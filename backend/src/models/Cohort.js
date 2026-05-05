@@ -13,6 +13,7 @@ const cohortSchema = new mongoose.Schema({
     weeklyTarget: { type: Number, default: 10 },
     gracePeriodDays: { type: Number, default: 3 },
     reviewCycleFrequency: { type: String, enum: ['weekly', 'bi-weekly', 'monthly'], default: 'weekly' },
+    allowedLearners: [String],
     createdAt: { type: Date, default: Date.now },
 });
 

@@ -11,6 +11,7 @@ import { Users, Calendar, TrendingUp, Clock, Sparkles, BookOpen, ChevronRight, L
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Dialog,
   DialogContent,
@@ -104,7 +105,20 @@ export default function CohortsPage() {
     }
   };
 
-  const getCohortCourses = (cohort: Cohort) => {
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleCreateCourseClick = (cohortId: string) => {
+    router.push(`/instructor/courses/new?cohortId=${cohortId}`);
+  };
+
+  const handleCreateCohort = async (e: React.FormEvent) => {
     return courses.filter(course => cohort.courseIds?.includes(course._id || course.id || ''));
   };
 
@@ -339,9 +353,12 @@ export default function CohortsPage() {
               return (
                 <div key={cohort._id} className="group relative">
                   {/* Card Glow Effect */}
-                  <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-violet-500 rounded-[40px] opacity-0 group-hover:opacity-5 blur-xl transition-opacity duration-500" />
+                  <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-violet-500 rounded-[40px] opacity-0 group-hover:opacity-5 blur-xl transition-opacity duration-500 pointer-events-none" />
 
-                  <Card className="relative border-slate-100 bg-white shadow-sm hover:shadow-2xl transition-all duration-500 rounded-[40px] overflow-hidden">
+                  <Card 
+                    onClick={() => router.push(`/dashboard/cohorts/${cohort._id}`)}
+                    className="relative border-slate-100 bg-white shadow-sm hover:shadow-2xl transition-all duration-500 rounded-[40px] overflow-hidden cursor-pointer"
+                  >
                     <div className="flex flex-col h-full">
                       <div className="flex flex-col lg:flex-row p-10 lg:p-14 gap-12 lg:items-start">
                         {/* Summary Block */}
@@ -358,14 +375,14 @@ export default function CohortsPage() {
                             )}
                           </div>
 
-                          <div className="space-y-4">
-                            <h3 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight tracking-tight font-medium uppercase group-hover:text-indigo-600 transition-colors">
+                          <Link href={`/dashboard/cohorts/${cohort._id}`} className="block space-y-4 group/title transition-all active:scale-[0.99]">
+                            <h3 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight tracking-tight font-medium uppercase group-hover/title:text-indigo-600 transition-colors">
                               {cohort.name}
                             </h3>
                             <p className="text-slate-500 text-lg font-medium leading-relaxed italic max-w-4xl border-l-[3px] border-slate-100 pl-6 py-2">
                               "{cohort.description || "Transformative learning at scale."}"
                             </p>
-                          </div>
+                          </Link>
 
                           <div className="flex flex-wrap gap-8 md:gap-14">
                             <div className="space-y-2">
@@ -412,22 +429,29 @@ export default function CohortsPage() {
                                   <ShieldCheck className="w-8 h-8" />
                                 </div>
                                 <p className="text-sm font-black text-slate-900 uppercase tracking-widest leading-tight">Identity Confirmed <br /><span className="text-emerald-600">Active Access</span></p>
-                                <Button onClick={() => router.push('/dashboard')} className="w-full h-12 rounded-xl bg-slate-900 border-none font-black uppercase tracking-widest text-[10px] shadow-lg shadow-slate-200 active:scale-95 transition-all">
+                                <Button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    router.push('/dashboard');
+                                  }} 
+                                  className="w-full h-12 rounded-xl bg-slate-900 border-none font-black uppercase tracking-widest text-[10px] shadow-lg shadow-slate-200 active:scale-95 transition-all"
+                                >
                                   Enter Dashboard
                                 </Button>
                               </div>
                             ) : (
                               <Button
-                                onClick={async () => {
+                                onClick={async (e) => {
+                                  e.stopPropagation();
                                   if (confirm('Switching cohorts will reset your course progress tracking. Proceed to join?')) {
                                     try {
                                       await api.joinCohort(cohort._id);
                                       toast.success('Successfully joined ' + cohort.name);
                                       loadData();
                                       await refreshUser();
-                                    } catch (error) {
+                                    } catch (error: any) {
                                       console.error(error);
-                                      toast.error('Failed to join cohort');
+                                      toast.error(error.message || 'Failed to join cohort');
                                     }
                                   }
                                 }}
@@ -475,10 +499,22 @@ export default function CohortsPage() {
                                 </div>
 
                                 <Button
-                                  onClick={() => handleCreateCourseClick(cohort._id)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCreateCourseClick(cohort._id);
+                                  }}
                                   className="w-full h-12 rounded-xl bg-white border border-slate-100 text-slate-900 hover:text-white hover:border-indigo-100 font-black uppercase tracking-widest text-[9px] shadow-sm active:scale-95 transition-all"
                                 >
                                   <Plus className="w-4 h-4 mr-2" />Create course
+                                </Button>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-3 pb-2">
+                                <Button className="h-12 rounded-[20px] bg-slate-900 border-none font-black uppercase tracking-widest text-[9px] shadow-xl shadow-slate-200 hover:bg-black transition-all active:scale-95">
+                                  <UserPlus2 className="w-3.5 h-3.5 mr-2" /> Network
+                                </Button>
+                                <Button variant="outline" className="h-12 rounded-[20px] border-slate-200 font-black uppercase tracking-widest text-[9px] hover:bg-slate-50 transition-all active:scale-95">
+                                  <Settings2 className="w-3.5 h-3.5 mr-2" /> Global
                                 </Button>
                               </div>
 
@@ -502,6 +538,8 @@ export default function CohortsPage() {
           </div>
         </div>
       </div>
+
+    </div>
     </div>
   );
 }

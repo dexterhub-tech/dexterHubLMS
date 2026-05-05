@@ -97,6 +97,16 @@ exports.joinCohort = async (req, res) => {
             return res.status(404).json({ error: 'Cohort not found' });
         }
 
+        // Access restriction check
+        if (cohort.allowedLearners && cohort.allowedLearners.length > 0) {
+            const userEmail = req.user.email?.toLowerCase();
+            if (!userEmail || !cohort.allowedLearners.includes(userEmail)) {
+                return res.status(403).json({ 
+                    error: 'You are not eligible to join this current cohort. Please message the necessary authority for access.' 
+                });
+            }
+        }
+
         if (cohort.status !== 'upcoming' && cohort.status !== 'active') {
             return res.status(400).json({ error: 'Cannot join a completed or archived cohort' });
         }
@@ -367,6 +377,33 @@ exports.deleteCohort = async (req, res) => {
         // For now, just deleting the cohort itself
 
         res.json({ message: 'Cohort deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+// Update allowed learners list
+exports.updateAllowedLearners = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { emails } = req.body; // Expecting an array of strings
+
+        if (!Array.isArray(emails)) {
+            return res.status(400).json({ error: 'Emails must be an array' });
+        }
+
+        const normalizedEmails = emails.map(e => e.trim().toLowerCase()).filter(e => e.length > 0);
+
+        const cohort = await Cohort.findByIdAndUpdate(
+            id,
+            { allowedLearners: normalizedEmails },
+            { new: true }
+        );
+
+        if (!cohort) {
+            return res.status(404).json({ error: 'Cohort not found' });
+        }
+
+        res.json({ message: 'Allowed learners list updated successfully', count: emails.length });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

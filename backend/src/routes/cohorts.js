@@ -24,5 +24,6 @@ router.post('/applications/:id/action', authMiddleware, roleCheck(['instructor',
 // Cohort Course Management
 router.post('/:cohortId/courses/:courseId', authMiddleware, roleCheck(['instructor', 'admin']), cohortController.addCourseToCohort);
 router.delete('/:cohortId/courses/:courseId', authMiddleware, roleCheck(['instructor', 'admin']), cohortController.removeCourseFromCohort);
+router.put('/:id/allowed-learners', authMiddleware, roleCheck(['admin', 'super-admin', 'instructor']), cohortController.updateAllowedLearners);
 
 module.exports = router;

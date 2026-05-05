@@ -37,6 +37,7 @@ export interface Cohort {
   weeklyTarget: number;
   gracePeriodDays: number;
   reviewCycleFrequency: 'weekly' | 'bi-weekly' | 'monthly';
+  allowedLearners?: string[];
 }
 
 export interface LearnerProgress {
@@ -141,9 +142,26 @@ class APIClient {
       headers,
     });
 
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType && contentType.includes('application/json');
+
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'API request failed');
+      let errorMessage = 'API request failed';
+      try {
+        if (isJson) {
+          const error = await response.json();
+          errorMessage = error.error || errorMessage;
+        } else {
+          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        }
+      } catch (e) {
+        errorMessage = `Error parsing response: ${response.status}`;
+      }
+      throw new Error(errorMessage);
+    }
+
+    if (!isJson) {
+      throw new Error('Server returned non-JSON response');
     }
 
     return response.json();
@@ -202,6 +220,13 @@ class APIClient {
   async deleteCohort(id: string): Promise<any> {
     return this.request(`/api/cohorts/${id}`, {
       method: 'DELETE',
+    });
+  }
+
+  async updateAllowedLearners(id: string, emails: string[]): Promise<any> {
+    return this.request(`/api/cohorts/${id}/allowed-learners`, {
+      method: 'PUT',
+      body: JSON.stringify({ emails }),
     });
   }
 
