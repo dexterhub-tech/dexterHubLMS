@@ -37,12 +37,9 @@ export default function DashboardLayout({
   }
 
   // Redirect instructors/admins to their respective dashboards
-  if (user?.role === 'admin' || user?.role === 'super-admin') {
-    router.push('/admin');
-    return null;
-  }
+  const role = user?.role === 'admin' || user?.role === 'super-admin' ? 'admin' : 
+               user?.role === 'instructor' ? 'instructor' : 'learner';
 
-  const role = user?.role === 'instructor' ? 'instructor' : 'learner';
 
   return (
     <div className="min-h-screen bg-background">

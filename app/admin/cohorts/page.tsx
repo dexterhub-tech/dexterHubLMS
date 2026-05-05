@@ -54,8 +54,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { useRouter } from "next/navigation";
 
 export default function CohortsManagementPage() {
+  const router = useRouter();
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -407,7 +409,7 @@ export default function CohortsManagementPage() {
         {cohorts.map((cohort) => {
           const statusInfo = getStatusInfo(cohort.status);
           return (
-            <Card key={cohort._id} className="group relative bg-white rounded-[32px] border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+            <Card key={cohort._id} className="group relative bg-white rounded-2xl border-slate-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden">
               <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -417,6 +419,14 @@ export default function CohortsManagementPage() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48 rounded-2xl p-2 shadow-xl border-slate-100">
                     <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-3 py-2">Actions</DropdownMenuLabel>
+                    <DropdownMenuItem
+                      onClick={() => router.push(`/admin/cohorts/${cohort._id}`)}
+                      className="rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 cursor-pointer hover:bg-slate-50 focus:bg-slate-50 transition-colors gap-2"
+                    >
+                      <ShieldCheck className="w-4 h-4 text-indigo-500" />
+                      Access Control
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-slate-50 mx-2" />
                     <DropdownMenuItem
                       onClick={() => handleEdit(cohort)}
                       className="rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 cursor-pointer hover:bg-slate-50 focus:bg-slate-50 transition-colors gap-2"
@@ -495,10 +505,7 @@ export default function CohortsManagementPage() {
 
                 <div className="flex gap-3 pt-2">
                   <Button
-                    onClick={() => {
-                      setSelectedCohortId(cohort._id);
-                      setIsAccessModalOpen(true);
-                    }}
+                    onClick={() => router.push(`/admin/cohorts/${cohort._id}`)}
                     variant="outline"
                     className="flex-1 rounded-2xl h-11 border-slate-200 text-slate-600 font-semibold text-xs hover:bg-slate-50 gap-2"
                   >

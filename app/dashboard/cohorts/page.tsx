@@ -343,7 +343,7 @@ export default function CohortsPage() {
 
                   <Card 
                     onClick={() => router.push(`/dashboard/cohorts/${cohort._id}`)}
-                    className="relative border-slate-100 bg-white shadow-sm hover:shadow-2xl transition-all duration-500 rounded-[40px] overflow-hidden cursor-pointer"
+                    className="relative border-slate-100 bg-white shadow-sm hover:shadow-lg transition-all duration-500 rounded-2xl overflow-hidden cursor-pointer"
                   >
                     <div className="flex flex-col h-full">
                       <div className="flex flex-col lg:flex-row p-10 lg:p-14 gap-12 lg:items-start">

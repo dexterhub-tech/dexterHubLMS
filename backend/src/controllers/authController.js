@@ -11,28 +11,6 @@ exports.register = async (req, res) => {
             return res.status(400).json({ error: 'User already exists' });
         }
 
-        // Check restricted access for learners
-        const userRole = role || 'learner';
-        if (userRole === 'learner') {
-            const Cohort = require('../models/Cohort');
-            // Find all cohorts that have an allowedLearners list
-            const restrictedCohorts = await Cohort.find({ 
-                allowedLearners: { $exists: true, $not: { $size: 0 } } 
-            });
-
-            if (restrictedCohorts.length > 0) {
-                // Check if the email is in any of the allowed lists
-                const isAuthorized = restrictedCohorts.some(cohort => 
-                    cohort.allowedLearners.includes(email.toLowerCase())
-                );
-
-                if (!isAuthorized) {
-                    return res.status(403).json({ 
-                        error: 'Registration restricted. Your email is not on the authorized list for any current cohort. Please contact an administrator.' 
-                    });
-                }
-            }
-        }
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
