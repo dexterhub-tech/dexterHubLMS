@@ -41,7 +41,8 @@ export default function CohortsPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAccessDeniedOpen, setIsAccessDeniedOpen] = useState(false);
+  const [denialMessage, setDenialMessage] = useState('');
   const [newCohort, setNewCohort] = useState({
     name: '',
     description: '',
@@ -437,7 +438,12 @@ export default function CohortsPage() {
                                       await refreshUser();
                                     } catch (error: any) {
                                       console.error(error);
-                                      toast.error(error.message || 'Failed to join cohort');
+                                      if (error.status === 403) {
+                                        setDenialMessage(error.message || 'You are not eligible to join this current cohort. Please message the necessary authority for access.');
+                                        setIsAccessDeniedOpen(true);
+                                      } else {
+                                        toast.error(error.message || 'Failed to join cohort');
+                                      }
                                     }
                                   }
                                 }}
@@ -524,6 +530,33 @@ export default function CohortsPage() {
           </div>
         </div>
       </div>
+
+      <Dialog open={isAccessDeniedOpen} onOpenChange={setIsAccessDeniedOpen}>
+        <DialogContent className="sm:max-w-[480px] rounded-[32px] border-none shadow-2xl p-0 overflow-hidden bg-white">
+          <div className="bg-rose-50 p-12 text-center space-y-6">
+            <div className="w-20 h-20 rounded-[24px] bg-white flex items-center justify-center text-rose-500 shadow-xl shadow-rose-100 mx-auto animate-bounce-subtle">
+              <ShieldCheck className="w-10 h-10" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight leading-none">Access Restricted</h2>
+              <p className="text-[10px] font-black text-rose-600 uppercase tracking-[0.2em]">Security Protocol Active</p>
+            </div>
+          </div>
+          
+          <div className="p-12 space-y-8 text-center">
+            <p className="text-slate-600 font-medium text-lg leading-relaxed">
+              {denialMessage}
+            </p>
+            
+            <Button 
+              onClick={() => setIsAccessDeniedOpen(false)}
+              className="w-full h-16 rounded-2xl bg-slate-900 hover:bg-black text-white font-black uppercase tracking-widest shadow-xl shadow-slate-200 active:scale-95 transition-all"
+            >
+              Acknowledged
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
