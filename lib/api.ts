@@ -8,8 +8,53 @@ export interface AuthResponse {
     firstName?: string;
     lastName?: string;
     activeCohortId?: string;
+    avatar?: string;
+    bio?: string;
+    title?: string;
+    phoneNumber?: string;
+    location?: string;
+    socialLinks?: {
+      linkedin?: string;
+      twitter?: string;
+      github?: string;
+      website?: string;
+    };
   };
   token: string;
+}
+
+export interface Profile {
+  _id: string;
+  userId: AuthResponse['user'];
+  avatar?: string;
+  bio?: string;
+  title?: string;
+  phoneNumber?: string;
+  location?: string;
+  socialLinks?: {
+    linkedin?: string;
+    twitter?: string;
+    github?: string;
+    website?: string;
+  };
+  learnerDetails?: {
+    learningGoals: string[];
+    interests: string[];
+    education: string;
+    currentOccupation: string;
+  };
+  instructorDetails?: {
+    expertise: string[];
+    experienceYears: number;
+    teachingPhilosophy: string;
+    achievements: string[];
+  };
+  adminDetails?: {
+    department: string;
+    officeHours: string;
+    responsibilities: string[];
+  };
+  updatedAt: string;
 }
 
 export interface LoginCredentials {
@@ -387,6 +432,10 @@ class APIClient {
     return this.request(`/api/courses/${id}`, { method: 'PUT', body: JSON.stringify(data) });
   }
 
+  async deleteCourse(id: string): Promise<any> {
+    return this.request(`/api/courses/${id}`, { method: 'DELETE' });
+  }
+
   async createModule(data: any): Promise<any> {
     return this.request('/api/courses/modules', { method: 'POST', body: JSON.stringify(data) });
   }
@@ -461,6 +510,18 @@ class APIClient {
   async generateAIQuiz(data: { title: string, description?: string, difficulty: 'easy' | 'hard' }): Promise<any[]> {
     return this.request('/api/ai/generate-quiz', {
       method: 'POST',
+      body: JSON.stringify(data)
+    });
+  }
+
+  // Profile Management
+  async getProfile(): Promise<Profile> {
+    return this.request('/api/profile/me');
+  }
+
+  async updateProfile(data: Partial<Profile>): Promise<Profile> {
+    return this.request('/api/profile/me', {
+      method: 'PUT',
       body: JSON.stringify(data)
     });
   }

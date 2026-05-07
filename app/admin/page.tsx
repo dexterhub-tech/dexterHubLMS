@@ -131,29 +131,6 @@ export default function AdminDashboardPage() {
               Monitor systems, manage student lifecycles, and handle administrative requests.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2 md:gap-3">
-            <Button
-              onClick={() => router.push('/admin/applications')}
-              variant="outline"
-              className="flex-1 sm:flex-none rounded-xl border-slate-200 shadow-sm hover:shadow-md transition-all active:scale-95 duration-200 font-medium h-10 px-4"
-            >
-              Applications
-            </Button>
-            <Button
-              onClick={() => router.push('/admin/cohorts')}
-              variant="outline"
-              className="flex-1 sm:flex-none rounded-xl border-slate-200 shadow-sm hover:shadow-md transition-all active:scale-95 duration-200 font-medium h-10 px-4"
-            >
-              Manage Cohorts
-            </Button>
-            <Button
-              onClick={() => router.push('/admin/learners')}
-              className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 shadow-sm transition-all hover:shadow-md active:scale-95 duration-200 rounded-xl font-medium h-10 px-4"
-            >
-              <Users className="w-4 h-4 mr-2" />
-              Users Directory
-            </Button>
-          </div>
         </div>
 
         {/* Quick Stats Grid */}

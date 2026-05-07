@@ -350,7 +350,8 @@ export default function CohortsPage() {
                             </Badge>
                             {isEnrolled && (
                               <Badge className="rounded-full px-4 py-1 text-[10px] font-semibold uppercase tracking-wider bg-indigo-600 text-white shadow-sm border-none">
-                                <Sparkles className="w-3 h-3 mr-1.5" /> Enrolled
+                                {/* <Sparkles className="w-3 h-3 mr-1.5" />  */}
+                                Enrolled
                               </Badge>
                             )}
                           </div>

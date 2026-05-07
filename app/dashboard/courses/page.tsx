@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Plus, AlertCircle, Lock, X, Edit3, Search, ChevronRight } from 'lucide-react';
+import { Plus, AlertCircle, Lock, X, Edit3, Search, ChevronRight, BookOpen, Clock, Users, TrendingUp, GraduationCap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -28,7 +28,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { GraduationCap } from 'lucide-react';
 
 export default function CoursesPage() {
   const { user } = useAuth();
@@ -260,6 +259,182 @@ export default function CoursesPage() {
   const completedCourses = filteredCourses.filter(c => c.status === 'completed');
   const notStartedCourses = filteredCourses.filter(c => c.status === 'not-started');
 
+  const renderCourseCard = (course: any) => (
+    <div
+      key={course.id}
+      className={cn(
+        "relative group h-full",
+        user?.role === 'instructor' ? "" : (course.learnerStatus === 'enrolled' ? "cursor-pointer" : "cursor-default")
+      )}
+    >
+      {user?.role === 'instructor' ? (
+        <div className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 flex flex-col h-full space-y-5">
+          <div className="flex justify-between items-start">
+            <div className={cn(
+              "w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-sm border transition-transform group-hover:rotate-6",
+              course.color === 'mint' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+              course.color === 'peach' ? 'bg-orange-50 text-orange-600 border-orange-100' :
+              course.color === 'lavender' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
+              'bg-amber-50 text-amber-600 border-amber-100'
+            )}>
+              {course.icon}
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <Badge variant="outline" className="bg-slate-50/50 text-[10px] uppercase tracking-widest font-bold border-slate-100 text-slate-400 px-2 py-0.5 rounded-full">
+                Course Manager
+              </Badge>
+              {course.assignedInAllManaged && (
+                <Badge className="bg-emerald-50 text-emerald-600 border-none shadow-none font-bold text-[9px] uppercase tracking-wider px-2 py-0.5">
+                  Deployed
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          <div className="flex-1 space-y-2">
+            <h3 className="text-xl font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors leading-tight">
+              {course.name}
+            </h3>
+            <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
+              {course.description}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+            <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" />
+                {course.duration || 'N/A'}
+              </div>
+              <div className="flex items-center gap-1.5 text-indigo-600">
+                <Users className="w-3.5 h-3.5" />
+                {course.registrarsCount || 0} Learners
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/instructor/courses/edit/${course.id}`);
+              }}
+              variant="outline"
+              className="h-11 rounded-2xl border-slate-200 font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all gap-2"
+            >
+              <Edit3 className="w-4 h-4" />
+              Edit
+            </Button>
+
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/dashboard/courses/${course.id}`);
+              }}
+              className="h-11 rounded-2xl bg-slate-900 hover:bg-black text-white font-bold text-xs gap-2 shadow-lg shadow-slate-200"
+            >
+              <BookOpen className="w-4 h-4" />
+              View
+            </Button>
+          </div>
+
+          {!course.assignedInAllManaged && (
+            <div className="pt-2 space-y-3">
+              <div className="h-px bg-slate-50 w-full" />
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <GraduationCap className="w-3 h-3" />
+                Assign to Cohort
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {cohorts.map(coh => {
+                  const isInCohort = coh.courseIds?.some((id: any) => (typeof id === 'object' ? id._id : id) === course.id);
+                  return (
+                    <Button
+                      key={coh._id}
+                      size="sm"
+                      disabled={isInCohort}
+                      className={cn(
+                        "flex-1 min-w-[80px] text-[10px] h-9 rounded-xl font-bold px-3 transition-all",
+                        isInCohort 
+                          ? "bg-emerald-50 text-emerald-600 border-none opacity-100 cursor-default" 
+                          : "bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white border-none"
+                      )}
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        if (!isInCohort) handleAddToCohort(course.id, coh._id); 
+                      }}
+                    >
+                      <span className="truncate">{coh.name}</span>
+                      {isInCohort && <span className="ml-1.5">✓</span>}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          <CourseCard
+            title={course.name}
+            subtitle={course.description}
+            icon={course.icon}
+            progress={course.progress}
+            duration={course.duration || 'N/A'}
+            instructor={course.instructor}
+            registrarsCount={user?.role === 'instructor' ? course.registrarsCount : undefined}
+            color={course.color}
+            onClick={() => router.push(`/dashboard/courses/${course.id || course._id}`)}
+          />
+
+          {user?.role === 'learner' && (
+            <div className="absolute top-4 right-4 z-20">
+              {course.learnerStatus === 'enrolled' ? (
+                <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 shadow-sm font-bold px-3">Enrolled</Badge>
+              ) : course.learnerStatus === 'pending' ? (
+                <Badge className="bg-amber-100 text-amber-700 border-amber-200 shadow-sm font-bold px-3">Pending</Badge>
+              ) : (
+                <Badge className="bg-slate-100 text-slate-700 border-slate-200 shadow-sm flex items-center gap-1 font-bold px-3"><Lock className="w-3 h-3" />Locked</Badge>
+              )}
+            </div>
+          )}
+
+          {user?.role === 'learner' && course.isRestricted && (
+            <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-6 bg-slate-900/60 backdrop-blur-[2px] rounded-[32px]">
+              <div className="bg-white/95 p-5 rounded-2xl shadow-xl w-full max-w-[200px] text-center space-y-3">
+                <Lock className="w-6 h-6 mx-auto text-slate-400" />
+                <p className="text-sm font-semibold text-slate-800">Enrollment Limit</p>
+                <p className="text-[11px] text-slate-500">You can only enroll in one course at a time.</p>
+              </div>
+            </div>
+          )}
+
+          {user?.role === 'learner' && course.learnerStatus !== 'enrolled' && !course.isRestricted && (
+            <div
+              className="absolute inset-0 z-30 flex flex-col items-center justify-center p-6 bg-slate-900/60 backdrop-blur-[2px] rounded-[32px] cursor-pointer"
+              onClick={(e) => { e.stopPropagation(); if (course.learnerStatus !== 'pending') openEnrollModal(course); }}
+            >
+              <div className="bg-white/95 p-5 rounded-2xl shadow-xl w-full max-w-[300px] text-center space-y-3">
+                {course.learnerStatus === 'pending' ? (
+                  <>
+                    <AlertCircle className="w-6 h-6 mx-auto text-amber-600" />
+                    <p className="text-sm font-semibold text-slate-800">Pending Approval</p>
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-6 h-6 mx-auto text-slate-600" />
+                    <h1 className="text-md font-bold">{course.name}</h1>
+                    <Button size="sm" className="w-full bg-indigo-600 text-[11px] h-8 rounded-xl" onClick={(e) => { e.stopPropagation(); openEnrollModal(course); }}>Apply to Enroll</Button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-neutral-50/50">
       <TopHeader user={user ? { name: `${user.firstName} ${user.lastName}`, email: user.email } : undefined} />
@@ -344,157 +519,25 @@ export default function CoursesPage() {
 
               <TabsContent value="all" className="mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredCourses.map((course) => (
-                    <div
-                      key={course.id}
-                      className={cn(
-                        "relative group h-full",
-                        (user?.role === 'instructor' || course.learnerStatus === 'enrolled') ? "cursor-pointer" : "cursor-default"
-                      )}
-                    >
-                      <CourseCard
-                        title={course.name}
-                        subtitle={course.description}
-                        icon={course.icon}
-                        progress={course.progress}
-                        duration={course.duration || 'N/A'}
-                        instructor={course.instructor}
-                        registrarsCount={user?.role === 'instructor' ? course.registrarsCount : undefined}
-                        color={course.color}
-                        onClick={() => router.push(`/dashboard/courses/${course.id || course._id}`)}
-                      />
-
-                      {user?.role === 'learner' && (
-                        <div className="absolute top-4 right-4 z-20">
-                          {course.learnerStatus === 'enrolled' ? (
-                            <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 shadow-sm font-bold px-3">Enrolled</Badge>
-                          ) : course.learnerStatus === 'pending' ? (
-                            <Badge className="bg-amber-100 text-amber-700 border-amber-200 shadow-sm font-bold px-3">Pending</Badge>
-                          ) : (
-                            <Badge className="bg-slate-100 text-slate-700 border-slate-200 shadow-sm flex items-center gap-1 font-bold px-3"><Lock className="w-3 h-3" />Locked</Badge>
-                          )}
-                        </div>
-                      )}
-
-                      {user?.role === 'instructor' && (
-                        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-6 bg-white/60 backdrop-blur-[2px] rounded-[32px] opacity-0 group-hover:opacity-100 transition-all duration-300">
-                          <div className="bg-white p-5 rounded-3xl shadow-2xl border border-slate-100 w-full max-w-[240px] text-center space-y-4">
-                              <Button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  router.push(`/instructor/courses/edit/${course.id}`);
-                                }}
-                                variant="outline"
-                                className="w-full h-10 rounded-xl border-slate-200 font-bold text-slate-700 hover:bg-slate-50 gap-2"
-                              >
-                                <Edit3 className="w-4 h-4" />
-                                Update Content
-                              </Button>
-
-                              <Button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  router.push(`/dashboard/courses/${course.id}`);
-                                }}
-                                className="w-full h-10 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs gap-2"
-                              >
-                                <Plus className="w-4 h-4" />
-                                View Course
-                              </Button>
-
-                            {!course.assignedInAllManaged ? (
-                              <div className="space-y-2 pt-2 border-t border-slate-50">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-left pl-1">Assign to Cohort</p>
-                                <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
-                                  {cohorts.map(coh => {
-                                    const isInCohort = coh.courseIds?.some((id: any) => (typeof id === 'object' ? id._id : id) === course.id);
-                                    return (
-                                      <Button
-                                        key={coh._id}
-                                        size="sm"
-                                        disabled={isInCohort}
-                                        className={cn(
-                                          "w-full text-left justify-start text-[10px] h-8 rounded-lg font-bold px-3",
-                                          isInCohort ? "bg-emerald-50 text-emerald-600 border-none" : "bg-indigo-600 text-white"
-                                        )}
-                                        onClick={(e) => { e.stopPropagation(); if (!isInCohort) handleAddToCohort(course.id, coh._id); }}
-                                      >
-                                        <div className="truncate flex-1">{coh.name}</div>
-                                        {isInCohort && <span className="ml-2">✓</span>}
-                                      </Button>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="pt-2 border-t border-slate-50">
-                                <Badge className="bg-emerald-50 text-emerald-600 border-none shadow-none font-bold py-1 px-4">
-                                  Assigned to All Cohorts
-                                </Badge>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {user?.role === 'learner' && course.isRestricted && (
-                        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-6 bg-slate-900/60 backdrop-blur-[2px] rounded-[32px]">
-                          <div className="bg-white/95 p-5 rounded-2xl shadow-xl w-full max-w-[200px] text-center space-y-3">
-                            <Lock className="w-6 h-6 mx-auto text-slate-400" />
-                            <p className="text-sm font-semibold text-slate-800">Enrollment Limit</p>
-                            <p className="text-[11px] text-slate-500">You can only enroll in one course at a time.</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {user?.role === 'learner' && course.learnerStatus !== 'enrolled' && !course.isRestricted && (
-                        <div
-                          className="absolute inset-0 z-30 flex flex-col items-center justify-center p-6 bg-slate-900/60 backdrop-blur-[2px] rounded-[32px] cursor-pointer"
-                          onClick={(e) => { e.stopPropagation(); if (course.learnerStatus !== 'pending') openEnrollModal(course); }}
-                        >
-                          <div className="bg-white/95 p-5 rounded-2xl shadow-xl w-full max-w-[300px] text-center space-y-3">
-                            {course.learnerStatus === 'pending' ? (
-                              <>
-                                <AlertCircle className="w-6 h-6 mx-auto text-amber-600" />
-                                <p className="text-sm font-semibold text-slate-800">Pending Approval</p>
-                              </>
-                            ) : (
-                              <>
-                                <Lock className="w-6 h-6 mx-auto text-slate-600" />
-                                <h1 className="text-md font-bold">{course.name}</h1>
-                                {/* <p className="text-sm font-semibold text-slate-800">Course Locked</p> */}
-                                <Button size="sm" className="w-full bg-indigo-600 text-[11px] h-8 rounded-xl" onClick={(e) => { e.stopPropagation(); openEnrollModal(course); }}>Apply to Enroll</Button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                  {filteredCourses.map((course) => renderCourseCard(course))}
                 </div>
               </TabsContent>
 
               <TabsContent value="in-progress" className="mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {inProgressCourses.map(course => (
-                    <CourseCard key={course.id} {...course} onClick={() => router.push(`/dashboard/courses/${course.id}`)} />
-                  ))}
+                  {inProgressCourses.map(course => renderCourseCard(course))}
                 </div>
               </TabsContent>
 
               <TabsContent value="completed" className="mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {completedCourses.map(course => (
-                    <CourseCard key={course.id} {...course} onClick={() => router.push(`/dashboard/courses/${course.id}`)} />
-                  ))}
+                  {completedCourses.map(course => renderCourseCard(course))}
                 </div>
               </TabsContent>
 
               <TabsContent value="not-started" className="mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {notStartedCourses.map(course => (
-                    <CourseCard key={course.id} {...course} onClick={() => router.push(`/dashboard/courses/${course.id}`)} />
-                  ))}
+                  {notStartedCourses.map(course => renderCourseCard(course))}
                 </div>
               </TabsContent>
             </Tabs>

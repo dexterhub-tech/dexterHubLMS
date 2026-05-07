@@ -10,6 +10,17 @@ export interface User {
   firstName?: string;
   lastName?: string;
   activeCohortId?: string;
+  avatar?: string;
+  bio?: string;
+  title?: string;
+  phoneNumber?: string;
+  location?: string;
+  socialLinks?: {
+    linkedin?: string;
+    twitter?: string;
+    github?: string;
+    website?: string;
+  };
 }
 
 interface AuthContextType {

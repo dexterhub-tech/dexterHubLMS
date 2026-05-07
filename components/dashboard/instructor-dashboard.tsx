@@ -139,7 +139,7 @@ export function InstructorDashboard() {
                                 </span>
                             </div>
                             <div className="space-y-1">
-                                <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Courses</h3>
+                                <h3 className="text-sm font-medium text-slate-500 capitalize tracking-wider">Total Courses</h3>
                                 <div className="flex items-baseline gap-2">
                                     <span className="text-3xl font-medium text-slate-900">{stats.totalCourses || 0}</span>
                                     <span className="text-sm text-slate-400">active curriculum</span>
@@ -159,7 +159,7 @@ export function InstructorDashboard() {
                                 </span>
                             </div>
                             <div className="space-y-1">
-                                <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Students</h3>
+                                <h3 className="text-sm font-medium text-slate-500 capitalize tracking-wider">Total Students</h3>
                                 <div className="flex items-baseline gap-2">
                                     <span className="text-3xl font-medium text-slate-900">{stats.totalStudents}</span>
                                     <span className="text-sm text-slate-400">across all cohorts</span>
@@ -179,7 +179,7 @@ export function InstructorDashboard() {
                                 </span>
                             </div>
                             <div className="space-y-1">
-                                <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider">Avg Completion</h3>
+                                <h3 className="text-sm font-medium text-slate-500 capitalize tracking-wider">Avg Completion</h3>
                                 <div className="flex items-baseline gap-2">
                                     <span className="text-3xl font-medium text-slate-900">{stats.avgCompletion}%</span>
                                     <span className="text-sm text-slate-400">learner success</span>

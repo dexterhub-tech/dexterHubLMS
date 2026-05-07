@@ -11,6 +11,7 @@ import {
   Calendar,
   Clock,
   ChevronLeft,
+  ChevronRight,
   Mail,
   Search,
   Trash2,
@@ -20,7 +21,8 @@ import {
   AlertCircle,
   Plus,
   Upload,
-  FileText
+  FileText,
+  RefreshCcw
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -46,6 +48,8 @@ export default function AdminCohortDetailsPage({ params }: { params: Promise<{ i
   const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     loadCohort();
@@ -180,8 +184,14 @@ export default function AdminCohortDetailsPage({ params }: { params: Promise<{ i
 
   if (!cohort) return null;
 
-  const filteredEmails = (cohort.allowedLearners || []).filter(email => 
+  const allFilteredEmails = (cohort.allowedLearners || []).filter(email => 
     email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(allFilteredEmails.length / itemsPerPage);
+  const displayedEmails = allFilteredEmails.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   return (
@@ -197,115 +207,109 @@ export default function AdminCohortDetailsPage({ params }: { params: Promise<{ i
           Back to Cohorts
         </Button>
 
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <h1 className="text-4xl font-semibold tracking-tight text-slate-900">{cohort.name}</h1>
-              <Badge className={cn(
-                "rounded-full px-3 py-0.5 text-[10px] font-semibold uppercase tracking-widest border",
-                cohort.status === 'active' ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
-                cohort.status === 'upcoming' ? "bg-blue-50 text-blue-700 border-blue-100" :
-                "bg-slate-50 text-slate-700 border-slate-200"
-              )}>
-                {cohort.status}
-              </Badge>
-            </div>
-            <p className="text-muted-foreground text-lg max-w-2xl">
-              {cohort.description || "Detailed management and access control for this learning cycle."}
-            </p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-200/60">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl md:text-2xl font-bold tracking-tight text-slate-900">{cohort.name}</h1>
+            <Badge className={cn(
+              "rounded-full px-3 py-0.5 text-[9px] font-bold uppercase tracking-widest border shadow-none",
+              cohort.status === 'active' ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
+              cohort.status === 'upcoming' ? "bg-indigo-50 text-indigo-700 border-indigo-100" :
+              "bg-slate-50 text-slate-600 border-slate-200"
+            )}>
+              {cohort.status}
+            </Badge>
           </div>
+          <p className="text-slate-500 text-base md:text-lg font-light leading-relaxed max-w-2xl">
+            {cohort.description || "Detailed management and access control for this learning cycle."}
+          </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Stats & Metadata */}
-        <div className="lg:col-span-1 space-y-8">
-          <Card className="rounded-2xl border-slate-100 shadow-sm overflow-hidden bg-white">
-            <CardHeader className="p-8 border-b border-slate-50">
-              <CardTitle className="text-sm font-semibold uppercase tracking-widest text-slate-400">Cohort Overview</CardTitle>
-            </CardHeader>
-            <CardContent className="p-8 space-y-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-sm">
-                  <LayoutGrid className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enrolled Learners</p>
-                  <p className="text-2xl font-semibold text-slate-900">{cohort.learnerIds?.length || 0}</p>
-                </div>
+      {/* Stats Bar */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        {[
+          { label: 'Enrolled Learners', value: cohort.learnerIds?.length || 0, icon: Users, color: 'indigo' },
+          { label: 'Performance Goal', value: `${cohort.performanceThreshold}%`, icon: TrendingUp, color: 'emerald' },
+          { label: 'Weekly Target', value: `${cohort.weeklyTarget}h`, icon: Clock, color: 'amber' },
+          { label: 'Days Remaining', value: Math.max(0, Math.ceil((new Date(cohort.endDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24))), icon: Calendar, color: 'violet' },
+        ].map((stat, i) => (
+          <div key={i} className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+            <div className="flex justify-between items-start mb-4">
+              <div className={cn(
+                "p-3 rounded-2xl transition-colors",
+                stat.color === 'indigo' ? 'bg-indigo-50 text-indigo-600' :
+                stat.color === 'emerald' ? 'bg-emerald-50 text-emerald-600' :
+                stat.color === 'amber' ? 'bg-amber-50 text-amber-600' :
+                'bg-violet-50 text-violet-600'
+              )}>
+                <stat.icon className="w-5 h-5" />
               </div>
+              <Badge variant="ghost" className="text-[10px] font-bold text-slate-300 uppercase tracking-widest p-0">Metrics</Badge>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{stat.label}</p>
+              <p className="text-2xl font-black text-slate-900">{stat.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
 
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shadow-sm">
-                  <TrendingUp className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Target Threshold</p>
-                  <p className="text-2xl font-semibold text-slate-900">{cohort.performanceThreshold}% Score</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 shadow-sm">
-                  <Calendar className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Timeline</p>
-                  <p className="text-sm font-semibold text-slate-900">
-                    {new Date(cohort.startDate).toLocaleDateString()} - {new Date(cohort.endDate).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-600 shadow-sm">
-                  <Clock className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Weekly Target</p>
-                  <p className="text-xl font-semibold text-slate-900">{cohort.weeklyTarget} Hours</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl border-slate-100 shadow-sm overflow-hidden bg-slate-900 text-white">
-            <CardContent className="p-8 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
-                  <ShieldCheck className="w-6 h-6" />
-                </div>
-                <h3 className="font-semibold text-lg tracking-tight">Access Control</h3>
-              </div>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                Registration for this cohort is restricted to the specific emails listed on the right. If the list is empty, registration is open to all platform users.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column: Authorized Emails List */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="rounded-2xl border-slate-100 shadow-sm overflow-hidden bg-white min-h-[600px] flex flex-col">
-            <CardHeader className="p-10 border-b border-slate-50">
+        <div className="space-y-6">
+          <Card className="rounded-[32px] border-slate-100 shadow-sm overflow-hidden bg-white min-h-[600px] flex flex-col">
+            <CardHeader className="p-8 md:p-10 border-b border-slate-50 space-y-8">
+              {/* Header Row */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                  <CardTitle className="text-2xl font-semibold text-slate-900 flex items-center gap-3">
-                    Authorized List
-                    <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-none px-3 py-1 text-xs">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-3">
+                    <CardTitle className="text-2xl font-bold text-slate-900">Authorized List</CardTitle>
+                    <Badge className="bg-indigo-50 text-indigo-700 border-indigo-100/50 px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest">
                       {cohort.allowedLearners?.length || 0} Emails
                     </Badge>
-                  </CardTitle>
-                  <CardDescription className="text-slate-500 mt-1">Manage who can register for this cohort.</CardDescription>
+                  </div>
+                  <CardDescription className="text-slate-500 font-medium">Manage access control for this cycle.</CardDescription>
                 </div>
                 
-                <div className="flex flex-wrap gap-3">
-                  <form onSubmit={handleAddSingleEmail} className="flex gap-2">
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <div className="flex items-center gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => router.push(`/admin/cohorts/${id}/sync`)}
+                    className="rounded-xl border-indigo-100 bg-indigo-50/50 text-indigo-700 hover:bg-indigo-100 h-10 font-bold text-[10px] uppercase tracking-widest px-5 shadow-none transition-all active:scale-95"
+                  >
+                    <RefreshCcw className="w-4 h-4 mr-2" />
+                    Sync Platform
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleClearAll}
+                    disabled={isUpdating || !cohort.allowedLearners || cohort.allowedLearners.length === 0}
+                    className="h-10 rounded-xl border-rose-100 text-rose-600 hover:bg-rose-50 hover:text-rose-700 font-bold text-[10px] uppercase tracking-widest px-5"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Clear List
+                  </Button>
+                </div>
+              </div>
+
+              {/* Toolbar Row */}
+              <div className="flex flex-col lg:flex-row items-center gap-4 bg-slate-50/50 p-2 rounded-2xl border border-slate-100">
+                <div className="relative flex-1 w-full">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input 
+                    placeholder="Search current list..."
+                    className="h-12 pl-11 w-full rounded-xl bg-transparent border-none focus-visible:ring-0 text-sm font-medium"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                
+                <div className="flex flex-col sm:flex-row items-center gap-2 w-full lg:w-auto p-1 bg-white rounded-xl shadow-sm border border-slate-100">
+                  <form onSubmit={handleAddSingleEmail} className="flex flex-1 w-full sm:w-auto">
+                    <div className="relative flex-1">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                       <Input 
                         placeholder="Add single email..."
-                        className="h-11 pl-10 w-64 rounded-xl bg-slate-50 border-slate-100 focus:bg-white transition-all shadow-inner"
+                        className="h-10 pl-9 w-full sm:w-64 border-none shadow-none focus-visible:ring-0 text-xs font-medium"
                         value={newEmail}
                         onChange={(e) => setNewEmail(e.target.value)}
                         disabled={isUpdating}
@@ -314,132 +318,160 @@ export default function AdminCohortDetailsPage({ params }: { params: Promise<{ i
                     <Button 
                       type="submit" 
                       disabled={isUpdating || !newEmail}
-                      className="h-11 rounded-xl bg-slate-900 text-white hover:bg-black gap-2"
+                      className="h-10 rounded-lg bg-slate-900 text-white hover:bg-black px-4 font-bold text-[10px] uppercase tracking-widest"
                     >
-                      <Plus className="w-4 h-4" />
                       Add
                     </Button>
                   </form>
-
+                  <div className="hidden sm:block h-6 w-px bg-slate-100 mx-1" />
                   <Dialog open={isCsvModalOpen} onOpenChange={setIsCsvModalOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="outline" className="h-11 rounded-xl border-slate-200 text-slate-600 gap-2 hover:bg-slate-50">
-                        <Upload className="w-4 h-4" />
-                        Upload CSV
+                      <Button variant="ghost" className="h-10 w-full sm:w-auto rounded-lg text-slate-600 hover:bg-slate-50 px-4 font-bold text-[10px] uppercase tracking-widest">
+                        <Upload className="w-3.5 h-3.5 mr-2" />
+                        Bulk Upload
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[450px] rounded-2xl border-none shadow-2xl p-0 overflow-hidden bg-white">
+                    <DialogContent className="sm:max-w-[450px] rounded-[32px] border-none shadow-2xl p-0 overflow-hidden bg-white">
                       <form onSubmit={handleUploadCsv}>
-                        <div className="bg-slate-900 p-8 text-white">
+                        <div className="bg-slate-900 p-10 text-white">
                           <DialogHeader>
-                            <DialogTitle className="text-2xl font-semibold uppercase tracking-tight">Bulk Upload</DialogTitle>
-                            <DialogDescription className="text-slate-400 font-medium text-sm">
-                              Upload a CSV file containing a list of authorized emails.
+                            <DialogTitle className="text-2xl font-bold uppercase tracking-tight">Bulk Upload</DialogTitle>
+                            <DialogDescription className="text-slate-400 font-medium text-sm mt-2">
+                              Import a CSV list to authorize multiple learners at once.
                             </DialogDescription>
                           </DialogHeader>
                         </div>
 
                         <div className="p-8 space-y-6">
                           <div className="space-y-4">
-                            <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-8 hover:bg-slate-50 transition-all cursor-pointer relative group">
+                            <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-[24px] p-10 hover:bg-slate-50 transition-all cursor-pointer relative group">
                               <input
                                 type="file"
                                 accept=".csv"
                                 className="absolute inset-0 opacity-0 cursor-pointer"
                                 onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
                               />
-                              <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-4 group-hover:scale-110 transition-transform">
-                                <Upload className="w-6 h-6" />
+                              <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-4 group-hover:scale-110 transition-transform">
+                                <Upload className="w-7 h-7" />
                               </div>
                               <p className="text-sm font-bold text-slate-900 uppercase tracking-widest">
                                 {csvFile ? csvFile.name : 'Select CSV File'}
                               </p>
                               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">
-                                Format: email@domain.com (First column)
+                                email@domain.com (column A)
                               </p>
                             </div>
 
                             {csvFile && (
-                              <div className="bg-emerald-50 rounded-xl p-4 flex items-center gap-3 border border-emerald-100">
-                                <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-emerald-500 shadow-sm">
-                                  <FileText className="w-4 h-4" />
+                              <div className="bg-emerald-50 rounded-2xl p-4 flex items-center gap-4 border border-emerald-100">
+                                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-emerald-500 shadow-sm border border-emerald-50">
+                                  <FileText className="w-5 h-5" />
                                 </div>
                                 <div className="flex-1">
-                                  <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">File Ready</p>
-                                  <p className="text-xs font-bold text-slate-900 truncate">{csvFile.name}</p>
+                                  <p className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Ready to Sync</p>
+                                  <p className="text-sm font-bold text-slate-900 truncate">{csvFile.name}</p>
                                 </div>
                               </div>
                             )}
                           </div>
                         </div>
 
-                        <DialogFooter className="bg-slate-50 p-8 border-t border-slate-100 gap-3">
+                        <DialogFooter className="bg-slate-50 p-8 pt-6 border-t border-slate-100 gap-3">
                           <Button
                             type="button"
                             variant="ghost"
                             onClick={() => setIsCsvModalOpen(false)}
-                            className="rounded-xl h-12 px-6"
+                            className="rounded-2xl h-14 px-8 font-bold text-slate-500 hover:bg-slate-100"
                           >
                             Cancel
                           </Button>
                           <Button
                             type="submit"
                             disabled={isUploading || !csvFile}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl h-12 px-8 shadow-lg shadow-indigo-100 transition-all"
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl h-14 px-10 shadow-xl shadow-indigo-100 transition-all active:scale-95 tracking-widest text-xs"
                           >
-                            {isUploading ? 'Processing...' : 'Apply List'}
+                            {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'APPLY LIST'}
                           </Button>
                         </DialogFooter>
                       </form>
                     </DialogContent>
                   </Dialog>
-
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <Input 
-                      placeholder="Search list..."
-                      className="h-11 pl-10 w-48 rounded-xl bg-slate-50 border-slate-100 focus:bg-white transition-all shadow-inner"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    onClick={handleClearAll}
-                    disabled={isUpdating || !cohort.allowedLearners || cohort.allowedLearners.length === 0}
-                    className="h-11 rounded-xl border-rose-100 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
-                  >
-                    Clear All
-                  </Button>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="p-0 flex-1 overflow-auto">
-              {filteredEmails.length > 0 ? (
-                <div className="divide-y divide-slate-50">
-                  {filteredEmails.map((email, index) => (
-                    <div key={index} className="flex items-center justify-between p-6 hover:bg-slate-50/50 transition-colors group">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500">
-                          <Mail className="w-5 h-5" />
+            <CardContent className="p-0 flex-1 flex flex-col">
+              {displayedEmails.length > 0 ? (
+                <>
+                  <div className="divide-y divide-slate-50 flex-1">
+                    {displayedEmails.map((email, index) => (
+                      <div key={index} className="flex items-center justify-between p-6 hover:bg-slate-50/50 transition-colors group">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500">
+                            <Mail className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-slate-900">{email}</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Authorized Learner</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-slate-900">{email}</p>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Authorized Learner</p>
-                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveEmail(email)}
+                          disabled={isUpdating}
+                          className="rounded-xl text-slate-300 hover:text-rose-600 hover:bg-rose-50 opacity-0 group-hover:opacity-100 transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemoveEmail(email)}
-                        disabled={isUpdating}
-                        className="rounded-xl text-slate-300 hover:text-rose-600 hover:bg-rose-50 opacity-0 group-hover:opacity-100 transition-all"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                    ))}
+                  </div>
+
+                  {/* Pagination Footer */}
+                  {totalPages > 1 && (
+                    <div className="p-6 border-t border-slate-50 bg-slate-50/30 flex items-center justify-between">
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        Page {currentPage} of {totalPages}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={currentPage === 1}
+                          onClick={() => setCurrentPage(p => p - 1)}
+                          className="h-8 w-8 p-0 rounded-lg border-slate-200"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </Button>
+                        <div className="flex items-center gap-1">
+                           {[...Array(totalPages)].map((_, i) => (
+                             <Button
+                               key={i}
+                               variant={currentPage === i + 1 ? 'default' : 'ghost'}
+                               size="sm"
+                               onClick={() => setCurrentPage(i + 1)}
+                               className={cn(
+                                 "h-8 w-8 p-0 rounded-lg text-[10px] font-bold",
+                                 currentPage === i + 1 ? "bg-slate-900 text-white" : "text-slate-400"
+                               )}
+                             >
+                               {i + 1}
+                             </Button>
+                           )).slice(Math.max(0, currentPage - 3), Math.min(totalPages, currentPage + 2))}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={currentPage === totalPages}
+                          onClick={() => setCurrentPage(p => p + 1)}
+                          className="h-8 w-8 p-0 rounded-lg border-slate-200"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               ) : (
                 <div className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-4">
                   <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-2">

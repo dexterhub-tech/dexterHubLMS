@@ -13,6 +13,7 @@ router.get('/:id', authMiddleware, courseController.getCourseDetails);
 // Instructor/Admin routes
 router.post('/', authMiddleware, roleCheck(['instructor', 'admin']), courseController.createCourse);
 router.put('/:id', authMiddleware, roleCheck(['instructor', 'admin']), courseController.updateCourse);
+router.delete('/:id', authMiddleware, roleCheck(['instructor', 'admin']), courseController.deleteCourse);
 
 router.post('/modules', authMiddleware, roleCheck(['instructor', 'admin']), courseController.createModule);
 router.put('/modules/:id', authMiddleware, roleCheck(['instructor', 'admin']), courseController.updateModule);

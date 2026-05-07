@@ -19,7 +19,10 @@ import {
     LogOut,
     Sparkles,
     FileText,
-    Library
+    Library,
+    User,
+    GraduationCap,
+    Shield
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -40,6 +43,7 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
         { href: '/dashboard/tasks', label: 'Tasks', icon: CheckSquare },
         // { href: '/dashboard/progress', label: 'Achievements', icon: TrendingUp },
         { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
+        { href: '/dashboard/profile', label: 'Profile', icon: User },
     ];
 
     const instructorLinks = [
@@ -48,15 +52,20 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
         { href: '/dashboard/cohorts', label: 'Cohorts', icon: BookOpen },
         { href: '/dashboard/learners', label: 'Students', icon: Users },
         { href: '/dashboard/submissions', label: 'Submissions', icon: CheckSquare },
-        { href: '/dashboard/applications', label: 'Applications', icon: FileText },
+        { href: '/dashboard/profile', label: 'Profile', icon: User },
     ];
 
     const adminLinks = [
-        { href: '/admin', label: 'Admin Panel', icon: Grid },
+        { href: '/admin', label: 'Dashboard', icon: Grid },
+        { href: '/admin/courses', label: 'Course Manager', icon: Library },
         { href: '/admin/cohorts', label: 'Cohorts', icon: BookOpen },
-        { href: '/admin/learners', label: 'Users', icon: Users },
+        { href: '/admin/learners', label: 'Learners', icon: Users },
+        { href: '/admin/instructors', label: 'Instructors', icon: GraduationCap },
+        { href: '/admin/users', label: 'User Directory', icon: Shield },
+        { href: '/admin/applications', label: 'Applications', icon: FileText },
         { href: '/admin/recommendations', label: 'Reviews', icon: Sparkles },
         { href: '/dashboard/submissions', label: 'Submissions', icon: CheckSquare },
+        { href: '/admin/profile', label: 'Profile', icon: User },
     ];
 
     const links = ['admin', 'super-admin'].includes(user?.role || '') 
@@ -132,8 +141,8 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
             {/* User Profile info & Actions */}
             <div className="p-4 mt-auto border-t border-slate-100">
                 <div className="bg-slate-50 rounded-2xl p-3 flex items-center justify-between group transition-all hover:bg-slate-100/80">
-                    <div className="flex items-center gap-3">
-                        <Avatar className="w-10 h-10 border-2 border-white shadow-sm">
+                    <Link href={user?.role === 'admin' ? '/admin/profile' : '/dashboard/profile'} className="flex items-center gap-3">
+                        <Avatar className="w-10 h-10 border-2 border-white shadow-sm transition-transform hover:scale-105 active:scale-95">
                             <AvatarImage src={user?.avatar} />
                             <AvatarFallback className="bg-white text-indigo-600 font-medium">
                                 {user?.firstName?.[0] || 'U'}{user?.lastName?.[0] || ''}
@@ -143,7 +152,7 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
                             <p className="text-sm font-medium text-slate-800 truncate">{user?.firstName} {user?.lastName}</p>
                             <p className="text-[10px] text-slate-400 font-medium truncate capitalize">{role}</p>
                         </div>
-                    </div>
+                    </Link>
 
                     <button
                         onClick={logout}
