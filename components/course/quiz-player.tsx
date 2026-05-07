@@ -81,25 +81,25 @@ export function QuizPlayer({ quiz, onComplete }: QuizPlayerProps) {
                     percentage >= 70 ? "bg-emerald-600" : "bg-amber-600"
                 )}>
                     <Award className="w-16 h-16 mx-auto mb-4 animate-bounce" />
-                    <h3 className="text-2xl font-bold mb-2">Quiz Completed!</h3>
+                    <h3 className="text-2xl font-medium mb-2">Quiz Completed!</h3>
                     <p className="opacity-90 font-medium">You scored {score} out of {quiz.maxScore}</p>
                 </div>
                 <CardContent className="p-8 space-y-6">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Percentage</p>
-                            <p className="text-2xl font-bold text-slate-900">{percentage}%</p>
+                            <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-1">Percentage</p>
+                            <p className="text-2xl font-medium text-slate-900">{percentage}%</p>
                         </div>
                         <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
-                            <p className={cn("text-2xl font-bold", percentage >= 70 ? "text-emerald-600" : "text-amber-600")}>
+                            <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                            <p className={cn("text-2xl font-medium", percentage >= 70 ? "text-emerald-600" : "text-amber-600")}>
                                 {percentage >= 70 ? 'PASSED' : 'RETRY NEEDED'}
                             </p>
                         </div>
                     </div>
 
                     <div className="space-y-4 pt-4">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center">Review Your Challenges</p>
+                        <p className="text-xs font-medium text-slate-400 uppercase tracking-widest text-center">Review Your Challenges</p>
                         {quiz.questions.map((q, idx) => (
                             <div key={idx} className="flex items-start gap-3 p-4 rounded-xl bg-white border border-slate-100">
                                 {selectedAnswers[idx] === q.correctAnswer ? (
@@ -108,9 +108,9 @@ export function QuizPlayer({ quiz, onComplete }: QuizPlayerProps) {
                                     <XCircle className="w-5 h-5 text-rose-500 mt-0.5 flex-shrink-0" />
                                 )}
                                 <div className="space-y-1">
-                                    <p className="text-sm font-semibold text-slate-800">{q.question}</p>
+                                    <p className="text-sm font-medium text-slate-800">{q.question}</p>
                                     <p className="text-xs text-slate-500">
-                                        Your answer: <span className="font-bold">{q.options[selectedAnswers[idx]]}</span>
+                                        Your answer: <span className="font-medium">{q.options[selectedAnswers[idx]]}</span>
                                     </p>
                                 </div>
                             </div>
@@ -130,20 +130,20 @@ export function QuizPlayer({ quiz, onComplete }: QuizPlayerProps) {
         <Card className="border-indigo-100 shadow-xl overflow-hidden">
             <CardHeader className="bg-indigo-50/50 p-4 md:p-6 flex flex-row items-center justify-between border-b border-indigo-100/50">
                 <div className="space-y-1">
-                    <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold uppercase tracking-wider mb-1">
+                    <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-medium uppercase tracking-wider mb-1">
                         <HelpCircle className="w-3 h-3" /> Question {currentQuestionIdx + 1} of {quiz.questions.length}
                     </div>
-                    <CardTitle className="text-base md:text-lg font-bold text-slate-900">{quiz.title}</CardTitle>
+                    <CardTitle className="text-base md:text-lg font-medium text-slate-900">{quiz.title}</CardTitle>
                 </div>
                 <div className="hidden md:block">
-                    <div className="w-12 h-12 rounded-xl bg-white border border-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-lg shadow-sm">
+                    <div className="w-12 h-12 rounded-xl bg-white border border-indigo-100 flex items-center justify-center text-indigo-600 font-medium text-lg shadow-sm">
                         {Math.round(((currentQuestionIdx + 1) / quiz.questions.length) * 100)}%
                     </div>
                 </div>
             </CardHeader>
             <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6">
                 <div className="space-y-2">
-                    <h4 className="text-base md:text-lg font-semibold text-slate-800 leading-snug">
+                    <h4 className="text-base md:text-lg font-medium text-slate-800 leading-snug">
                         {currentQuestion.question}
                     </h4>
                 </div>
@@ -161,7 +161,7 @@ export function QuizPlayer({ quiz, onComplete }: QuizPlayerProps) {
                             )}
                         >
                             <div className={cn(
-                                "w-6 h-6 md:w-8 md:h-8 rounded-lg flex-shrink-0 flex items-center justify-center font-bold text-xs transition-colors mt-0.5",
+                                "w-6 h-6 md:w-8 md:h-8 rounded-lg flex-shrink-0 flex items-center justify-center font-medium text-xs transition-colors mt-0.5",
                                 selectedAnswers[currentQuestionIdx] === idx
                                     ? "bg-indigo-600 text-white"
                                     : "bg-slate-100 text-slate-500"
@@ -194,7 +194,7 @@ export function QuizPlayer({ quiz, onComplete }: QuizPlayerProps) {
                         onClick={handleSubmit}
                         size="sm"
                         disabled={isSubmitting || selectedAnswers[currentQuestionIdx] === -1}
-                        className="rounded-lg px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-sm ml-auto"
+                        className="rounded-lg px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-sm ml-auto"
                     >
                         {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit Quiz'}
                     </Button>
@@ -203,7 +203,7 @@ export function QuizPlayer({ quiz, onComplete }: QuizPlayerProps) {
                         onClick={() => setCurrentQuestionIdx(prev => prev + 1)}
                         size="sm"
                         disabled={selectedAnswers[currentQuestionIdx] === -1}
-                        className="rounded-lg px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-sm ml-auto group"
+                        className="rounded-lg px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-sm ml-auto group"
                     >
                         Next <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                     </Button>

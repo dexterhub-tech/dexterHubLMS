@@ -24,21 +24,20 @@ exports.submitAssignment = async (req, res) => {
             });
         }
 
-        // Auto-grade quiz submissions
-        // Check if content matches quiz score pattern: "Quiz Score: X/Y"
+        // Always save the submission
+        await submission.save();
+
         const quizScoreMatch = content.match(/Quiz Score: (\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)/);
         if (quizScoreMatch) {
             const score = parseFloat(quizScoreMatch[1]);
             const maxScore = parseFloat(quizScoreMatch[2]);
-
-            // Convert score to grade out of 10
             const grade = (score / maxScore) * 10;
 
             submission.grade = grade;
             submission.status = 'graded';
             submission.gradedAt = Date.now();
 
-            await submission.save();
+            await submission.save(); // Save again with grade info
 
             // Update Lesson's passingLearners if score >= 5 (50% of 10)
             if (grade >= 5) {
@@ -66,35 +65,27 @@ exports.submitAssignment = async (req, res) => {
                 });
 
                 if (allSubmissions.length > 0) {
-                    // Calculate average score (each is out of 10)
                     const totalScore = allSubmissions.reduce((acc, curr) => acc + (curr.grade || 0), 0);
                     const averageScoreRaw = totalScore / allSubmissions.length;
-
-                    // Convert to Percentage (Avg Score / 10 * 100)
                     progress.currentScore = (averageScoreRaw / 10) * 100;
 
-                    // Check for Fail/Pass Status (< 50%)
                     if (progress.currentScore < 50) {
                         progress.status = 'failed';
                     } else {
-                        // Recover from failed/under-review if score improves
                         if (progress.status === 'failed' || progress.status === 'under-review' || progress.status === 'at-risk') {
                             progress.status = 'on-track';
                         }
                     }
                 }
 
-                // 2. Calculate Module Progress
                 const lesson = await Lesson.findById(lessonId);
                 if (lesson && lesson.moduleId) {
-                    // Find or create module entry
                     let modProgress = progress.moduleProgress.find(mp => mp.moduleId.toString() === lesson.moduleId.toString());
                     if (!modProgress) {
                         progress.moduleProgress.push({ moduleId: lesson.moduleId, scores: [], averageScore: 0, isGraduated: false });
                         modProgress = progress.moduleProgress.find(mp => mp.moduleId.toString() === lesson.moduleId.toString());
                     }
 
-                    // Get all submissions for lessons in THIS module
                     const moduleLessons = await Lesson.find({ moduleId: lesson.moduleId });
                     const lessonIds = moduleLessons.map(l => l._id);
 
@@ -109,23 +100,18 @@ exports.submitAssignment = async (req, res) => {
                         const modTotal = moduleSubmissions.reduce((acc, curr) => acc + (curr.grade || 0), 0);
                         modProgress.averageScore = modTotal / moduleSubmissions.length;
                         modProgress.scores = moduleSubmissions.map(s => s.grade);
-
-                        // Graduation Check (70%)
                         modProgress.isGraduated = modProgress.averageScore >= 70;
                     }
                 }
 
-                // 3. Update completedLessons array - ANY submission counts as completion for unlocking
                 if (!progress.completedLessons.includes(lessonId)) {
                     progress.completedLessons.push(lessonId);
                 }
 
                 await progress.save();
             }
-
-            res.status(201).json(submission);
         } else {
-            // 3. Update completedLessons array - ANY submission counts as completion for unlocking
+            // Update completedLessons array for regular assignments too
             const progress = await LearnerProgress.findOne({ learnerId, cohortId });
             if (progress) {
                 if (!progress.completedLessons.includes(lessonId)) {
@@ -133,9 +119,9 @@ exports.submitAssignment = async (req, res) => {
                 }
                 await progress.save();
             }
-
-            res.status(201).json(submission);
         }
+
+        res.status(201).json(submission);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -300,15 +286,41 @@ exports.getSubmissions = async (req, res) => {
 // Get all submissions for instructor across all cohorts
 exports.getAllSubmissionsForInstructor = async (req, res) => {
     try {
-        const instructorId = req.user.id;
+        const userId = req.user.id;
+        const role = req.user.role;
 
-        // Find all cohorts where this instructor is assigned
-        const Cohort = require('../models/Cohort');
-        const cohorts = await Cohort.find({ instructorIds: instructorId });
-        const cohortIds = cohorts.map(c => c._id);
+        let query = {};
 
-        // Fetch all submissions for these cohorts
-        const submissions = await Submission.find({ cohortId: { $in: cohortIds } })
+        // If not admin, restrict to cohorts or courses where the instructor is assigned
+        if (role !== 'admin' && role !== 'super-admin') {
+            const Cohort = require('../models/Cohort');
+            const Course = require('../models/Course');
+            const Module = require('../models/Module');
+            const Lesson = require('../models/Lesson');
+
+            // 1. Get cohorts where they are assigned as instructor
+            const cohorts = await Cohort.find({ instructorIds: userId });
+            const cohortIds = cohorts.map(c => c._id);
+
+            // 2. Get courses where they are the instructor
+            const courses = await Course.find({ instructorId: userId });
+            const courseIds = courses.map(c => c._id);
+
+            // 3. Get all lessons for those courses
+            const modules = await Module.find({ courseId: { $in: courseIds } });
+            const moduleIds = modules.map(m => m._id);
+            const lessons = await Lesson.find({ moduleId: { $in: moduleIds } });
+            const lessonIds = lessons.map(l => l._id);
+
+            query = {
+                $or: [
+                    { cohortId: { $in: cohortIds } },
+                    { lessonId: { $in: lessonIds } }
+                ]
+            };
+        }
+
+        const submissions = await Submission.find(query)
             .populate('learnerId', 'firstName lastName email')
             .populate('lessonId', 'name assignment')
             .populate('cohortId', 'name')

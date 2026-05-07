@@ -114,7 +114,7 @@ export function InstructorDashboard() {
                 {/* Welcome Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Welcome Back, {user?.firstName}!</h1>
+                        <h1 className="text-3xl font-medium tracking-tight text-slate-900">Welcome Back, {user?.firstName}!</h1>
                         <p className="text-slate-500 mt-1">Manage your courses, students, and track their growth.</p>
                     </div>
                     {/* <div className="flex gap-3">
@@ -134,15 +134,15 @@ export function InstructorDashboard() {
                                 <div className="p-3 bg-indigo-50 rounded-xl">
                                     <BookOpen className="w-6 h-6 text-indigo-600" />
                                 </div>
-                                <span className="text-xs font-semibold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full flex items-center gap-1">
+                                <span className="text-xs font-medium bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full flex items-center gap-1">
                                     <ArrowUpRight className="w-3 h-3" /> +2 this month
                                 </span>
                             </div>
                             <div className="space-y-1">
                                 <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Courses</h3>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-3xl font-semibold text-slate-900">{cohorts.length}</span>
-                                    <span className="text-sm text-slate-400">active cohorts</span>
+                                    <span className="text-3xl font-medium text-slate-900">{stats.totalCourses || 0}</span>
+                                    <span className="text-sm text-slate-400">active curriculum</span>
                                 </div>
                             </div>
                         </CardContent>
@@ -154,14 +154,14 @@ export function InstructorDashboard() {
                                 <div className="p-3 bg-purple-50 rounded-xl">
                                     <Users className="w-6 h-6 text-purple-600" />
                                 </div>
-                                <span className="text-xs font-semibold bg-green-50 text-green-700 px-2.5 py-1 rounded-full flex items-center gap-1">
+                                <span className="text-xs font-medium bg-green-50 text-green-700 px-2.5 py-1 rounded-full flex items-center gap-1">
                                     <ArrowUpRight className="w-3 h-3" /> +10 this month
                                 </span>
                             </div>
                             <div className="space-y-1">
                                 <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Students</h3>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-3xl font-semibold text-slate-900">{stats.totalStudents}</span>
+                                    <span className="text-3xl font-medium text-slate-900">{stats.totalStudents}</span>
                                     <span className="text-sm text-slate-400">across all cohorts</span>
                                 </div>
                             </div>
@@ -174,14 +174,14 @@ export function InstructorDashboard() {
                                 <div className="p-3 bg-emerald-50 rounded-xl">
                                     <GraduationCap className="w-6 h-6 text-emerald-600" />
                                 </div>
-                                <span className="text-xs font-semibold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full flex items-center gap-1">
+                                <span className="text-xs font-medium bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full flex items-center gap-1">
                                     <TrendingUp className="w-3 h-3" /> +6% improvement
                                 </span>
                             </div>
                             <div className="space-y-1">
                                 <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider">Avg Completion</h3>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-3xl font-semibold text-slate-900">{stats.avgCompletion}%</span>
+                                    <span className="text-3xl font-medium text-slate-900">{stats.avgCompletion}%</span>
                                     <span className="text-sm text-slate-400">learner success</span>
                                 </div>
                             </div>
@@ -196,7 +196,7 @@ export function InstructorDashboard() {
                             <CardHeader className="bg-white border-b border-slate-50">
                                 <div className="flex justify-between items-center">
                                     <div>
-                                        <CardTitle className="text-lg font-semibold text-slate-900">Completion Growth</CardTitle>
+                                        <CardTitle className="text-lg font-medium text-slate-900">Completion Growth</CardTitle>
                                         <CardDescription>Average student completion percentage trends</CardDescription>
                                     </div>
                                     <select className="text-xs font-medium border-0 bg-slate-50 rounded-lg p-2.5 text-slate-600 outline-none ring-1 ring-slate-100 cursor-pointer">
@@ -250,7 +250,7 @@ export function InstructorDashboard() {
                     <div className="lg:col-span-1">
                         <Card className="rounded-2xl border-slate-100 shadow-sm h-full">
                             <CardHeader className="bg-white border-b border-slate-50">
-                                <CardTitle className="text-lg font-semibold text-slate-900">Recent Activity</CardTitle>
+                                <CardTitle className="text-lg font-medium text-slate-900">Recent Activity</CardTitle>
                             </CardHeader>
                             <CardContent className="p-6">
                                 <div className="space-y-8">
@@ -261,7 +261,7 @@ export function InstructorDashboard() {
                                                 {i !== activities.length - 1 && <div className="w-0.5 grow bg-slate-100 mt-2 mb-2" />}
                                             </div>
                                             <div className="space-y-1 -mt-1">
-                                                <p className="text-sm font-semibold text-slate-800">{activity.title}</p>
+                                                <p className="text-sm font-medium text-slate-800">{activity.title}</p>
                                                 <p className="text-xs text-slate-500 leading-relaxed">{activity.sub}</p>
                                                 <p className="text-[10px] text-slate-400 font-medium pt-0.5">{getRelativeTime(activity.time)}</p>
                                             </div>
@@ -284,7 +284,7 @@ export function InstructorDashboard() {
                         <CardHeader className="bg-white/50 border-b border-indigo-50">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-indigo-600 rounded-full animate-pulse" />
-                                <CardTitle className="text-lg font-semibold text-slate-900">Pending Enrollment Requests</CardTitle>
+                                <CardTitle className="text-lg font-medium text-slate-900">Pending Enrollment Requests</CardTitle>
                                 <Badge className="ml-2 bg-indigo-600 h-5 px-1.5">{enrollmentRequests.length}</Badge>
                             </div>
                             <CardDescription>Review learners application for your courses.</CardDescription>
@@ -295,13 +295,13 @@ export function InstructorDashboard() {
                                     <div key={req._id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-white/40 transition-colors">
                                         <div className="flex items-center gap-4">
                                             <Avatar className="w-10 h-10 border-2 border-white shadow-sm">
-                                                <AvatarFallback className="bg-indigo-100 text-indigo-700 font-semibold">
+                                                <AvatarFallback className="bg-indigo-100 text-indigo-700 font-medium">
                                                     {req.learnerId?.firstName?.[0]}{req.learnerId?.lastName?.[0]}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div>
-                                                <div className="font-semibold text-slate-800">{req.learnerId?.firstName} {req.learnerId?.lastName}</div>
-                                                <div className="text-xs text-slate-500">Applied for <span className="font-semibold text-indigo-600">{req.courseId?.name}</span> in {req.cohortId?.name}</div>
+                                                <div className="font-medium text-slate-800">{req.learnerId?.firstName} {req.learnerId?.lastName}</div>
+                                                <div className="text-xs text-slate-500">Applied for <span className="font-medium text-indigo-600">{req.courseId?.name}</span> in {req.cohortId?.name}</div>
                                             </div>
                                         </div>
                                         <div className="flex gap-2">

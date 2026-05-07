@@ -120,27 +120,27 @@ export function LearnerDashboard() {
                 {/* Hero Section */}
                 <div className="relative overflow-hidden rounded-[32px] bg-indigo-600 p-8 md:p-14 text-white shadow-2xl shadow-indigo-200">
                     <div className="relative z-10 max-w-2xl space-y-6">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs font-bold uppercase tracking-wider">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs font-medium uppercase tracking-wider">
                             {/* <Sparkles className="w-3 h-3" /> */}
                              Learning Session Active
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
+                        <h1 className="text-4xl md:text-5xl font-medium tracking-tight">
                             Welcome back, {user?.firstName}! 👋
                         </h1>
                         <p className="text-lg md:text-xl text-indigo-50/90 leading-relaxed font-medium">
-                            You're currently in the <span className="text-white font-bold underline underline-offset-4 decoration-indigo-300">{cohort?.name}</span> cohort.
+                            You're currently in the <span className="text-white font-medium underline underline-offset-4 decoration-indigo-300">{cohort?.name}</span> cohort.
                             {tasks.length > 0 ? ` You have ${tasks.length} assignments awaiting your focus today.` : " You're all caught up on your assignments!"}
                         </p>
 
                         {progress?.status === 'at-risk' && (
                             <div className="inline-flex items-center gap-3 rounded-2xl bg-rose-500/20 px-5 py-3 text-sm backdrop-blur-xl border border-rose-500/30">
                                 <AlertCircle className="h-5 w-5 text-rose-200" />
-                                <span className="font-semibold text-rose-50">Performance Alert: Review mandatory tasks to maintain status.</span>
+                                <span className="font-medium text-rose-50">Performance Alert: Review mandatory tasks to maintain status.</span>
                             </div>
                         )}
 
                         <div className="flex gap-4 pt-2">
-                            <Button onClick={() => router.push('/dashboard/courses')} className="rounded-xl h-12 px-8 bg-white text-indigo-600 hover:bg-slate-50 font-bold shadow-lg shadow-indigo-900/20 active:scale-95 transition-all">
+                            <Button onClick={() => router.push('/dashboard/courses')} className="rounded-xl h-12 px-8 bg-white text-indigo-600 hover:bg-slate-50 font-medium shadow-lg shadow-indigo-900/20 active:scale-95 transition-all">
                                 Continue Lessons
                             </Button>
                         </div>
@@ -154,7 +154,7 @@ export function LearnerDashboard() {
                 {/* Stats Section */}
                 <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-md md:text-xl font-semibold tracking-tight flex items-center gap-3 text-slate-900">
+                        <h2 className="text-md md:text-xl font-medium tracking-tight flex items-center gap-3 text-slate-900">
                             Performance Metrics
                         </h2>
                     </div>
@@ -196,10 +196,10 @@ export function LearnerDashboard() {
                         {/* Current Courses */}
                         <div className="space-y-6">
                             <div className="flex items-center justify-between lg:pr-4">
-                                <h2 className="text-md md:text-xl font-semibold tracking-tight text-slate-900 flex items-center gap-3">
+                                <h2 className="text-md md:text-xl font-medium tracking-tight text-slate-900 flex items-center gap-3">
                                     Assigned Curriculum
                                 </h2>
-                                <Button variant="ghost" onClick={() => router.push('/dashboard/courses')} className="text-indigo-600 font-bold hover:bg-indigo-50 rounded-xl">Explore All</Button>
+                                <Button variant="ghost" onClick={() => router.push('/dashboard/courses')} className="text-indigo-600 font-medium hover:bg-indigo-50 rounded-xl">Explore All</Button>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -225,7 +225,7 @@ export function LearnerDashboard() {
                                             <BookOpen className="w-8 h-8 text-slate-300" />
                                         </div>
                                         <div className="max-w-xs mx-auto">
-                                            <p className="font-semibold text-slate-900">Waitlist Active</p>
+                                            <p className="font-medium text-slate-900">Waitlist Active</p>
                                             <p className="text-slate-500 mt-1 text-sm leading-relaxed">Your curriculum is being finalized by the instructors. Check back soon.</p>
                                         </div>
                                     </div>
@@ -235,7 +235,7 @@ export function LearnerDashboard() {
 
                         {/* Recent Tasks */}
                         <div className="space-y-6">
-                            <h2 className="text-md md:text-xl font-semibold tracking-tight text-slate-900">
+                            <h2 className="text-md md:text-xl font-medium tracking-tight text-slate-900">
                                 Required Submissions
                             </h2>
                             <div className="space-y-4">
@@ -256,13 +256,13 @@ export function LearnerDashboard() {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2 mb-1">
-                                                        <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-widest text-slate-400 border-slate-100">{task.type || 'Standard'}</Badge>
-                                                        {task.priority === 'high' && <Badge className="bg-rose-50 text-rose-600 border-rose-100 text-[9px] font-bold uppercase tracking-widest">Priority</Badge>}
-                                                        {task.status === 'submitted' && <Badge className="bg-amber-50 text-amber-600 border-amber-100 text-[9px] font-bold uppercase tracking-widest">Answered</Badge>}
-                                                        {task.status === 'completed' && <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 text-[9px] font-bold uppercase tracking-widest">Graded</Badge>}
+                                                        <Badge variant="outline" className="text-[9px] font-medium uppercase tracking-widest text-slate-400 border-slate-100">{task.type || 'Standard'}</Badge>
+                                                        {task.priority === 'high' && <Badge className="bg-rose-50 text-rose-600 border-rose-100 text-[9px] font-medium uppercase tracking-widest">Priority</Badge>}
+                                                        {task.status === 'submitted' && <Badge className="bg-amber-50 text-amber-600 border-amber-100 text-[9px] font-medium uppercase tracking-widest">Answered</Badge>}
+                                                        {task.status === 'completed' && <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 text-[9px] font-medium uppercase tracking-widest">Graded</Badge>}
                                                     </div>
                                                     <h4 className={cn(
-                                                        "font-semibold text-lg truncate transition-colors uppercase tracking-tight",
+                                                        "font-medium text-lg truncate transition-colors uppercase tracking-tight",
                                                         task.status !== 'pending' ? "text-slate-500" : "text-slate-900 group-hover:text-indigo-600"
                                                     )}>{task.title}</h4>
                                                     <p className="text-sm text-slate-500 font-medium">Domain: {task.subject || 'LMS Core'}</p>
@@ -271,7 +271,7 @@ export function LearnerDashboard() {
                                                     size="sm"
                                                     variant="outline"
                                                     className={cn(
-                                                        "rounded-xl px-5 h-10 font-bold border-slate-200 transition-all",
+                                                        "rounded-xl px-5 h-10 font-medium border-slate-200 transition-all",
                                                         task.status !== 'pending' ? "opacity-100 bg-slate-50" : "opacity-0 group-hover:opacity-100 hover:bg-slate-50"
                                                     )}
                                                     onClick={() => router.push(`/dashboard/courses/${(progress?.courseId as any)?._id}`)}
@@ -287,7 +287,7 @@ export function LearnerDashboard() {
                                             {/* <Sparkles className="w-6 h-6" /> */}
                                         </div>
                                         <div>
-                                            <p className="font-semibold text-emerald-900">Schedule Clear</p>
+                                            <p className="font-medium text-emerald-900">Schedule Clear</p>
                                             <p className="text-emerald-600/70 text-sm">All tasks for the current cycle have been processed.</p>
                                         </div>
                                     </div>
@@ -300,7 +300,7 @@ export function LearnerDashboard() {
                     <div className="space-y-8 sticky top-24">
                         <div className="rounded-[32px] border border-slate-100 bg-white md:p-8 px-4 p-6 shadow-sm space-y-8">
                             <div className="space-y-2">
-                                <h3 className="md:text-xl text-lg font-semibold text-slate-900">
+                                <h3 className="md:text-xl text-lg font-medium text-slate-900">
                                     Academic Log
                                 </h3>
                                 <p className="text-sm text-slate-500">Track your attendance and deadlines</p>
@@ -333,9 +333,9 @@ export function LearnerDashboard() {
                         {/* Motivation Card */}
                         <div className="rounded-[32px] bg-gradient-to-br from-indigo-500 to-indigo-700 p-8 text-white relative overflow-hidden group shadow-lg shadow-indigo-100">
                             <div className="relative z-10 space-y-4">
-                                <h4 className="text-lg font-bold leading-tight italic">"The beautiful thing about learning is that nobody can take it away from you."</h4>
+                                <h4 className="text-lg font-medium leading-tight italic">"The beautiful thing about learning is that nobody can take it away from you."</h4>
                                 <div className="h-1 w-12 bg-white/30 rounded-full" />
-                                <p className="text-indigo-100 text-xs font-bold uppercase tracking-widest">— B.B. King</p>
+                                <p className="text-indigo-100 text-xs font-medium uppercase tracking-widest">— B.B. King</p>
                             </div>
                             <Award className="absolute -bottom-4 -right-4 w-24 h-24 text-white/10 group-hover:scale-110 transition-transform duration-500" />
                         </div>

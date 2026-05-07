@@ -128,14 +128,14 @@ export default function SubmissionsPage() {
     const getStatusBadge = (submission: any) => {
         if (submission.status === 'graded') {
             return (
-                <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50 font-bold shadow-sm">
+                <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50 font-medium shadow-sm">
                     <CheckCircle className="w-3 h-3 mr-1.5" />
                     Graded
                 </Badge>
             );
         }
         return (
-            <Badge className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50 font-bold shadow-sm">
+            <Badge className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50 font-medium shadow-sm">
                 <Clock className="w-3 h-3 mr-1.5" />
                 Pending
             </Badge>
@@ -170,7 +170,7 @@ export default function SubmissionsPage() {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-200/60">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-900 uppercase">
+                        <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-slate-900 uppercase">
                             Submissions
                         </h1>
                         <p className="text-muted-foreground mt-2 max-w-xl text-sm md:text-lg font-medium">
@@ -185,8 +185,8 @@ export default function SubmissionsPage() {
                         <CardContent className="p-5">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total</p>
-                                    <p className="text-2xl font-bold text-slate-900 mt-1">{submissions.length}</p>
+                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Total</p>
+                                    <p className="text-2xl font-medium text-slate-900 mt-1">{submissions.length}</p>
                                 </div>
                                 <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center">
                                     <FileText className="w-6 h-6 text-indigo-600" />
@@ -199,8 +199,8 @@ export default function SubmissionsPage() {
                         <CardContent className="p-5">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs font-bold text-amber-600 uppercase tracking-wider">Pending</p>
-                                    <p className="text-2xl font-bold text-amber-700 mt-1">{pendingCount}</p>
+                                    <p className="text-xs font-medium text-amber-600 uppercase tracking-wider">Pending</p>
+                                    <p className="text-2xl font-medium text-amber-700 mt-1">{pendingCount}</p>
                                 </div>
                                 <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
                                     <Clock className="w-6 h-6 text-amber-600" />
@@ -213,8 +213,8 @@ export default function SubmissionsPage() {
                         <CardContent className="p-5">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Graded</p>
-                                    <p className="text-2xl font-bold text-emerald-700 mt-1">{gradedCount}</p>
+                                    <p className="text-xs font-medium text-emerald-600 uppercase tracking-wider">Graded</p>
+                                    <p className="text-2xl font-medium text-emerald-700 mt-1">{gradedCount}</p>
                                 </div>
                                 <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
                                     <CheckCircle className="w-6 h-6 text-emerald-600" />
@@ -227,8 +227,8 @@ export default function SubmissionsPage() {
                         <CardContent className="p-5">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs font-bold text-violet-600 uppercase tracking-wider">Avg Grade</p>
-                                    <p className="text-2xl font-bold text-violet-700 mt-1">{avgGrade}/10</p>
+                                    <p className="text-xs font-medium text-violet-600 uppercase tracking-wider">Avg Grade</p>
+                                    <p className="text-2xl font-medium text-violet-700 mt-1">{avgGrade}/10</p>
                                 </div>
                                 <div className="w-12 h-12 bg-violet-50 rounded-xl flex items-center justify-center">
                                     <Award className="w-6 h-6 text-violet-600" />
@@ -241,14 +241,14 @@ export default function SubmissionsPage() {
                 {/* Filters */}
                 <Card className="border-slate-100 shadow-sm">
                     <CardHeader className="pb-4">
-                        <CardTitle className="text-base flex items-center gap-2 font-bold text-slate-900">
+                        <CardTitle className="text-base flex items-center gap-2 font-medium text-slate-900">
                             <Filter className="w-4 h-4 text-indigo-600" />
                             Filters
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-2">
-                            <Label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Cohort</Label>
+                            <Label className="text-xs font-medium text-slate-600 uppercase tracking-wider">Cohort</Label>
                             <Select value={cohortFilter} onValueChange={setCohortFilter}>
                                 <SelectTrigger className="rounded-xl border-slate-200 h-11 font-medium">
                                     <SelectValue placeholder="All Cohorts" />
@@ -268,7 +268,7 @@ export default function SubmissionsPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Status</Label>
+                            <Label className="text-xs font-medium text-slate-600 uppercase tracking-wider">Status</Label>
                             <Select value={statusFilter} onValueChange={setStatusFilter}>
                                 <SelectTrigger className="rounded-xl border-slate-200 h-11 font-medium">
                                     <SelectValue placeholder="All Statuses" />
@@ -282,7 +282,7 @@ export default function SubmissionsPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Type</Label>
+                            <Label className="text-xs font-medium text-slate-600 uppercase tracking-wider">Type</Label>
                             <Select value={typeFilter} onValueChange={setTypeFilter}>
                                 <SelectTrigger className="rounded-xl border-slate-200 h-11 font-medium">
                                     <SelectValue placeholder="All Types" />
@@ -304,14 +304,14 @@ export default function SubmissionsPage() {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-slate-50/50 hover:bg-slate-50/50">
-                                        <TableHead className="font-bold text-slate-700">Learner</TableHead>
-                                        <TableHead className="font-bold text-slate-700">Cohort</TableHead>
-                                        <TableHead className="font-bold text-slate-700">Lesson</TableHead>
-                                        <TableHead className="font-bold text-slate-700">Type</TableHead>
-                                        <TableHead className="font-bold text-slate-700">Submitted</TableHead>
-                                        <TableHead className="font-bold text-slate-700">Status</TableHead>
-                                        <TableHead className="font-bold text-slate-700">Score</TableHead>
-                                        <TableHead className="text-right font-bold text-slate-700">Actions</TableHead>
+                                        <TableHead className="font-medium text-slate-700">Learner</TableHead>
+                                        <TableHead className="font-medium text-slate-700">Cohort</TableHead>
+                                        <TableHead className="font-medium text-slate-700">Lesson</TableHead>
+                                        <TableHead className="font-medium text-slate-700">Type</TableHead>
+                                        <TableHead className="font-medium text-slate-700">Submitted</TableHead>
+                                        <TableHead className="font-medium text-slate-700">Status</TableHead>
+                                        <TableHead className="font-medium text-slate-700">Score</TableHead>
+                                        <TableHead className="text-right font-medium text-slate-700">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -330,7 +330,7 @@ export default function SubmissionsPage() {
                                     ) : (
                                         filteredSubmissions.map((submission) => (
                                             <TableRow key={submission._id} className="hover:bg-slate-50/50 transition-colors">
-                                                <TableCell className="font-semibold text-slate-900">
+                                                <TableCell className="font-medium text-slate-900">
                                                     {submission.learnerId?.firstName} {submission.learnerId?.lastName}
                                                 </TableCell>
                                                 <TableCell className="text-slate-600">
@@ -371,12 +371,12 @@ export default function SubmissionsPage() {
                                                 <TableCell>
                                                     {submission.status === 'graded' ? (
                                                         <div className="flex items-center gap-2">
-                                                            <span className="font-bold text-lg text-slate-900">
+                                                            <span className="font-medium text-lg text-slate-900">
                                                                 {submission.grade}
                                                                 <span className="text-slate-400 text-sm font-normal">/10</span>
                                                             </span>
                                                             {getAssignmentType(submission) === 'Quiz' && (
-                                                                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 font-bold">
+                                                                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 font-medium">
                                                                     Auto
                                                                 </Badge>
                                                             )}
@@ -394,7 +394,7 @@ export default function SubmissionsPage() {
                                                                 setGrade('');
                                                                 setFeedback('');
                                                             }}
-                                                            className="bg-indigo-600 hover:bg-indigo-700 rounded-xl font-bold shadow-sm"
+                                                            className="bg-indigo-600 hover:bg-indigo-700 rounded-xl font-medium shadow-sm"
                                                         >
                                                             Grade
                                                         </Button>
@@ -407,7 +407,7 @@ export default function SubmissionsPage() {
                                                                 setGrade(submission.grade?.toString() || '');
                                                                 setFeedback(submission.feedback || '');
                                                             }}
-                                                            className="rounded-xl font-bold border-slate-200"
+                                                            className="rounded-xl font-medium border-slate-200"
                                                         >
                                                             Edit
                                                         </Button>
@@ -429,7 +429,7 @@ export default function SubmissionsPage() {
             <Dialog open={!!gradingSubmission} onOpenChange={(open) => !open && setGradingSubmission(null)}>
                 <DialogContent className="max-w-2xl rounded-2xl">
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-bold text-slate-900">Grade Submission</DialogTitle>
+                        <DialogTitle className="text-xl font-medium text-slate-900">Grade Submission</DialogTitle>
                         <DialogDescription className="text-slate-600">
                             {gradingSubmission?.learnerId?.firstName} {gradingSubmission?.learnerId?.lastName} • {gradingSubmission?.lessonId?.name}
                         </DialogDescription>
@@ -437,7 +437,7 @@ export default function SubmissionsPage() {
 
                     <div className="space-y-5">
                         <div className="bg-slate-50 p-5 rounded-xl border border-slate-200">
-                            <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Submission Content</Label>
+                            <Label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Submission Content</Label>
                             <p className="mt-3 text-sm text-slate-700 break-all leading-relaxed">{gradingSubmission?.content}</p>
                             <p className="text-xs text-slate-500 mt-3 font-medium">
                                 Submitted on {gradingSubmission?.submittedAt && new Date(gradingSubmission.submittedAt).toLocaleString('en-US', {
@@ -451,7 +451,7 @@ export default function SubmissionsPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="grade" className="text-sm font-bold text-slate-700">
+                            <Label htmlFor="grade" className="text-sm font-medium text-slate-700">
                                 Grade (out of 10) <span className="text-rose-500">*</span>
                             </Label>
                             <Input
@@ -468,7 +468,7 @@ export default function SubmissionsPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="feedback" className="text-sm font-bold text-slate-700">Feedback (Optional)</Label>
+                            <Label htmlFor="feedback" className="text-sm font-medium text-slate-700">Feedback (Optional)</Label>
                             <Textarea
                                 id="feedback"
                                 value={feedback}
@@ -485,14 +485,14 @@ export default function SubmissionsPage() {
                             variant="outline"
                             onClick={() => setGradingSubmission(null)}
                             disabled={isGrading}
-                            className="rounded-xl font-bold border-slate-200"
+                            className="rounded-xl font-medium border-slate-200"
                         >
                             Cancel
                         </Button>
                         <Button
                             onClick={handleGrade}
                             disabled={isGrading}
-                            className="bg-indigo-600 hover:bg-indigo-700 rounded-xl font-bold shadow-sm"
+                            className="bg-indigo-600 hover:bg-indigo-700 rounded-xl font-medium shadow-sm"
                         >
                             {isGrading ? (
                                 <>

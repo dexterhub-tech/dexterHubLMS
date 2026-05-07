@@ -33,10 +33,10 @@ export function TopHeader({ user, onSearch }: TopHeaderProps) {
                 <div className="flex md:hidden items-center gap-2 pl-10"> {/* Leave room for sidebar toggle */}
                     <div className="">
                         <div>
-                            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
+                            <h1 className="text-xl font-medium text-slate-900 tracking-tight">
                                 Dexter<span className="text-indigo-600">Hub</span>
                             </h1>
-                            {/* <p className="text-[10px] uppercase tracking-widest font-semibold text-slate-400">Education Hub</p> */}
+                            {/* <p className="text-[10px] uppercase tracking-widest font-medium text-slate-400">Education Hub</p> */}
                         </div>
                     </div>
                 </div>
@@ -78,13 +78,13 @@ export function TopHeader({ user, onSearch }: TopHeaderProps) {
                             <Button variant="ghost" className="flex items-center gap-2 px-1 md:px-3 h-10 md:h-12 rounded-xl hover:bg-indigo-50 group transition-all">
                                 <Avatar className="w-8 h-8 md:w-9 md:h-9 border-2 border-white shadow-sm">
                                     <AvatarImage src={user?.avatar} />
-                                    <AvatarFallback className="bg-white text-indigo-600 font-bold text-xs">
+                                    <AvatarFallback className="bg-white text-indigo-600 font-medium text-xs">
                                         {user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
                                     </AvatarFallback>
                                 </Avatar>
                                 <div className="text-left hidden lg:block">
-                                    <p className="text-sm font-bold text-slate-900 leading-none group-hover:text-indigo-600 transition-colors">{user?.name || 'User'}</p>
-                                    <p className="text-[10px] text-slate-400 font-semibold tracking-wide uppercase mt-1">
+                                    <p className="text-sm font-medium text-slate-900 leading-none group-hover:text-indigo-600 transition-colors">{user?.name || 'User'}</p>
+                                    <p className="text-[10px] text-slate-400 font-medium tracking-wide uppercase mt-1">
                                         {user?.email?.split('@')[0] || 'Member'}
                                     </p>
                                 </div>
@@ -93,18 +93,18 @@ export function TopHeader({ user, onSearch }: TopHeaderProps) {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-64 p-2 rounded-2xl border-slate-100 shadow-xl shadow-slate-200/50">
                             <DropdownMenuLabel className="px-4 py-3">
-                                <p className="text-sm font-bold text-slate-900">{user?.name}</p>
+                                <p className="text-sm font-medium text-slate-900">{user?.name}</p>
                                 <p className="text-xs font-medium text-slate-500">{user?.email}</p>
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator className="bg-slate-50" />
-                            <DropdownMenuItem className="rounded-xl py-3 px-4 font-semibold text-slate-600 focus:bg-indigo-50 focus:text-indigo-600 cursor-pointer">
+                            <DropdownMenuItem className="rounded-xl py-3 px-4 font-medium text-slate-600 focus:bg-indigo-50 focus:text-indigo-600 cursor-pointer">
                                 Settings & Privacy
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="rounded-xl py-3 px-4 font-semibold text-slate-600 focus:bg-indigo-50 focus:text-indigo-600 cursor-pointer">
+                            <DropdownMenuItem className="rounded-xl py-3 px-4 font-medium text-slate-600 focus:bg-indigo-50 focus:text-indigo-600 cursor-pointer">
                                 Learning Preferences
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-slate-50" />
-                            <DropdownMenuItem className="rounded-xl py-3 px-4 font-bold text-rose-500 focus:bg-rose-50 focus:text-rose-600 cursor-pointer">
+                            <DropdownMenuItem className="rounded-xl py-3 px-4 font-medium text-rose-500 focus:bg-rose-50 focus:text-rose-600 cursor-pointer">
                                 Sign Out
                             </DropdownMenuItem>
                         </DropdownMenuContent>

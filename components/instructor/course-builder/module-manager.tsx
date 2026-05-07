@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
-import { Plus, CheckCircle, CheckCircle2, Video, FileText, Trash2, GripVertical, Sparkles, ChevronDown, Clock, Layers, Award, ArrowRight, Loader2, PlusCircle, Pencil, Save, X } from 'lucide-react';
+import { Plus, CheckCircle, CheckCircle2, Video, FileText, Trash2, GripVertical, Sparkles, ChevronDown, Clock, Layers, Award, ArrowRight, Loader2, PlusCircle, Pencil, Save, X, Upload, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { api } from '@/lib/api';
@@ -248,12 +248,72 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
         }
     };
 
+    const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const text = event.target?.result as string;
+                if (!text) return;
+
+                const lines = text.split('\n').filter(line => line.trim() !== '');
+                if (lines.length < 2) {
+                    toast.error('CSV file is empty or missing data.');
+                    return;
+                }
+
+                // Expected format: question,option1,option2,option3,option4,correctAnswerIndex
+                const questions: any[] = lines.slice(1).map(line => {
+                    // Handle quoted values if necessary, but simple split for now
+                    const parts = line.split(',').map(p => p.trim().replace(/^"|"$/g, ''));
+                    if (parts.length < 6) return null;
+                    return {
+                        question: parts[0],
+                        options: [parts[1], parts[2], parts[3], parts[4]],
+                        correctAnswer: Math.min(3, Math.max(0, parseInt(parts[5]) || 0))
+                    };
+                }).filter(q => q !== null);
+
+                if (questions.length > 0) {
+                    setNewLesson({
+                        ...newLesson,
+                        assignment: {
+                            ...newLesson.assignment,
+                            questions: [...(newLesson.assignment.questions || []), ...questions].slice(0, 10)
+                        }
+                    });
+                    toast.success(`Extracted ${questions.length} questions.`);
+                } else {
+                    toast.error('Invalid CSV format. Use: question,opt1,opt2,opt3,opt4,correctIndex');
+                }
+            } catch (err) {
+                toast.error('Failed to parse CSV file.');
+            }
+        };
+        reader.readAsText(file);
+        // Reset input
+        e.target.value = '';
+    };
+
+    const downloadSampleCSV = () => {
+        const content = "question,option1,option2,option3,option4,correctAnswerIndex\nWhat is the capital of France?,Paris,London,Berlin,Madrid,0\nWhich planet is known as the Red Planet?,Venus,Mars,Jupiter,Saturn,1";
+        const blob = new Blob([content], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'quiz_template.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+    };
+
     return (
         <div className="space-y-10">
             {/* Module Manager Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="space-y-1">
-                    <h2 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-3">
+                    <h2 className="text-xl md:text-2xl font-medium text-slate-900 tracking-tight flex items-center gap-3">
                         <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
                             <Layers className="w-5 h-5" />
                         </div>
@@ -264,7 +324,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                 <Button
                     onClick={() => setIsAddingModule(true)}
                     disabled={isAddingModule}
-                    className="h-12 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg shadow-indigo-100 transition-all active:scale-95 flex items-center gap-2 w-full md:w-auto"
+                    className="h-12 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-lg shadow-indigo-100 transition-all active:scale-95 flex items-center gap-2 w-full md:w-auto"
                 >
                     <Plus className="w-4 h-4" /> Add Module
                 </Button>
@@ -275,7 +335,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                 <div className="animate-in fade-in slide-in-from-top-4 duration-300">
                     <Card className="border-2 border-dashed border-indigo-200 bg-indigo-50/30 rounded-[28px] overflow-hidden">
                         <CardContent className="p-6 md:p-8 space-y-4">
-                            <Label className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-indigo-600 ml-1">New Module Title</Label>
+                            <Label className="text-[10px] md:text-xs font-medium uppercase tracking-widest text-indigo-600 ml-1">New Module Title</Label>
                             <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                                 <Input
                                     value={newModuleName}
@@ -288,11 +348,11 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                     <Button
                                         onClick={handleAddModule}
                                         disabled={isSaving || !newModuleName.trim()}
-                                        className="h-12 md:h-14 px-6 md:px-8 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-900/10 transition-all flex-1 sm:flex-none text-sm md:text-base"
+                                        className="h-12 md:h-14 px-6 md:px-8 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-2xl shadow-lg shadow-indigo-900/10 transition-all flex-1 sm:flex-none text-sm md:text-base"
                                     >
                                         {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : "Save Module"}
                                     </Button>
-                                    <Button variant="ghost" onClick={() => setIsAddingModule(false)} className="h-12 md:h-14 px-4 md:px-6 rounded-2xl font-bold text-slate-500 hover:bg-slate-100 transition-all text-sm md:text-base">
+                                    <Button variant="ghost" onClick={() => setIsAddingModule(false)} className="h-12 md:h-14 px-4 md:px-6 rounded-2xl font-medium text-slate-500 hover:bg-slate-100 transition-all text-sm md:text-base">
                                         Cancel
                                     </Button>
                                 </div>
@@ -310,7 +370,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                             <Layers className="w-8 h-8" />
                         </div>
                         <div className="max-w-xs mx-auto space-y-2">
-                            <p className="font-semibold text-slate-900">No Modules Yet</p>
+                            <p className="font-medium text-slate-900">No Modules Yet</p>
                             <p className="text-slate-500 text-sm leading-relaxed">Start building your curriculum by adding your first educational module above.</p>
                         </div>
                     </div>
@@ -322,7 +382,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                             <Card className="rounded-[28px] md:border-slate-100 overflow-hidden md:shadow-sm hover:shadow-md transition-all duration-300 group">
                                 <AccordionTrigger className="p-0 hover:no-underline">
                                     <div className="flex items-center gap-4 md:gap-6 p-5 md:p-8 w-full text-left">
-                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-600 font-bold group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 md:shadow-sm md:border md:border-slate-100/50 shrink-0 text-sm md:text-base">
+                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-600 font-medium group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 md:shadow-sm md:border md:border-slate-100/50 shrink-0 text-sm md:text-base">
                                             {idx + 1}
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -331,7 +391,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                     <Input
                                                         value={editingModuleName}
                                                         onChange={(e) => setEditingModuleName(e.target.value)}
-                                                        className="h-9 bg-white border-indigo-200 rounded-lg text-sm font-semibold"
+                                                        className="h-9 bg-white border-indigo-200 rounded-lg text-sm font-medium"
                                                         autoFocus
                                                     />
                                                     <Button
@@ -356,7 +416,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center justify-between group/title">
-                                                    <h3 className="text-lg md:text-xl font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight ">
+                                                    <h3 className="text-lg md:text-xl font-medium text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight ">
                                                         {module.name}
                                                     </h3>
                                                     <div className="flex items-center gap-1">
@@ -388,12 +448,12 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                 </div>
                                             )}
                                             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
-                                                <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-slate-400">
+                                                <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-medium text-slate-400">
                                                     <Clock className="w-3 md:w-3.5 h-3 md:h-3.5" />
                                                     {module.lessons?.length || 0} SESSIONS
                                                 </div>
                                                 <div className="hidden md:block w-1 h-1 rounded-full bg-slate-300" />
-                                                <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-indigo-500">
+                                                <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-medium text-indigo-500">
                                                     <Layers className="w-3 md:w-3.5 h-3 md:h-3.5" />
                                                     PROVISIONED
                                                 </div>
@@ -413,13 +473,13 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                         {lesson.videoUrl ? <Video className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Session {sIdx + 1}</p>
-                                                        <h4 className="font-semibold text-slate-900 truncate uppercase tracking-tight text-sm md:text-base">{lesson.name}</h4>
+                                                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-0.5">Session {sIdx + 1}</p>
+                                                        <h4 className="font-medium text-slate-900 truncate uppercase tracking-tight text-sm md:text-base">{lesson.name}</h4>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
                                                     {lesson.assignment?.title && (
-                                                        <Badge className="bg-amber-50 text-amber-700 border-amber-100 text-[9px] font-bold uppercase tracking-widest px-2 md:px-3 py-1 truncate max-w-[150px] md:max-w-none">
+                                                        <Badge className="bg-amber-50 text-amber-700 border-amber-100 text-[9px] font-medium uppercase tracking-widest px-2 md:px-3 py-1 truncate max-w-[150px] md:max-w-none">
                                                             <Award className="w-3 h-3 mr-1 md:mr-1.5 shrink-0" />
                                                             {lesson.assignment.type}: {lesson.assignment.title}
                                                         </Badge>
@@ -462,29 +522,29 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                         <Card className="border-0 shadow-0 p-0 md:bg-indigo-50/20 md:border-indigo-100 rounded-[24px] overflow-hidden animate-in fade-in zoom-in-95 duration-300">
                                             <CardHeader className="md:bg-white/50 md:border-b md:border-indigo-50 p-2 md:p-6 flex flex-row items-center justify-between">
                                                 <div>
-                                                    <CardTitle className="text-lg font-bold text-indigo-900">{editingLessonId ? 'Modify Learning Session' : 'Add Learning Session'}</CardTitle>
+                                                    <CardTitle className="text-lg font-medium text-indigo-900">{editingLessonId ? 'Modify Learning Session' : 'Add Learning Session'}</CardTitle>
                                                     <CardDescription className="text-xs font-medium text-indigo-600/70">{editingLessonId ? 'Update session details and graduation task.' : 'Define a lesson and its corresponding task.'}</CardDescription>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs">{module.lessons?.length + 1}</div>
+                                                    <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 font-medium text-xs">{module.lessons?.length + 1}</div>
                                                 </div>
                                             </CardHeader>
                                             <CardContent className="p-2 md:p-8 space-y-6">
                                                 <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
                                                     <div className="space-y-4">
                                                         <div className="space-y-2">
-                                                            <Label className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 ml-1">Session Title</Label>
+                                                            <Label className="text-[10px] font-medium uppercase tracking-widest text-indigo-400 ml-1">Session Title</Label>
                                                             <Input value={newLesson.name} onChange={e => setNewLesson({ ...newLesson, name: e.target.value })} placeholder="e.g. Logic Gates & Signal Flow" className="bg-white border-indigo-100 h-11 md:h-12 rounded-xl text-sm md:text-base" />
                                                         </div>
                                                         <div className="space-y-2">
-                                                            <Label className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 ml-1">Video Source URL (Optional)</Label>
+                                                            <Label className="text-[10px] font-medium uppercase tracking-widest text-indigo-400 ml-1">Video Source URL (Optional)</Label>
                                                             <div className="relative">
                                                                 <Video className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-300" />
                                                                 <Input value={newLesson.videoUrl} onChange={e => setNewLesson({ ...newLesson, videoUrl: e.target.value })} placeholder="https://vimeo.com/..." className="pl-10 bg-white border-indigo-100 h-11 md:h-12 rounded-xl text-sm md:text-base" />
                                                             </div>
                                                         </div>
                                                         <div className="space-y-2">
-                                                            <Label className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 ml-1">Session Notes / Resources</Label>
+                                                            <Label className="text-[10px] font-medium uppercase tracking-widest text-indigo-400 ml-1">Session Notes / Resources</Label>
                                                             <div className="bg-white rounded-xl border border-indigo-100 overflow-hidden min-h-[180px] md:min-h-[400px]">
                                                                 <ReactQuill
                                                                     theme="snow"
@@ -500,12 +560,12 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                     <div className="space-y-4 bg-white/60 p-5 md:p-6 rounded-2xl border border-indigo-50 shadow-inner">
                                                         <div className="flex items-center gap-2 mb-1">
                                                             <Award className="w-4 h-4 text-amber-500" />
-                                                            <h4 className="text-xs md:text-sm font-bold text-indigo-900 uppercase tracking-tight">Graduation Task</h4>
+                                                            <h4 className="text-xs md:text-sm font-medium text-indigo-900 uppercase tracking-tight">Graduation Task</h4>
                                                         </div>
 
                                                         <div className="space-y-3">
                                                             <div className="space-y-1.5">
-                                                                <Label className="text-[10px] font-bold text-slate-500">Submission Mode</Label>
+                                                                <Label className="text-[10px] font-medium text-slate-500">Submission Mode</Label>
                                                                 <select
                                                                     className="w-full h-10 md:h-11 px-3 rounded-xl border-indigo-100 border text-xs md:text-sm bg-white focus:ring-1 focus:ring-indigo-500 transition-all outline-none"
                                                                     value={newLesson.assignment.type || 'task'}
@@ -521,7 +581,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                             </div>
 
                                                             <div className="space-y-1.5">
-                                                                <Label className="text-[10px] font-bold text-slate-500">Task Title</Label>
+                                                                <Label className="text-[10px] font-medium text-slate-500">Task Title</Label>
                                                                 <Input
                                                                     placeholder="e.g. System Diagram Output"
                                                                     value={newLesson.assignment.title}
@@ -531,7 +591,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                             </div>
 
                                                             <div className="space-y-1.5">
-                                                                <Label className="text-[10px] font-bold text-slate-500">Brief Overview</Label>
+                                                                <Label className="text-[10px] font-medium text-slate-500">Brief Overview</Label>
                                                                 <Input
                                                                     placeholder="Describe the expected output..."
                                                                     value={newLesson.assignment.description}
@@ -548,19 +608,19 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                     <div className="bg-white/80 p-8 rounded-[24px] border border-indigo-100 shadow-xl shadow-indigo-100/30 space-y-6 animate-in slide-in-from-top-2 duration-300">
                                                         <div className="md:flex items-center justify-between border-b border-slate-50 pb-4">
                                                             <div className="space-y-1">
-                                                                <h5 className="text-sm font-bold text-indigo-900 uppercase tracking-widest flex items-center gap-2">
+                                                                <h5 className="text-sm font-medium text-indigo-900 uppercase tracking-widest flex items-center gap-2">
                                                                     {/* <Sparkles className="w-4 h-4" />  */}
                                                                     Quiz Architect
                                                                 </h5>
-                                                                <p className="text-[10px] font-bold text-slate-400">{(newLesson.assignment.questions || []).length} CHALLENGES ADDED</p>
+                                                                <p className="text-[10px] font-medium text-slate-400">{(newLesson.assignment.questions || []).length} CHALLENGES ADDED</p>
                                                             </div>
                                                             <div className="flex mt-4 md:mt-0 items-center gap-4 bg-indigo-50/50 p-2 rounded-2xl border border-indigo-100/50">
                                                                 <div className="flex items-center gap-2 px-2">
-                                                                    <Label className="text-[10px] font-bold text-indigo-400 uppercase tracking-tight">Level:</Label>
+                                                                    <Label className="text-[10px] font-medium text-indigo-400 uppercase tracking-tight">Level:</Label>
                                                                     <select
                                                                         value={aiDifficulty}
                                                                         onChange={(e) => setAiDifficulty(e.target.value as any)}
-                                                                        className="bg-transparent text-[10px] font-bold text-indigo-600 outline-none cursor-pointer"
+                                                                        className="bg-transparent text-[10px] font-medium text-indigo-600 outline-none cursor-pointer"
                                                                     >
                                                                         <option value="easy">Easy</option>
                                                                         <option value="hard">Hard</option>
@@ -571,7 +631,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                                     variant="ghost"
                                                                     disabled={isGeneratingAI || !newLesson.name}
                                                                     onClick={handleGenerateAIQuiz}
-                                                                    className="h-9 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-900/10 gap-2 transition-all active:scale-95 text-xs"
+                                                                    className="h-9 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-lg shadow-indigo-900/10 gap-2 transition-all active:scale-95 text-xs"
                                                                 >
                                                                     {isGeneratingAI ? (
                                                                         <>
@@ -581,11 +641,40 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                                     ) : (
                                                                         <>
                                                                             {/* <Sparkles className="w-3.5 h-3.5" /> */}
-
                                                                             GENERATE WITH AI
                                                                         </>
                                                                     )}
                                                                 </Button>
+                                                                
+                                                                <div className="w-px h-6 bg-indigo-100 mx-1 hidden md:block" />
+                                                                
+                                                                <div className="flex items-center gap-2">
+                                                                    <input 
+                                                                        type="file" 
+                                                                        accept=".csv" 
+                                                                        className="hidden" 
+                                                                        id="csv-upload" 
+                                                                        onChange={handleCSVUpload}
+                                                                    />
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="outline"
+                                                                        className="h-9 px-4 border-indigo-200 text-indigo-600 hover:bg-indigo-50 font-medium rounded-xl gap-2 transition-all text-xs"
+                                                                        onClick={() => document.getElementById('csv-upload')?.click()}
+                                                                    >
+                                                                        <Upload className="w-3.5 h-3.5" />
+                                                                        BULK IMPORT
+                                                                    </Button>
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="ghost"
+                                                                        className="h-9 w-9 p-0 text-slate-400 hover:text-indigo-600 rounded-xl"
+                                                                        title="Download Sample CSV Template"
+                                                                        onClick={downloadSampleCSV}
+                                                                    >
+                                                                        <FileSpreadsheet className="w-4 h-4" />
+                                                                    </Button>
+                                                                </div>
                                                             </div>
                                                         </div>
 
@@ -593,7 +682,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                             {(newLesson.assignment.questions || []).map((q: any, qIdx: number) => (
                                                                 <div key={qIdx} className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 space-y-4 relative group/quiz">
                                                                     <div className="flex items-center gap-3 mb-2">
-                                                                        <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center">Q{qIdx + 1}</div>
+                                                                        <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white text-[10px] font-medium flex items-center justify-center">Q{qIdx + 1}</div>
                                                                         <Input
                                                                             placeholder="Define your question challenge..."
                                                                             value={q.question}
@@ -602,7 +691,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                                                 updatedQuestions[qIdx].question = e.target.value;
                                                                                 setNewLesson({ ...newLesson, assignment: { ...newLesson.assignment, questions: updatedQuestions } });
                                                                             }}
-                                                                            className="bg-white border-slate-200 h-12 rounded-xl flex-1 font-semibold"
+                                                                            className="bg-white border-slate-200 h-12 rounded-xl flex-1 font-medium"
                                                                         />
                                                                     </div>
                                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-0 md:pl-10">
@@ -648,7 +737,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                             variant="outline"
                                                             size="sm"
                                                             disabled={(newLesson.assignment.questions || []).length >= 10}
-                                                            className="w-full border-dashed border-2 border-indigo-100 hover:border-indigo-300 hover:bg-indigo-50/50 rounded-xl h-11 md:h-12 text-indigo-600 font-bold gap-2 text-xs md:text-sm"
+                                                            className="w-full border-dashed border-2 border-indigo-100 hover:border-indigo-300 hover:bg-indigo-50/50 rounded-xl h-11 md:h-12 text-indigo-600 font-medium gap-2 text-xs md:text-sm"
                                                             onClick={() => {
                                                                 const currentQuestions = newLesson.assignment.questions || [];
                                                                 if (currentQuestions.length >= 10) return;
@@ -665,7 +754,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                             {(newLesson.assignment.questions || []).length >= 10 ? 'MAXIMUM 10 QUESTIONS REACHED' : 'Append Challenge Question'}
                                                         </Button>
                                                         {(newLesson.assignment.questions || []).length >= 10 && (
-                                                            <p className="text-center text-xs font-bold text-amber-600">
+                                                            <p className="text-center text-xs font-medium text-amber-600">
                                                                 Maximum of 10 questions allowed per quiz.
                                                             </p>
                                                         )}
@@ -686,14 +775,14 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                             assignment: { title: '', description: '', maxScore: 10, type: 'task', questions: [] }
                                                         });
                                                     }}
-                                                    className="rounded-xl font-bold text-slate-500"
+                                                    className="rounded-xl font-medium text-slate-500"
                                                 >
                                                     Cancel
                                                 </Button>
                                                 <Button
                                                     onClick={() => handleAddLesson(module._id)}
                                                     disabled={isSaving || !newLesson.name}
-                                                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl h-11 px-8 shadow-md"
+                                                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl h-11 px-8 shadow-md"
                                                 >
                                                     {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : (editingLessonId ? "Save Changes" : "Establish Session")}
                                                 </Button>
@@ -702,7 +791,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                     ) : (
                                         <Button
                                             variant="outline"
-                                            className="w-full h-14 border-dashed border-2 border-slate-200 rounded-2xl text-slate-400 font-bold hover:bg-slate-50 hover:border-indigo-200 hover:text-indigo-500 transition-all duration-300"
+                                            className="w-full h-14 border-dashed border-2 border-slate-200 rounded-2xl text-slate-400 font-medium hover:bg-slate-50 hover:border-indigo-200 hover:text-indigo-500 transition-all duration-300"
                                             onClick={() => {
                                                 setEditingLessonId(null);
                                                 setActiveModuleId(module._id);
@@ -725,13 +814,13 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                         <Sparkles className="w-4 md:w-5 h-4 md:h-5" />
                     </div> */}
                     <p className="text-[10px] md:text-sm font-medium leading-tight">
-                        You can always return to <span className="text-indigo-600 font-bold">The Architect</span> to refine your curriculum later.
+                        You can always return to <span className="text-indigo-600 font-medium">The Architect</span> to refine your curriculum later.
                     </p>
                 </div>
                 <div className="flex items-center gap-3 w-full md:w-auto">
                     <Button
                         onClick={onComplete}
-                        className="h-12 md:h-14 px-8 md:px-10 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-100 transition-all active:scale-95 group text-sm md:text-base flex-1 md:flex-none"
+                        className="h-12 md:h-14 px-8 md:px-10 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-2xl shadow-lg shadow-indigo-100 transition-all active:scale-95 group text-sm md:text-base flex-1 md:flex-none"
                     >
                         Publish Curriculum
                         <ArrowRight className="w-4 md:w-5 h-4 md:h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -749,24 +838,24 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                         <div className="w-16 h-16 rounded-3xl bg-rose-50 flex items-center justify-center text-rose-500 mx-auto mb-2">
                             <Trash2 className="w-8 h-8" />
                         </div>
-                        <AlertDialogTitle className="text-2xl font-bold text-center text-slate-900">
+                        <AlertDialogTitle className="text-2xl font-medium text-center text-slate-900">
                             Confirm Removal
                         </AlertDialogTitle>
                         <AlertDialogDescription className="text-center text-slate-500 text-base leading-relaxed">
-                            Are you sure you want to remove <span className="text-slate-900 font-bold italic">"{deleteConfirm.title}"</span>? 
+                            Are you sure you want to remove <span className="text-slate-900 font-medium italic">"{deleteConfirm.title}"</span>? 
                             {deleteConfirm.type === 'module' 
                                 ? " This will permanently delete all associated sessions, student submissions, and progress data. This action cannot be undone." 
                                 : " This will remove all student submissions and progress associated with this session."}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="flex-col sm:flex-row gap-3 mt-8">
-                        <AlertDialogCancel className="h-12 rounded-2xl font-bold text-slate-500 hover:bg-slate-50 border-slate-100 flex-1">
+                        <AlertDialogCancel className="h-12 rounded-2xl font-medium text-slate-500 hover:bg-slate-50 border-slate-100 flex-1">
                             Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={confirmDelete}
                             disabled={isSaving}
-                            className="h-12 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white font-bold shadow-lg shadow-rose-100 border-none flex-1"
+                            className="h-12 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white font-medium shadow-lg shadow-rose-100 border-none flex-1"
                         >
                             {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                             Confirm Delete

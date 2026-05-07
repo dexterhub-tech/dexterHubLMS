@@ -47,6 +47,7 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
         { href: '/dashboard/courses', label: 'Courses', icon: Library },
         { href: '/dashboard/cohorts', label: 'Cohorts', icon: BookOpen },
         { href: '/dashboard/learners', label: 'Students', icon: Users },
+        { href: '/dashboard/submissions', label: 'Submissions', icon: CheckSquare },
         { href: '/dashboard/applications', label: 'Applications', icon: FileText },
     ];
 
@@ -55,9 +56,14 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
         { href: '/admin/cohorts', label: 'Cohorts', icon: BookOpen },
         { href: '/admin/learners', label: 'Users', icon: Users },
         { href: '/admin/recommendations', label: 'Reviews', icon: Sparkles },
+        { href: '/dashboard/submissions', label: 'Submissions', icon: CheckSquare },
     ];
 
-    const links = role === 'admin' ? adminLinks : role === 'instructor' ? instructorLinks : learnerLinks;
+    const links = ['admin', 'super-admin'].includes(user?.role || '') 
+        ? adminLinks 
+        : user?.role === 'instructor' 
+            ? instructorLinks 
+            : learnerLinks;
 
     return (
         <div className="flex flex-col h-full">
@@ -68,10 +74,10 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
                         <Sparkles className="w-6 h-6 text-white" />
                     </div> */}
                     <div>
-                        <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
+                        <h1 className="text-xl font-medium text-slate-900 tracking-tight">
                             Dexter<span className="text-indigo-600">Hub</span>
                         </h1>
-                        <p className="text-[10px] uppercase tracking-widest font-semibold text-slate-400">Education Hub</p>
+                        <p className="text-[10px] uppercase tracking-widest font-medium text-slate-400">Education Hub</p>
                     </div>
                 </div>
             </div>
@@ -79,7 +85,7 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
             {/* Main Navigation */}
             <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto custom-scrollbar pt-2">
                 <div className="px-4 mb-4">
-                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Main Menu</p>
+                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Main Menu</p>
                 </div>
                 {links.map((link) => {
                     const Icon = link.icon;
@@ -98,7 +104,7 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
                             )}
                         >
                             <Icon className={cn("w-5 h-5", isActive ? "text-white" : "text-slate-400 group-hover:text-indigo-600")} />
-                            <span className="text-sm font-semibold">{link.label}</span>
+                            <span className="text-sm font-medium">{link.label}</span>
                             {isActive && (
                                 <div className="absolute right-4 w-1.5 h-1.5 bg-white rounded-full" />
                             )}
@@ -114,9 +120,9 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
                         <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:scale-125 transition-transform">
                             <Sparkles className="w-12 h-12" />
                         </div>
-                        <p className="text-xs font-semibold opacity-80 mb-1">Upgrade to Pro</p>
-                        <p className="text-sm font-semibold mb-3 leading-tight">Get unlimited access to premium courses.</p>
-                        <button className="w-full py-2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl text-xs font-semibold transition-all">
+                        <p className="text-xs font-medium opacity-80 mb-1">Upgrade to Pro</p>
+                        <p className="text-sm font-medium mb-3 leading-tight">Get unlimited access to premium courses.</p>
+                        <button className="w-full py-2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl text-xs font-medium transition-all">
                             Upgrade Now
                         </button>
                     </div>
@@ -129,12 +135,12 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
                     <div className="flex items-center gap-3">
                         <Avatar className="w-10 h-10 border-2 border-white shadow-sm">
                             <AvatarImage src={user?.avatar} />
-                            <AvatarFallback className="bg-white text-indigo-600 font-semibold">
+                            <AvatarFallback className="bg-white text-indigo-600 font-medium">
                                 {user?.firstName?.[0] || 'U'}{user?.lastName?.[0] || ''}
                             </AvatarFallback>
                         </Avatar>
                         <div className="max-w-[100px]">
-                            <p className="text-sm font-semibold text-slate-800 truncate">{user?.firstName} {user?.lastName}</p>
+                            <p className="text-sm font-medium text-slate-800 truncate">{user?.firstName} {user?.lastName}</p>
                             <p className="text-[10px] text-slate-400 font-medium truncate capitalize">{role}</p>
                         </div>
                     </div>

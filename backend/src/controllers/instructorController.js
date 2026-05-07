@@ -54,6 +54,8 @@ exports.getInstructorLearners = async (req, res) => {
         console.log(`[getInstructorLearners] User records found: ${learners.length}`);
 
         // 3. Enhance with progress data for the specific instructor's cohorts
+        const Submission = require('../models/Submission');
+        
         const learnersWithStatus = await Promise.all(learners.map(async (learner) => {
             // Find all progress records for this learner in instructor's cohorts
             const progressRecords = await LearnerProgress.find({
@@ -64,15 +66,34 @@ exports.getInstructorLearners = async (req, res) => {
             // Prioritize active progress over dropped
             const activeProgress = progressRecords.find(p => p.status !== 'dropped') || progressRecords[0];
 
+            // Calculate real-time score from graded submissions
+            const gradedSubmissions = await Submission.find({
+                learnerId: learner._id,
+                cohortId: { $in: cohortIds },
+                status: 'graded'
+            });
+
+            let calculatedScore = activeProgress?.currentScore || 0;
+            if (gradedSubmissions.length > 0) {
+                const totalGrade = gradedSubmissions.reduce((sum, s) => sum + (s.grade || 0), 0);
+                // Convert average grade (out of 10) to percentage (0-100)
+                calculatedScore = Math.round((totalGrade / (gradedSubmissions.length * 10)) * 100);
+            }
+
+            let status = activeProgress?.status || 'on-track';
+            if (gradedSubmissions.length > 0 && calculatedScore < 50) {
+                status = 'at-risk';
+            }
+
             return {
                 id: learner._id,
                 firstName: learner.firstName,
                 lastName: learner.lastName,
                 email: learner.email,
-                status: activeProgress?.status || 'on-track',
-                currentScore: activeProgress?.currentScore || 0,
+                status: status,
+                currentScore: calculatedScore,
                 inactivityDays: activeProgress?.inactivityDays || 0,
-                cohortId: activeProgress?.cohortId || cohortIds[0] // Fallback to first cohort if no progress
+                cohortId: activeProgress?.cohortId || (activeProgress?.cohortId || cohortIds[0])
             };
         }));
 
@@ -88,24 +109,63 @@ exports.getInstructorLearners = async (req, res) => {
 exports.getDashboardStats = async (req, res) => {
     try {
         const instructorId = req.user.id;
-        // 1. Find cohorts managed by the instructor
-        const query = {};
         const isAdmin = ['admin', 'super-admin'].includes(req.user.role);
+        const mongoose = require('mongoose');
+        const instructorObjectId = new mongoose.Types.ObjectId(instructorId);
+        const Course = require('../models/Course');
+        const EnrollmentRequest = require('../models/EnrollmentRequest');
         
-        if (!isAdmin && req.user.role === 'instructor') {
-            query.instructorIds = instructorId;
+        let cohortIds = [];
+        let cohorts = [];
+        let myCourseIds = [];
+
+        if (isAdmin) {
+            cohorts = await Cohort.find({});
+            cohortIds = cohorts.map(c => c._id);
+        } else {
+            // Find all courses taught by this instructor
+            const myCourses = await Course.find({ instructorId: instructorObjectId }).select('_id');
+            myCourseIds = myCourses.map(c => c._id);
+
+            // Find cohorts where instructor is directly assigned
+            const managedCohorts = await Cohort.find({ instructorIds: instructorObjectId });
+            
+            // Find cohorts containing instructor's courses
+            const contentCohorts = await Cohort.find({ courseIds: { $in: myCourseIds } });
+
+            // Combine and unique
+            const allCohorts = [...managedCohorts, ...contentCohorts];
+            const uniqueCohortIds = [...new Set(allCohorts.map(c => c._id.toString()))];
+            
+            cohorts = await Cohort.find({ _id: { $in: uniqueCohortIds } });
+            cohortIds = cohorts.map(c => c._id);
         }
-        
-        const cohorts = await Cohort.find(query);
-        const cohortIds = cohorts.map(c => c._id);
 
         // 2. Total Students Count
-        const uniqueLearnerIds = [...new Set(cohorts.flatMap(c =>
-            (c.learnerIds || []).map(id => id.toString())
-        ))];
+        let targetLearnerIds = [];
+        if (isAdmin) {
+            targetLearnerIds = [...new Set(cohorts.flatMap(c => (c.learnerIds || []).map(id => id.toString())))];
+        } else {
+            // Get learners from approved course enrollments ONLY for instructors
+            const approvedRequests = await EnrollmentRequest.find({
+                courseId: { $in: myCourseIds },
+                status: 'approved'
+            }).select('learnerId');
+            
+            targetLearnerIds = [...new Set(approvedRequests.map(r => r.learnerId.toString()))];
+        }
+
+        const uniqueLearnerIds = targetLearnerIds;
+
+        // 2b. Total Courses Count
+        let totalCourses = 0;
+        if (isAdmin) {
+            totalCourses = await Course.countDocuments({});
+        } else {
+            totalCourses = myCourseIds.length;
+        }
 
         // 3. Growth Data (Last 12 months)
-        const EnrollmentRequest = require('../models/EnrollmentRequest');
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const growthData = [];
         const now = new Date();
@@ -116,18 +176,41 @@ exports.getDashboardStats = async (req, res) => {
             const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
             const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59);
 
-            const count = await EnrollmentRequest.countDocuments({
-                cohortId: { $in: cohortIds },
+            const query = {
                 status: 'approved',
                 reviewedAt: { $gte: startOfMonth, $lte: endOfMonth }
-            });
+            };
 
+            if (!isAdmin) {
+                query.courseId = { $in: myCourseIds };
+            } else {
+                query.cohortId = { $in: cohortIds };
+            }
+
+            const count = await EnrollmentRequest.countDocuments(query);
             growthData.push({ name: monthName, students: count });
         }
 
         // 4. Recent Activities
         const Submission = require('../models/Submission');
-        const recentSubmissions = await Submission.find({ cohortId: { $in: cohortIds } })
+        const Module = require('../models/Module');
+        const Lesson = require('../models/Lesson');
+
+        let submissionQuery = { cohortId: { $in: cohortIds } };
+        let requestQuery = { cohortId: { $in: cohortIds }, status: 'pending' };
+
+        if (!isAdmin) {
+            // Get all lessons for instructor's courses to filter submissions
+            const myModules = await Module.find({ courseId: { $in: myCourseIds } }).select('_id');
+            const myModuleIds = myModules.map(m => m._id);
+            const myLessons = await Lesson.find({ moduleId: { $in: myModuleIds } }).select('_id');
+            const myLessonIds = myLessons.map(l => l._id);
+
+            submissionQuery.lessonId = { $in: myLessonIds };
+            requestQuery.courseId = { $in: myCourseIds };
+        }
+
+        const recentSubmissions = await Submission.find(submissionQuery)
             .populate('learnerId', 'firstName lastName')
             .populate('lessonId', 'name')
             .sort({ submittedAt: -1 })
@@ -139,11 +222,7 @@ exports.getDashboardStats = async (req, res) => {
             time: s.submittedAt
         }));
 
-        // Add enrollment requests to activities
-        const pendingRequests = await EnrollmentRequest.find({
-            cohortId: { $in: cohortIds },
-            status: 'pending'
-        })
+        const pendingRequests = await EnrollmentRequest.find(requestQuery)
             .populate('learnerId', 'firstName lastName')
             .populate('courseId', 'name')
             .sort({ createdAt: -1 })
@@ -155,17 +234,22 @@ exports.getDashboardStats = async (req, res) => {
             time: r.createdAt
         })));
 
-        // Sort activities by time descendently
         activities.sort((a, b) => new Date(b.time) - new Date(a.time));
 
         // 5. Avg Completion (Calculated from LearnerProgress)
-        const progressRecords = await LearnerProgress.find({ cohortId: { $in: cohortIds } });
+        let progressQuery = { cohortId: { $in: cohortIds } };
+        if (!isAdmin) {
+            progressQuery.courseId = { $in: myCourseIds };
+        }
+        
+        const progressRecords = await LearnerProgress.find(progressQuery);
         const totalScore = progressRecords.reduce((acc, curr) => acc + (curr.currentScore || 0), 0);
         const avgCompletion = progressRecords.length > 0 ? Math.round(totalScore / progressRecords.length) : 0;
 
         res.json({
             stats: {
                 totalStudents: uniqueLearnerIds.length,
+                totalCourses: totalCourses,
                 activeCohorts: cohorts.filter(c => c.status === 'active').length,
                 avgCompletion: avgCompletion
             },
