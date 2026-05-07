@@ -12,50 +12,43 @@ exports.getInstructorLearners = async (req, res) => {
 
         console.log(`[getInstructorLearners] Fetching for user: ${instructorId}, role: ${req.user.role}`);
 
-        // 1. Find cohorts
-        let query = {};
-        if (!isAdmin && req.user.role === 'instructor') {
+        // 1. Find cohorts and courses associated with the instructor
+        let cohortIds = [];
+        let targetLearnerIds = [];
+
+        if (isAdmin) {
+            const cohorts = await Cohort.find({});
+            cohortIds = cohorts.map(c => c._id);
+            targetLearnerIds = [...new Set(cohorts.flatMap(c => (c.learnerIds || []).map(id => id.toString())))];
+            console.log(`[getInstructorLearners] Admin mode: Found ${targetLearnerIds.length} total learners across all cohorts`);
+        } else {
             const mongoose = require('mongoose');
             const instructorObjectId = new mongoose.Types.ObjectId(instructorId);
-
-            // Find all courses owned by this instructor
             const Course = require('../models/Course');
-            const instructorCourses = await Course.find({ instructorId: instructorObjectId }).select('_id');
-            const instructorCourseIds = instructorCourses.map(c => c._id);
+            const EnrollmentRequest = require('../models/EnrollmentRequest');
 
-            console.log(`[getInstructorLearners] Instructor owns ${instructorCourseIds.length} courses`);
+            // Find all courses taught by this instructor
+            const myCourses = await Course.find({ instructorId: instructorObjectId }).select('_id');
+            const myCourseIds = myCourses.map(c => c._id);
 
-            // Find cohorts where instructor is directly assigned OR owns a course in the cohort
-            query = {
-                $or: [
-                    { instructorIds: instructorObjectId },
-                    { courseIds: { $in: instructorCourseIds } }
-                ]
-            };
+            // Find all approved enrollment requests for these courses
+            const approvedRequests = await EnrollmentRequest.find({
+                courseId: { $in: myCourseIds },
+                status: 'approved'
+            }).select('learnerId cohortId');
+
+            targetLearnerIds = [...new Set(approvedRequests.map(r => r.learnerId.toString()))];
+            cohortIds = [...new Set(approvedRequests.map(r => r.cohortId.toString()))];
+
+            console.log(`[getInstructorLearners] Instructor owns ${myCourseIds.length} courses`);
+            console.log(`[getInstructorLearners] Found ${targetLearnerIds.length} learners with approved enrollment in instructor's courses`);
         }
 
-        console.log(`[getInstructorLearners] Cohort query:`, JSON.stringify(query));
-        const cohorts = await Cohort.find(query);
-        console.log(`[getInstructorLearners] Found ${cohorts.length} cohorts`);
-
-        if (cohorts.length === 0) {
+        if (targetLearnerIds.length === 0) {
             return res.json([]);
         }
 
-        const cohortIds = cohorts.map(c => c._id);
-
-        // 2. Find all unique learners in these cohorts with safety check
-        const uniqueLearnerIds = [...new Set(cohorts.flatMap(c =>
-            (c.learnerIds || []).map(id => id.toString())
-        ))];
-
-        console.log(`[getInstructorLearners] Unique learner IDs found: ${uniqueLearnerIds.length}`);
-
-        if (uniqueLearnerIds.length === 0) {
-            return res.json([]);
-        }
-
-        const learners = await User.find({ _id: { $in: uniqueLearnerIds } })
+        const learners = await User.find({ _id: { $in: targetLearnerIds } })
             .select('firstName lastName email');
         
         console.log(`[getInstructorLearners] User records found: ${learners.length}`);

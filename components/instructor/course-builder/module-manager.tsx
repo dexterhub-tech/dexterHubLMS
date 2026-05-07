@@ -11,6 +11,16 @@ import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import dynamic from 'next/dynamic';
 import 'react-quill-new/dist/quill.snow.css';
 
@@ -68,6 +78,19 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
     });
     const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
 
+    // Delete confirmation state
+    const [deleteConfirm, setDeleteConfirm] = useState<{
+        isOpen: boolean;
+        type: 'module' | 'lesson';
+        moduleId?: string;
+        lessonId?: string;
+        title: string;
+    }>({
+        isOpen: false,
+        type: 'module',
+        title: ''
+    });
+
     const handleAddModule = async () => {
         if (!newModuleName.trim()) return;
         setIsSaving(true);
@@ -105,18 +128,6 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
             setIsSaving(false);
         }
     };
-
-    const handleDeleteModule = async (moduleId: string) => {
-        if (!confirm('Are you sure you want to remove this module and all its sessions?')) return;
-        try {
-            // Need deleted API or handle locally if API doesn't support
-            // For now, let's assume api exists or we filter locally
-            // Looking at api.ts, I don't see deleteModule. Let's stick to edits for now as requested.
-        } catch (error) {
-            toast.error('Failed to remove module.');
-        }
-    };
-
     const handleAddLesson = async (moduleId: string) => {
         if (!newLesson.name) return;
         setIsSaving(true);
@@ -168,21 +179,48 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
         }
     };
 
-    const handleDeleteLesson = async (moduleId: string, lessonId: string) => {
-        if (!confirm('Remove this session?')) return;
+    const handleDeleteLesson = (moduleId: string, lessonId: string, title: string) => {
+        setDeleteConfirm({
+            isOpen: true,
+            type: 'lesson',
+            moduleId,
+            lessonId,
+            title
+        });
+    };
+
+    const handleDeleteModule = (moduleId: string, title: string) => {
+        setDeleteConfirm({
+            isOpen: true,
+            type: 'module',
+            moduleId,
+            title
+        });
+    };
+
+    const confirmDelete = async () => {
+        const { type, moduleId, lessonId } = deleteConfirm;
+        setIsSaving(true);
         try {
-            await api.deleteLesson(lessonId);
-            
-            const updatedModules = modules.map(m => {
-                if (m._id === moduleId) {
-                    return { ...m, lessons: m.lessons.filter((l: any) => l._id !== lessonId) };
-                }
-                return m;
-            });
-            setModules(updatedModules);
-            toast.success('Session removed.');
+            if (type === 'module' && moduleId) {
+                await api.deleteModule(moduleId);
+                setModules(prev => prev.filter(m => m._id !== moduleId));
+                toast.success('Module and associated data removed.');
+            } else if (type === 'lesson' && lessonId && moduleId) {
+                await api.deleteLesson(lessonId);
+                setModules(prev => prev.map(m => {
+                    if (m._id === moduleId) {
+                        return { ...m, lessons: m.lessons.filter((l: any) => l._id !== lessonId) };
+                    }
+                    return m;
+                }));
+                toast.success('Session removed.');
+            }
         } catch (error) {
-            toast.error('Failed to remove session.');
+            toast.error(`Failed to remove ${type}.`);
+        } finally {
+            setIsSaving(false);
+            setDeleteConfirm(prev => ({ ...prev, isOpen: false }));
         }
     };
 
@@ -321,18 +359,32 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                     <h3 className="text-lg md:text-xl font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight ">
                                                         {module.name}
                                                     </h3>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="opacity-0 group-hover/title:opacity-100 h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setEditingModuleId(module._id);
-                                                            setEditingModuleName(module.name);
-                                                        }}
-                                                    >
-                                                        <Pencil className="w-3.5 h-3.5" />
-                                                    </Button>
+                                                    <div className="flex items-center gap-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="opacity-0 group-hover/title:opacity-100 h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setEditingModuleId(module._id);
+                                                                setEditingModuleName(module.name);
+                                                            }}
+                                                        >
+                                                            <Pencil className="w-3.5 h-3.5" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="opacity-0 group-hover/title:opacity-100 h-8 w-8 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
+                                                            disabled={isSaving}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteModule(module._id, module.name);
+                                                            }}
+                                                        >
+                                                            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             )}
                                             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
@@ -395,7 +447,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                             variant="ghost"
                                                             size="icon"
                                                             className="text-slate-300 hover:text-rose-500 rounded-xl h-9 w-9"
-                                                            onClick={() => handleDeleteLesson(module._id, lesson._id)}
+                                                            onClick={() => handleDeleteLesson(module._id, lesson._id, lesson.name)}
                                                         >
                                                             <Trash2 className="w-4 h-4" />
                                                         </Button>
@@ -497,7 +549,8 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                         <div className="md:flex items-center justify-between border-b border-slate-50 pb-4">
                                                             <div className="space-y-1">
                                                                 <h5 className="text-sm font-bold text-indigo-900 uppercase tracking-widest flex items-center gap-2">
-                                                                    <Sparkles className="w-4 h-4" /> Quiz Architect
+                                                                    {/* <Sparkles className="w-4 h-4" />  */}
+                                                                    Quiz Architect
                                                                 </h5>
                                                                 <p className="text-[10px] font-bold text-slate-400">{(newLesson.assignment.questions || []).length} CHALLENGES ADDED</p>
                                                             </div>
@@ -527,7 +580,8 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                                         </>
                                                                     ) : (
                                                                         <>
-                                                                            <Sparkles className="w-3.5 h-3.5" />
+                                                                            {/* <Sparkles className="w-3.5 h-3.5" /> */}
+
                                                                             GENERATE WITH AI
                                                                         </>
                                                                     )}
@@ -667,9 +721,9 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
             {/* Completion Section */}
             <div className="pt-10 md:pt-12 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
                 <div className="flex items-center gap-4 text-slate-500 bg-slate-50/50 px-5 md:px-6 py-3 rounded-2xl border border-slate-100 w-full md:w-auto">
-                    <div className="w-8 md:w-10 h-8 md:h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                    {/* <div className="w-8 md:w-10 h-8 md:h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
                         <Sparkles className="w-4 md:w-5 h-4 md:h-5" />
-                    </div>
+                    </div> */}
                     <p className="text-[10px] md:text-sm font-medium leading-tight">
                         You can always return to <span className="text-indigo-600 font-bold">The Architect</span> to refine your curriculum later.
                     </p>
@@ -684,6 +738,42 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                     </Button>
                 </div>
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog 
+                open={deleteConfirm.isOpen} 
+                onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, isOpen: open }))}
+            >
+                <AlertDialogContent className="rounded-[32px] border-slate-100 shadow-2xl p-8 max-w-md">
+                    <AlertDialogHeader className="space-y-4">
+                        <div className="w-16 h-16 rounded-3xl bg-rose-50 flex items-center justify-center text-rose-500 mx-auto mb-2">
+                            <Trash2 className="w-8 h-8" />
+                        </div>
+                        <AlertDialogTitle className="text-2xl font-bold text-center text-slate-900">
+                            Confirm Removal
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-center text-slate-500 text-base leading-relaxed">
+                            Are you sure you want to remove <span className="text-slate-900 font-bold italic">"{deleteConfirm.title}"</span>? 
+                            {deleteConfirm.type === 'module' 
+                                ? " This will permanently delete all associated sessions, student submissions, and progress data. This action cannot be undone." 
+                                : " This will remove all student submissions and progress associated with this session."}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="flex-col sm:flex-row gap-3 mt-8">
+                        <AlertDialogCancel className="h-12 rounded-2xl font-bold text-slate-500 hover:bg-slate-50 border-slate-100 flex-1">
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmDelete}
+                            disabled={isSaving}
+                            className="h-12 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white font-bold shadow-lg shadow-rose-100 border-none flex-1"
+                        >
+                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                            Confirm Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

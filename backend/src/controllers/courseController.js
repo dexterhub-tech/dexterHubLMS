@@ -1,6 +1,9 @@
 const Course = require('../models/Course');
 const Module = require('../models/Module');
 const Lesson = require('../models/Lesson');
+const Submission = require('../models/Submission');
+const Task = require('../models/Task');
+const LearnerProgress = require('../models/LearnerProgress');
 
 // --- Course Operations ---
 
@@ -170,13 +173,78 @@ exports.updateLesson = async (req, res) => {
 // Delete a Lesson
 exports.deleteLesson = async (req, res) => {
     try {
-        const lesson = await Lesson.findByIdAndDelete(req.params.id);
+        const lessonId = req.params.id;
+        const lesson = await Lesson.findById(lessonId);
         if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
 
-        // Remove from Module
-        await Module.findByIdAndUpdate(lesson.moduleId, { $pull: { lessons: lesson._id } });
+        const moduleId = lesson.moduleId;
 
-        res.json({ message: 'Lesson deleted successfully' });
+        // 1. Delete associated Submissions
+        await Submission.deleteMany({ lessonId });
+
+        // 2. Delete associated Tasks (where relatedId is the lessonId)
+        await Task.deleteMany({ relatedId: lessonId });
+
+        // 3. Remove from all LearnerProgress.completedLessons
+        await LearnerProgress.updateMany(
+            { completedLessons: lessonId },
+            { $pull: { completedLessons: lessonId } }
+        );
+
+        // 4. Remove from Module
+        await Module.findByIdAndUpdate(moduleId, { $pull: { lessons: lessonId } });
+
+        // 5. Delete the Lesson document itself
+        await Lesson.findByIdAndDelete(lessonId);
+
+        res.json({ message: 'Lesson and associated data deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Delete a Module
+exports.deleteModule = async (req, res) => {
+    try {
+        const moduleId = req.params.id;
+        const module = await Module.findById(moduleId);
+        if (!module) return res.status(404).json({ error: 'Module not found' });
+
+        const courseId = module.courseId;
+
+        // 1. Find all lessons in this module
+        const lessons = await Lesson.find({ moduleId });
+        const lessonIds = lessons.map(l => l._id);
+
+        // 2. Delete associated data for all lessons in this module
+        // Delete Submissions for all these lessons
+        await Submission.deleteMany({ lessonId: { $in: lessonIds } });
+
+        // Delete Tasks for all these lessons
+        await Task.deleteMany({ relatedId: { $in: lessonIds } });
+
+        // Remove these lessons from all LearnerProgress.completedLessons
+        await LearnerProgress.updateMany(
+            { completedLessons: { $in: lessonIds } },
+            { $pull: { completedLessons: { $in: lessonIds } } }
+        );
+
+        // 3. Remove module from all LearnerProgress.moduleProgress
+        await LearnerProgress.updateMany(
+            { 'moduleProgress.moduleId': moduleId },
+            { $pull: { moduleProgress: { moduleId: moduleId } } }
+        );
+
+        // 4. Delete all Lesson documents
+        await Lesson.deleteMany({ moduleId });
+
+        // 5. Remove from Course
+        await Course.findByIdAndUpdate(courseId, { $pull: { modules: moduleId } });
+
+        // 6. Delete the Module document itself
+        await Module.findByIdAndDelete(moduleId);
+
+        res.json({ message: 'Module and all its lessons deleted successfully' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

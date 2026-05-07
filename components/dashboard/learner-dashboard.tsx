@@ -121,7 +121,8 @@ export function LearnerDashboard() {
                 <div className="relative overflow-hidden rounded-[32px] bg-indigo-600 p-8 md:p-14 text-white shadow-2xl shadow-indigo-200">
                     <div className="relative z-10 max-w-2xl space-y-6">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs font-bold uppercase tracking-wider">
-                            <Sparkles className="w-3 h-3" /> Learning Session Active
+                            {/* <Sparkles className="w-3 h-3" /> */}
+                             Learning Session Active
                         </div>
                         <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
                             Welcome back, {user?.firstName}! 👋
@@ -283,7 +284,7 @@ export function LearnerDashboard() {
                                 ) : (
                                     <div className="rounded-[32px] border border-dashed border-slate-200 p-14 text-center bg-emerald-50/30 space-y-3">
                                         <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600">
-                                            <Sparkles className="w-6 h-6" />
+                                            {/* <Sparkles className="w-6 h-6" /> */}
                                         </div>
                                         <div>
                                             <p className="font-semibold text-emerald-900">Schedule Clear</p>

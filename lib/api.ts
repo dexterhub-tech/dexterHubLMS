@@ -395,6 +395,10 @@ class APIClient {
     return this.request(`/api/courses/modules/${id}`, { method: 'PUT', body: JSON.stringify(data) });
   }
 
+  async deleteModule(id: string): Promise<any> {
+    return this.request(`/api/courses/modules/${id}`, { method: 'DELETE' });
+  }
+
   async createLesson(data: any): Promise<any> {
     return this.request('/api/courses/lessons', { method: 'POST', body: JSON.stringify(data) });
   }

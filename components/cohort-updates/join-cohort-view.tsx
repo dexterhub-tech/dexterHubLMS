@@ -50,7 +50,7 @@ export function JoinCohortView({ onJoinSuccess }: { onJoinSuccess: () => void })
                 <div className="space-y-6 text-center">
                     <div className="relative">
                         <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto" />
-                        <Sparkles className="w-6 h-6 text-indigo-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                        {/* <Sparkles className="w-6 h-6 text-indigo-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" /> */}
                     </div>
                     <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px] animate-pulse">Syncing Opportunities</p>
                 </div>

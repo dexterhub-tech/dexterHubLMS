@@ -379,17 +379,28 @@ export default function CoursesPage() {
                       {user?.role === 'instructor' && (
                         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-6 bg-white/60 backdrop-blur-[2px] rounded-[32px] opacity-0 group-hover:opacity-100 transition-all duration-300">
                           <div className="bg-white p-5 rounded-3xl shadow-2xl border border-slate-100 w-full max-w-[240px] text-center space-y-4">
-                            <Button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                router.push(`/instructor/courses/edit/${course.id}`);
-                              }}
-                              variant="outline"
-                              className="w-full h-10 rounded-xl border-slate-200 font-bold text-slate-700 hover:bg-slate-50 gap-2"
-                            >
-                              <Edit3 className="w-4 h-4" />
-                              Update Content
-                            </Button>
+                              <Button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  router.push(`/instructor/courses/edit/${course.id}`);
+                                }}
+                                variant="outline"
+                                className="w-full h-10 rounded-xl border-slate-200 font-bold text-slate-700 hover:bg-slate-50 gap-2"
+                              >
+                                <Edit3 className="w-4 h-4" />
+                                Update Content
+                              </Button>
+
+                              <Button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  router.push(`/dashboard/courses/${course.id}`);
+                                }}
+                                className="w-full h-10 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs gap-2"
+                              >
+                                <Plus className="w-4 h-4" />
+                                View Course
+                              </Button>
 
                             {!course.assignedInAllManaged ? (
                               <div className="space-y-2 pt-2 border-t border-slate-50">

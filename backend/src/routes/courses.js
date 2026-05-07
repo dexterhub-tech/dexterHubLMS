@@ -16,6 +16,7 @@ router.put('/:id', authMiddleware, roleCheck(['instructor', 'admin']), courseCon
 
 router.post('/modules', authMiddleware, roleCheck(['instructor', 'admin']), courseController.createModule);
 router.put('/modules/:id', authMiddleware, roleCheck(['instructor', 'admin']), courseController.updateModule);
+router.delete('/modules/:id', authMiddleware, roleCheck(['instructor', 'admin']), courseController.deleteModule);
 
 router.post('/lessons', authMiddleware, roleCheck(['instructor', 'admin']), courseController.createLesson);
 router.put('/lessons/:id', authMiddleware, roleCheck(['instructor', 'admin']), courseController.updateLesson);
