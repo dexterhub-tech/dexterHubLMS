@@ -25,7 +25,13 @@ exports.updateCourse = async (req, res) => {
             req.params.id,
             { ...req.body },
             { new: true }
-        );
+        ).populate({
+            path: 'modules',
+            populate: {
+                path: 'lessons',
+                model: 'Lesson'
+            }
+        });
         if (!course) return res.status(404).json({ error: 'Course not found' });
         res.json(course);
     } catch (error) {
@@ -156,6 +162,21 @@ exports.updateLesson = async (req, res) => {
         );
         if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
         res.json(lesson);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Delete a Lesson
+exports.deleteLesson = async (req, res) => {
+    try {
+        const lesson = await Lesson.findByIdAndDelete(req.params.id);
+        if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
+
+        // Remove from Module
+        await Module.findByIdAndUpdate(lesson.moduleId, { $pull: { lessons: lesson._id } });
+
+        res.json({ message: 'Lesson deleted successfully' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

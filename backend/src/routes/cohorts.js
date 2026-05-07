@@ -19,6 +19,7 @@ router.get('/:cohortId/learners', authMiddleware, cohortController.getCohortLear
 router.get('/applications/my', authMiddleware, cohortController.getMyApplications);
 router.post('/apply', authMiddleware, cohortController.applyToCourse);
 router.get('/applications/pending', authMiddleware, roleCheck(['instructor', 'admin']), cohortController.listPendingApplications);
+router.post('/applications/bulk-action', authMiddleware, roleCheck(['instructor', 'admin']), cohortController.handleBulkApplications);
 router.post('/applications/:id/action', authMiddleware, roleCheck(['instructor', 'admin']), cohortController.handleApplication);
 
 // Cohort Course Management

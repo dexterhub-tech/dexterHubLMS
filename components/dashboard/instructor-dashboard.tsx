@@ -65,7 +65,8 @@ export function InstructorDashboard() {
                     setActivities(dashboardStats.activities);
 
                     const allCohorts = await api.getCohorts();
-                    const myCohorts = allCohorts.filter(c => c.instructorIds.includes(user.id));
+                    const isAdmin = ['admin', 'super-admin'].includes(user.role);
+                    const myCohorts = isAdmin ? allCohorts : allCohorts.filter(c => c.instructorIds.includes(user.id));
                     setCohorts(myCohorts);
 
                     // Fetch pending enrollment requests
@@ -329,122 +330,7 @@ export function InstructorDashboard() {
 
                 {/* Cohort Overview Table */}
                 {/* Cohort Overview Table */}
-                <Card className="rounded-2xl border-slate-100 shadow-sm overflow-hidden">
-                    <CardHeader className="bg-white border-b border-slate-50 p-4 md:p-6">
-                        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
-                            <div>
-                                <CardTitle className="text-lg font-semibold text-slate-900">Cohort Overview</CardTitle>
-                                <CardDescription>Managing {cohorts.length} total active cohorts</CardDescription>
-                            </div>
-                            <div className="flex flex-col sm:flex-row gap-2">
-                                <div className="relative flex-1 sm:flex-none">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                    <Input className="w-full sm:w-64 h-10 pl-9 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:ring-1 focus:ring-indigo-100 transition-all" placeholder="Search cohorts..." />
-                                </div>
-                                <Button variant="outline" size="sm" className="h-10 rounded-xl border-slate-200 px-4 w-full sm:w-auto">
-                                    <Filter className="w-4 h-4 mr-2" /> Filter
-                                </Button>
-                            </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                        {/* Desktop View */}
-                        <div className="hidden md:block overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="bg-slate-50/50 text-left">
-                                        <th className="py-4 font-semibold text-xs text-slate-500 pl-8 uppercase tracking-wider">Cohort Name</th>
-                                        <th className="py-4 font-semibold text-xs text-slate-500 uppercase tracking-wider">Learners</th>
-                                        <th className="py-4 font-semibold text-xs text-slate-500 uppercase tracking-wider">Status</th>
-                                        <th className="py-4 font-semibold text-xs text-slate-500 uppercase tracking-wider">Rating</th>
-                                        <th className="py-4 font-semibold text-xs text-slate-500 pr-8 text-right uppercase tracking-wider">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="text-sm">
-                                    {cohorts.map((cohort, i) => (
-                                        <tr key={i} className="group hover:bg-slate-50/70 transition-colors border-b border-slate-50 last:border-0">
-                                            <td className="py-5 pl-8">
-                                                <div className="font-semibold text-slate-900">{cohort.name}</div>
-                                                <div className="text-xs text-slate-400">{cohort.description}</div>
-                                            </td>
-                                            <td className="py-5">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-medium text-slate-700">{cohort.learnerIds?.length || 0}</span>
-                                                    <span className="text-xs text-slate-400">enrolled</span>
-                                                </div>
-                                            </td>
-                                            <td className="py-5">
-                                                <Badge variant={cohort.status === 'active' ? 'default' : 'secondary'}
-                                                    className={`rounded-full px-3 py-0.5 font-medium shadow-none whitespace-nowrap
-                                                        ${cohort.status === 'active'
-                                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                                                            : 'bg-amber-50 text-amber-700 border-amber-100'}`}>
-                                                    {cohort.status === 'active' ? 'Active' : 'Draft'}
-                                                </Badge>
-                                            </td>
-                                            <td className="py-5">
-                                                <div className="flex items-center gap-1.5 font-medium text-slate-700">
-                                                    4.8 <span className="text-amber-400">★</span>
-                                                </div>
-                                            </td>
-                                            <td className="py-5 pr-8 text-right">
-                                                <Link href={`/dashboard/cohorts/${cohort._id}`}>
-                                                    <button className="p-2 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors text-slate-400">
-                                                        <MoreHorizontal className="w-5 h-5" />
-                                                    </button>
-                                                </Link>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Mobile View */}
-                        <div className="md:hidden divide-y divide-slate-50">
-                            {cohorts.map((cohort, j) => (
-                                <div key={j} className="p-4 space-y-4 hover:bg-slate-50/70 transition-colors">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <div className="font-semibold text-slate-900">{cohort.name}</div>
-                                            <div className="text-xs text-slate-400 line-clamp-1">{cohort.description}</div>
-                                        </div>
-                                        <Badge variant={cohort.status === 'active' ? 'default' : 'secondary'}
-                                            className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium shadow-none whitespace-nowrap
-                                                ${cohort.status === 'active'
-                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                                                    : 'bg-amber-50 text-amber-700 border-amber-100'}`}>
-                                            {cohort.status === 'active' ? 'Active' : 'Draft'}
-                                        </Badge>
-                                    </div>
-                                    <div className="flex items-center justify-between text-sm">
-                                        <div className="flex items-center gap-4">
-                                            <div className="flex items-center gap-1.5">
-                                                <Users className="w-3.5 h-3.5 text-slate-400" />
-                                                <span className="font-medium text-slate-700">{cohort.learnerIds?.length || 0}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5">
-                                                <span className="text-amber-400 text-xs">★</span>
-                                                <span className="font-medium text-slate-700">4.8</span>
-                                            </div>
-                                        </div>
-                                        <Link href={`/dashboard/cohorts/${cohort._id}`}>
-                                            <Button variant="ghost" size="sm" className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 text-xs font-semibold h-8 rounded-lg px-3">
-                                                Details <ArrowUpRight className="ml-1 w-3 h-3" />
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {cohorts.length === 0 && !isLoading && (
-                            <div className="py-12 text-center text-slate-400 italic text-sm">
-                                No cohorts found. Create your first course to get started!
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+               
             </div>
         </div>
     );

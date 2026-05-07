@@ -41,6 +41,14 @@ exports.getCohortById = async (req, res) => {
         if (!cohort) {
             return res.status(404).json({ error: 'Cohort not found' });
         }
+
+        // Security Check: Restricted to Admins and Super-Admins only
+        const isAdmin = ['admin', 'super-admin'].includes(req.user.role);
+
+        if (!isAdmin) {
+            return res.status(403).json({ error: 'Access Denied: Detailed cohort information is restricted to administrators only.' });
+        }
+
         res.json(cohort);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -227,11 +235,15 @@ exports.getMyApplications = async (req, res) => {
 // List pending applications for instructor/admin
 exports.listPendingApplications = async (req, res) => {
     try {
-        const query = {};
-        // Note: Restrictions for instructors are currently relaxed per user request
-        // if (req.user.role === 'instructor') { ... }
+        const query = { status: 'pending' };
+        
+        if (req.user.role === 'instructor') {
+            const instructorCourses = await Course.find({ instructorId: req.user.id }).select('_id');
+            const courseIds = instructorCourses.map(c => c._id);
+            query.courseId = { $in: courseIds };
+        }
 
-        const applications = await EnrollmentRequest.find({ ...query, status: 'pending' })
+        const applications = await EnrollmentRequest.find(query)
             .populate('learnerId', 'firstName lastName email')
             .populate('courseId', 'name')
             .populate('cohortId', 'name');
@@ -242,15 +254,56 @@ exports.listPendingApplications = async (req, res) => {
     }
 };
 
+// Helper function to process application approval
+const processApproval = async (application, reviewedBy) => {
+    application.status = 'approved';
+
+    // Enroll the student
+    const newProgress = new LearnerProgress({
+        learnerId: application.learnerId,
+        cohortId: application.cohortId,
+        courseId: application.courseId,
+        status: 'on-track',
+        currentScore: 100,
+        learningHoursThisWeek: 0
+    });
+    await newProgress.save();
+
+    // Add learner to cohort
+    await Cohort.findByIdAndUpdate(application.cohortId, {
+        $addToSet: { learnerIds: application.learnerId }
+    });
+
+    // Set as active cohort if they don't have one
+    await User.findByIdAndUpdate(application.learnerId, {
+        $set: { activeCohortId: application.cohortId }
+    });
+
+    // Add learner to COURSE registrars list
+    await Course.findByIdAndUpdate(application.courseId, {
+        $addToSet: { registrars: application.learnerId }
+    });
+
+    application.reviewedBy = reviewedBy;
+    application.reviewedAt = new Date();
+    await application.save();
+    return application;
+};
+
 // Handle application (approve/reject)
 exports.handleApplication = async (req, res) => {
     try {
         const { id } = req.params;
         const { action, reason } = req.body; // action: 'approve' or 'reject'
 
-        const application = await EnrollmentRequest.findById(id);
+        const application = await EnrollmentRequest.findById(id).populate('courseId');
         if (!application) {
             return res.status(404).json({ error: 'Application not found' });
+        }
+
+        // Security Check: Instructors can only process applications for their own courses
+        if (req.user.role === 'instructor' && application.courseId.instructorId.toString() !== req.user.id) {
+            return res.status(403).json({ error: 'You are not authorized to process this application' });
         }
 
         if (application.status !== 'pending') {
@@ -258,46 +311,66 @@ exports.handleApplication = async (req, res) => {
         }
 
         if (action === 'approve') {
-            application.status = 'approved';
-
-            // Enroll the student
-            const newProgress = new LearnerProgress({
-                learnerId: application.learnerId,
-                cohortId: application.cohortId,
-                courseId: application.courseId,
-                status: 'on-track',
-                currentScore: 100,
-                learningHoursThisWeek: 0
-            });
-            await newProgress.save();
-
-            // Add learner to cohort
-            await Cohort.findByIdAndUpdate(application.cohortId, {
-                $addToSet: { learnerIds: application.learnerId }
-            });
-
-            // Set as active cohort if they don't have one
-            await User.findByIdAndUpdate(application.learnerId, {
-                $set: { activeCohortId: application.cohortId }
-            });
-
-            // Add learner to COURSE registrars list
-            await Course.findByIdAndUpdate(application.courseId, {
-                $addToSet: { registrars: application.learnerId }
-            });
-
+            await processApproval(application, req.user.id);
         } else if (action === 'reject') {
             application.status = 'rejected';
             application.reason = reason;
+            application.reviewedBy = req.user.id;
+            application.reviewedAt = new Date();
+            await application.save();
         } else {
             return res.status(400).json({ error: 'Invalid action' });
         }
 
-        application.reviewedBy = req.user.id;
-        application.reviewedAt = new Date();
-        await application.save();
-
         res.json({ message: `Application ${action}d successfully`, application });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Handle bulk applications
+exports.handleBulkApplications = async (req, res) => {
+    try {
+        const { ids, action, reason } = req.body; // ids: array of application IDs
+
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ error: 'No applications selected' });
+        }
+
+        let query = { _id: { $in: ids }, status: 'pending' };
+
+        if (req.user.role === 'instructor') {
+            const instructorCourses = await Course.find({ instructorId: req.user.id }).select('_id');
+            const courseIds = instructorCourses.map(c => c._id);
+            query.courseId = { $in: courseIds };
+        }
+
+        const applications = await EnrollmentRequest.find(query);
+
+        if (applications.length === 0) {
+            return res.status(400).json({ error: 'No pending applications found for the selected IDs' });
+        }
+
+        const results = [];
+        for (const app of applications) {
+            if (action === 'approve') {
+                await processApproval(app, req.user.id);
+                results.push(app._id);
+            } else if (action === 'reject') {
+                app.status = 'rejected';
+                app.reason = reason;
+                app.reviewedBy = req.user.id;
+                app.reviewedAt = new Date();
+                await app.save();
+                results.push(app._id);
+            }
+        }
+
+        res.json({ 
+            message: `Successfully processed ${results.length} applications`, 
+            processedCount: results.length,
+            ids: results 
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

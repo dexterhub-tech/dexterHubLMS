@@ -72,6 +72,17 @@ export default function CohortDetailsPage() {
             try {
                 setIsLoading(true);
                 const cohortData = await api.getCohort(id);
+                
+                // Security Check: ONLY Admins and Super Admins are allowed to view cohort details.
+                // Learners and Instructors are strictly blocked from this view.
+                const isAdmin = user.role === 'admin' || user.role === 'super-admin';
+                
+                if (!isAdmin) {
+                    toast.error('Access Denied: You do not have permission to view detailed cohort configurations.');
+                    router.push('/dashboard/cohorts');
+                    return;
+                }
+
                 setCohort(cohortData);
 
                 if (user.role === 'instructor' || user.role === 'admin') {

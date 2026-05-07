@@ -13,8 +13,10 @@ import {
     BookOpen,
     Calendar,
     ArrowLeft,
-    FileText
+    FileText,
+    Check
 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
@@ -54,6 +56,8 @@ export function ApplicationsList({ backLink, backLabel }: ApplicationsListProps)
     const [applications, setApplications] = useState<Application[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [processingId, setProcessingId] = useState<string | null>(null);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [isBulkProcessing, setIsBulkProcessing] = useState(false);
 
     const fetchApplications = async () => {
         try {
@@ -65,6 +69,7 @@ export function ApplicationsList({ backLink, backLabel }: ApplicationsListProps)
             toast.error('Failed to load applications');
         } finally {
             setIsLoading(false);
+            setSelectedIds(new Set()); // Reset selection on fetch
         }
     };
 
@@ -82,6 +87,39 @@ export function ApplicationsList({ backLink, backLabel }: ApplicationsListProps)
             toast.error(error.message || `Failed to ${action} application`);
         } finally {
             setProcessingId(null);
+        }
+    };
+
+    const handleBulkAction = async (action: 'approve' | 'reject') => {
+        if (selectedIds.size === 0) return;
+        
+        setIsBulkProcessing(true);
+        try {
+            await api.handleBulkApplications(Array.from(selectedIds), action);
+            toast.success(`Successfully ${action}d ${selectedIds.size} applications!`);
+            fetchApplications();
+        } catch (error: any) {
+            toast.error(error.message || `Failed to ${action} applications`);
+        } finally {
+            setIsBulkProcessing(false);
+        }
+    };
+
+    const toggleSelect = (id: string) => {
+        const newSelected = new Set(selectedIds);
+        if (newSelected.has(id)) {
+            newSelected.delete(id);
+        } else {
+            newSelected.add(id);
+        }
+        setSelectedIds(newSelected);
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.size === pendingApps.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(pendingApps.map(a => a._id)));
         }
     };
 
@@ -132,6 +170,19 @@ export function ApplicationsList({ backLink, backLabel }: ApplicationsListProps)
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
+                        {pendingApps.length > 0 && (
+                            <div 
+                                onClick={toggleSelectAll}
+                                className="flex items-center gap-2 bg-white border border-slate-100 rounded-xl px-4 py-2 shadow-sm cursor-pointer hover:bg-slate-50 transition-colors"
+                            >
+                                <Checkbox 
+                                    checked={selectedIds.size === pendingApps.length && pendingApps.length > 0}
+                                    onCheckedChange={toggleSelectAll}
+                                    className="border-slate-300"
+                                />
+                                <span className="text-sm font-medium text-slate-600">Select All</span>
+                            </div>
+                        )}
                         <div className="bg-white border border-slate-100 rounded-xl px-4 py-2 shadow-sm">
                             <span className="text-sm text-slate-500">Pending:</span>
                             <span className="ml-2 font-bold text-indigo-600">{pendingApps.length}</span>
@@ -153,9 +204,20 @@ export function ApplicationsList({ backLink, backLabel }: ApplicationsListProps)
                         pendingApps.map((app) => (
                             <div
                                 key={app._id}
-                                className="bg-white rounded-[24px] p-6 border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300"
+                                className={`bg-white rounded-[24px] p-6 border transition-all duration-300 flex items-start gap-4 ${
+                                    selectedIds.has(app._id) 
+                                    ? 'border-indigo-200 shadow-md bg-indigo-50/10' 
+                                    : 'border-slate-100 shadow-sm hover:shadow-md'
+                                }`}
                             >
-                                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                                <div className="pt-3">
+                                    <Checkbox 
+                                        checked={selectedIds.has(app._id)}
+                                        onCheckedChange={() => toggleSelect(app._id)}
+                                        className="w-5 h-5 border-slate-300 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
+                                    />
+                                </div>
+                                <div className="flex-1 min-w-0 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                                     {/* Applicant Info */}
                                     <div className="flex items-start gap-4 flex-1">
                                         <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 font-bold text-lg flex-shrink-0">
@@ -221,6 +283,37 @@ export function ApplicationsList({ backLink, backLabel }: ApplicationsListProps)
                         ))
                     )}
                 </div>
+
+                {/* Bulk Actions Floating Bar */}
+                {selectedIds.size > 0 && (
+                    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                        <div className="bg-slate-900 text-white rounded-2xl px-6 py-4 shadow-2xl flex items-center gap-6 border border-slate-800">
+                            <div className="flex items-center gap-3 pr-6 border-r border-slate-700">
+                                <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center font-bold text-sm">
+                                    {selectedIds.size}
+                                </div>
+                                <span className="text-sm font-medium text-slate-300 whitespace-nowrap">Applications selected</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Button
+                                    onClick={() => handleBulkAction('approve')}
+                                    disabled={isBulkProcessing}
+                                    className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl h-10 px-6"
+                                >
+                                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                                    {isBulkProcessing ? 'Processing...' : 'Bulk Approve'}
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => setSelectedIds(new Set())}
+                                    className="text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl"
+                                >
+                                    Cancel
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
             </div>
         </div>

@@ -403,6 +403,10 @@ class APIClient {
     return this.request(`/api/courses/lessons/${id}`, { method: 'PUT', body: JSON.stringify(data) });
   }
 
+  async deleteLesson(id: string): Promise<any> {
+    return this.request(`/api/courses/lessons/${id}`, { method: 'DELETE' });
+  }
+
   // Search Public Courses
   async searchPublicCourses(query?: string): Promise<any[]> {
     const url = query ? `/api/courses/public/search?query=${encodeURIComponent(query)}` : '/api/courses/public/search';
@@ -426,6 +430,13 @@ class APIClient {
     return this.request(`/api/cohorts/applications/${id}/action`, {
       method: 'POST',
       body: JSON.stringify({ action, reason })
+    });
+  }
+
+  async handleBulkApplications(ids: string[], action: 'approve' | 'reject', reason?: string): Promise<any> {
+    return this.request('/api/cohorts/applications/bulk-action', {
+      method: 'POST',
+      body: JSON.stringify({ ids, action, reason })
     });
   }
 
