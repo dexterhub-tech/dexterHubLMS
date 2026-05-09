@@ -195,18 +195,18 @@ exports.getLearnerTasks = async (req, res) => {
 
         if (allTasks.length === 0) {
             console.log(`[getLearnerTasks] No tasks found for learner ${learnerId}. Adding debug task.`);
-            allTasks.push({
-                id: 'debug-1',
-                title: `No assignments found for your account`,
-                subject: 'System Check',
-                instructor: 'LMS Bot',
-                type: 'Task',
-                status: 'pending',
-                dueDate: new Date().toISOString(),
-                color: 'yellow',
-                isLocked: false,
-                description: `ID: ${learnerId} | Enrollments: ${enrollments.length} | Cohort: ${cohortId}`
-            });
+            // allTasks.push({
+            //     id: 'debug-1',
+            //     title: `No assignments found for your account`,
+            //     subject: 'System Check',
+            //     instructor: 'LMS Bot',
+            //     type: 'Task',
+            //     status: 'pending',
+            //     dueDate: new Date().toISOString(),
+            //     color: 'yellow',
+            //     isLocked: false,
+            //     description: `ID: ${learnerId} | Enrollments: ${enrollments.length} | Cohort: ${cohortId}`
+            // });
         }
 
         console.log(`[getLearnerTasks] Returning ${allTasks.length} tasks total`);
