@@ -52,6 +52,7 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
         { href: '/dashboard/cohorts', label: 'Cohorts', icon: BookOpen },
         { href: '/dashboard/learners', label: 'Students', icon: Users },
         { href: '/dashboard/submissions', label: 'Submissions', icon: CheckSquare },
+        { href: '/dashboard/applications', label: 'Applications', icon: FileText },
         { href: '/dashboard/profile', label: 'Profile', icon: User },
     ];
 
