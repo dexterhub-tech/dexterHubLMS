@@ -150,7 +150,7 @@ exports.joinCohort = async (req, res) => {
                 learnerId,
                 cohortId,
                 status: 'on-track',
-                currentScore: 100,
+                currentScore: 0,
                 learningHoursThisWeek: 0
             });
             await progress.save();
@@ -264,7 +264,7 @@ const processApproval = async (application, reviewedBy) => {
         cohortId: application.cohortId,
         courseId: application.courseId,
         status: 'on-track',
-        currentScore: 100,
+        currentScore: 0,
         learningHoursThisWeek: 0
     });
     await newProgress.save();

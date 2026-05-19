@@ -22,8 +22,16 @@ exports.updateProfile = async (req, res) => {
     try {
         const { 
             avatar, bio, title, phoneNumber, location, socialLinks,
-            learnerDetails, instructorDetails, adminDetails 
+            learnerDetails, instructorDetails, adminDetails,
+            firstName, lastName
         } = req.body;
+
+        if (firstName || lastName) {
+            const userUpdate = {};
+            if (firstName !== undefined) userUpdate.firstName = firstName;
+            if (lastName !== undefined) userUpdate.lastName = lastName;
+            await User.findByIdAndUpdate(req.user.id, userUpdate);
+        }
 
         const profile = await Profile.findOneAndUpdate(
             { userId: req.user.id },

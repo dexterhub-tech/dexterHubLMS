@@ -1,6 +1,8 @@
 const Submission = require('../models/Submission');
 const LearnerProgress = require('../models/LearnerProgress');
 const Lesson = require('../models/Lesson');
+const Course = require('../models/Course');
+const Module = require('../models/Module');
 
 // Submit an assignment
 exports.submitAssignment = async (req, res) => {
@@ -56,60 +58,80 @@ exports.submitAssignment = async (req, res) => {
                 cohortId
             });
 
-            if (progress) {
-                // 1. Fetch all graded submissions for this learner in this cohort
-                const allSubmissions = await Submission.find({
-                    learnerId,
-                    cohortId,
-                    status: 'graded'
-                });
-
-                if (allSubmissions.length > 0) {
-                    const totalScore = allSubmissions.reduce((acc, curr) => acc + (curr.grade || 0), 0);
-                    const averageScoreRaw = totalScore / allSubmissions.length;
-                    progress.currentScore = (averageScoreRaw / 10) * 100;
-
-                    if (progress.currentScore < 50) {
-                        progress.status = 'failed';
-                    } else {
-                        if (progress.status === 'failed' || progress.status === 'under-review' || progress.status === 'at-risk') {
-                            progress.status = 'on-track';
+                if (progress) {
+                    // 1. Calculate Total Assignments in Course for accurate grading
+                    let totalAssignmentsInCourse = 0;
+                    if (progress.courseId) {
+                        const course = await Course.findById(progress.courseId);
+                        if (course && course.modules) {
+                            const moduleDocs = await Module.find({ _id: { $in: course.modules } });
+                            for (const mDoc of moduleDocs) {
+                                const count = await Lesson.countDocuments({
+                                    _id: { $in: mDoc.lessons },
+                                    'assignment.title': { $exists: true, $nin: ["", null] }
+                                });
+                                totalAssignmentsInCourse += count;
+                            }
                         }
                     }
-                }
 
-                const lesson = await Lesson.findById(lessonId);
-                if (lesson && lesson.moduleId) {
-                    let modProgress = progress.moduleProgress.find(mp => mp.moduleId.toString() === lesson.moduleId.toString());
-                    if (!modProgress) {
-                        progress.moduleProgress.push({ moduleId: lesson.moduleId, scores: [], averageScore: 0, isGraduated: false });
-                        modProgress = progress.moduleProgress.find(mp => mp.moduleId.toString() === lesson.moduleId.toString());
-                    }
-
-                    const moduleLessons = await Lesson.find({ moduleId: lesson.moduleId });
-                    const lessonIds = moduleLessons.map(l => l._id);
-
-                    const moduleSubmissions = await Submission.find({
+                    // 2. Fetch all graded submissions for this learner in this cohort
+                    const allSubmissions = await Submission.find({
                         learnerId,
                         cohortId,
-                        lessonId: { $in: lessonIds },
                         status: 'graded'
                     });
 
-                    if (moduleSubmissions.length > 0) {
-                        const modTotal = moduleSubmissions.reduce((acc, curr) => acc + (curr.grade || 0), 0);
-                        modProgress.averageScore = modTotal / moduleSubmissions.length;
-                        modProgress.scores = moduleSubmissions.map(s => s.grade);
-                        modProgress.isGraduated = modProgress.averageScore >= 70;
+                    if (totalAssignmentsInCourse > 0) {
+                        const totalScore = allSubmissions.reduce((acc, curr) => acc + (curr.grade || 0), 0);
+                        // Divide by total possible marks (totalAssignments * 10)
+                        progress.currentScore = (totalScore / (totalAssignmentsInCourse * 10)) * 100;
+
+                        if (progress.currentScore < 50) {
+                            progress.status = 'failed';
+                        } else {
+                            if (progress.status === 'failed' || progress.status === 'under-review' || progress.status === 'at-risk') {
+                                progress.status = 'on-track';
+                            }
+                        }
                     }
-                }
 
-                if (!progress.completedLessons.includes(lessonId)) {
-                    progress.completedLessons.push(lessonId);
-                }
+                    const lesson = await Lesson.findById(lessonId);
+                    if (lesson && lesson.moduleId) {
+                        let modProgress = progress.moduleProgress.find(mp => mp.moduleId.toString() === lesson.moduleId.toString());
+                        if (!modProgress) {
+                            progress.moduleProgress.push({ moduleId: lesson.moduleId, scores: [], averageScore: 0, isGraduated: false });
+                            modProgress = progress.moduleProgress.find(mp => mp.moduleId.toString() === lesson.moduleId.toString());
+                        }
 
-                await progress.save();
-            }
+                        const moduleLessonsWithAssignments = await Lesson.find({
+                            moduleId: lesson.moduleId,
+                            'assignment.title': { $exists: true, $nin: ["", null] }
+                        });
+                        const totalAssignmentsInModule = moduleLessonsWithAssignments.length;
+                        const lessonIds = moduleLessonsWithAssignments.map(l => l._id);
+
+                        const moduleSubmissions = await Submission.find({
+                            learnerId,
+                            cohortId,
+                            lessonId: { $in: lessonIds },
+                            status: 'graded'
+                        });
+
+                        if (totalAssignmentsInModule > 0) {
+                            const modTotal = moduleSubmissions.reduce((acc, curr) => acc + (curr.grade || 0), 0);
+                            modProgress.averageScore = modTotal / totalAssignmentsInModule;
+                            modProgress.scores = moduleSubmissions.map(s => s.grade);
+                            modProgress.isGraduated = (modProgress.averageScore * 10) >= 70; // averageScore is out of 10
+                        }
+                    }
+
+                    if (!progress.completedLessons.includes(lessonId)) {
+                        progress.completedLessons.push(lessonId);
+                    }
+
+                    await progress.save();
+                }
         } else {
             // Update completedLessons array for regular assignments too
             const progress = await LearnerProgress.findOne({ learnerId, cohortId });
@@ -192,46 +214,62 @@ exports.gradeSubmission = async (req, res) => {
         });
 
         if (progress) {
-            // 1. Fetch all graded submissions for this learner in this cohort
+            // 1. Calculate Total Assignments in Course
+            let totalAssignmentsInCourse = 0;
+            if (progress.courseId) {
+                const course = await Course.findById(progress.courseId);
+                if (course && course.modules) {
+                    const moduleDocs = await Module.find({ _id: { $in: course.modules } });
+                    for (const mDoc of moduleDocs) {
+                        const count = await Lesson.countDocuments({
+                            _id: { $in: mDoc.lessons },
+                            'assignment.title': { $exists: true, $nin: ["", null] }
+                        });
+                        totalAssignmentsInCourse += count;
+                    }
+                }
+            }
+
+            // 2. Fetch all graded submissions for this learner in this cohort
             const allSubmissions = await Submission.find({
                 learnerId: submission.learnerId,
                 cohortId: submission.cohortId,
                 status: 'graded'
             });
 
-            if (allSubmissions.length > 0) {
-                // Calculate average score (each is out of 10)
+            if (totalAssignmentsInCourse > 0) {
+                // Calculate average score relative to total assignments
                 const totalScore = allSubmissions.reduce((acc, curr) => acc + (curr.grade || 0), 0);
-                const averageScoreRaw = totalScore / allSubmissions.length;
-
-                // Convert to Percentage (Avg Score / 10 * 100)
-                progress.currentScore = (averageScoreRaw / 10) * 100;
+                
+                // Convert to Percentage (Total Score / (Total Assignments * 10) * 100)
+                progress.currentScore = (totalScore / (totalAssignmentsInCourse * 10)) * 100;
 
                 // Check for Fail/Pass Status (< 50%)
                 if (progress.currentScore < 50) {
                     progress.status = 'failed';
                 } else {
-                    // Recover from failed/under-review if score improves
                     if (progress.status === 'failed' || progress.status === 'under-review' || progress.status === 'at-risk') {
                         progress.status = 'on-track';
                     }
                 }
             }
 
-            // 2. Calculate Module Progress
+            // 3. Calculate Module Progress
             const lesson = await Lesson.findById(submission.lessonId);
-            if (lesson && lesson.moduleId) { // Ensure lesson is linked to a module (Class)
-                // Find or create module entry
+            if (lesson && lesson.moduleId) {
                 let modProgress = progress.moduleProgress.find(mp => mp.moduleId.toString() === lesson.moduleId.toString());
                 if (!modProgress) {
                     progress.moduleProgress.push({ moduleId: lesson.moduleId, scores: [], averageScore: 0, isGraduated: false });
                     modProgress = progress.moduleProgress.find(mp => mp.moduleId.toString() === lesson.moduleId.toString());
                 }
 
-                // Get all submissions for lessons in THIS module
-                // We need to find all lessons in this module first
-                const moduleLessons = await Lesson.find({ moduleId: lesson.moduleId });
-                const lessonIds = moduleLessons.map(l => l._id);
+                // Get all lessons in THIS module that have assignments
+                const moduleLessonsWithAssignments = await Lesson.find({
+                    moduleId: lesson.moduleId,
+                    'assignment.title': { $exists: true, $nin: ["", null] }
+                });
+                const totalAssignmentsInModule = moduleLessonsWithAssignments.length;
+                const lessonIds = moduleLessonsWithAssignments.map(l => l._id);
 
                 const moduleSubmissions = await Submission.find({
                     learnerId: submission.learnerId,
@@ -240,16 +278,15 @@ exports.gradeSubmission = async (req, res) => {
                     status: 'graded'
                 });
 
-                if (moduleSubmissions.length > 0) {
+                if (totalAssignmentsInModule > 0) {
                     const modTotal = moduleSubmissions.reduce((acc, curr) => acc + (curr.grade || 0), 0);
-                    modProgress.averageScore = modTotal / moduleSubmissions.length;
+                    modProgress.averageScore = modTotal / totalAssignmentsInModule;
                     modProgress.scores = moduleSubmissions.map(s => s.grade);
 
                     // Graduation Check (70%)
-                    modProgress.isGraduated = modProgress.averageScore >= 70;
+                    modProgress.isGraduated = (modProgress.averageScore * 10) >= 70;
                 }
 
-                // 3. Update completedLessons array - ensured it's in there (it should be from submission)
                 if (!progress.completedLessons.includes(submission.lessonId)) {
                     progress.completedLessons.push(submission.lessonId);
                 }

@@ -415,15 +415,15 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                     </Button>
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center justify-between group/title">
-                                                    <h3 className="text-lg md:text-xl font-medium text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight ">
+                                                <div className="flex items-center justify-between group/title gap-4 flex-1 min-w-0">
+                                                    <h3 className="text-lg md:text-xl font-medium text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight truncate flex-1 text-left min-w-0">
                                                         {module.name}
                                                     </h3>
-                                                    <div className="flex items-center gap-1">
+                                                    <div className="flex items-center gap-1 shrink-0">
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="opacity-0 group-hover/title:opacity-100 h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                                            className="h-8 w-8 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 setEditingModuleId(module._id);
@@ -435,7 +435,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="opacity-0 group-hover/title:opacity-100 h-8 w-8 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
+                                                            className="h-8 w-8 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
                                                             disabled={isSaving}
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
@@ -467,8 +467,8 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                     {/* Existing Lessons List */}
                                     <div className="grid gap-3">
                                         {module.lessons?.map((lesson: any, sIdx: number) => (
-                                            <div key={lesson._id} className="group/session flex flex-col sm:flex-row sm:items-center gap-4 p-4 md:p-5 rounded-2xl hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 hover:border-indigo-100 transition-all duration-300">
-                                                <div className="flex items-center gap-4 flex-1 min-w-0">
+                                            <div key={lesson._id} className="group/session flex flex-col justify-start gap-4 p-4 md:p-5 rounded-2xl hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 hover:border-indigo-100 transition-all duration-300 w-full overflow-hidden">
+                                                <div className="flex items-center gap-4 flex-1 min-w-0 max-w-full">
                                                     <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover/session:text-indigo-600 transition-colors shadow-sm shrink-0">
                                                         {lesson.videoUrl ? <Video className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
                                                     </div>
@@ -477,18 +477,18 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                         <h4 className="font-medium text-slate-900 truncate uppercase tracking-tight text-sm md:text-base">{lesson.name}</h4>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+                                                <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto shrink-0 min-w-0">
                                                     {lesson.assignment?.title && (
-                                                        <Badge className="bg-amber-50 text-amber-700 border-amber-100 text-[9px] font-medium uppercase tracking-widest px-2 md:px-3 py-1 truncate max-w-[150px] md:max-w-none">
+                                                        <Badge className="bg-amber-50 text-amber-700 border-amber-100 text-[9px] font-medium uppercase tracking-widest px-2 md:px-3 py-1 truncate max-w-[150px] md:max-w-[200px] flex items-center">
                                                             <Award className="w-3 h-3 mr-1 md:mr-1.5 shrink-0" />
-                                                            {lesson.assignment.type}: {lesson.assignment.title}
+                                                            <span className="truncate">{lesson.assignment.type}: {lesson.assignment.title}</span>
                                                         </Badge>
                                                     )}
-                                                    <div className="flex items-center gap-1">
+                                                    <div className="flex items-center gap-1 shrink-0">
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="text-slate-300 hover:text-indigo-600 rounded-xl h-9 w-9"
+                                                            className="text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl h-9 w-9 transition-all"
                                                             onClick={() => {
                                                                 setNewLesson({
                                                                     name: lesson.name,
@@ -506,7 +506,7 @@ export function ModuleManager({ courseId, initialModules, onComplete }: ModuleMa
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="text-slate-300 hover:text-rose-500 rounded-xl h-9 w-9"
+                                                            className="text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl h-9 w-9 transition-all"
                                                             onClick={() => handleDeleteLesson(module._id, lesson._id, lesson.name)}
                                                         >
                                                             <Trash2 className="w-4 h-4" />

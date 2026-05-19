@@ -35,7 +35,6 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { CldUploadWidget } from 'next-cloudinary';
 
 export default function ProfilePage() {
     const { user } = useAuth();
@@ -45,7 +44,45 @@ export default function ProfilePage() {
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     
-    const [formData, setFormData] = useState<Partial<Profile>>({});
+    const [formData, setFormData] = useState<Partial<Profile> & { firstName?: string; lastName?: string }>({});
+    const [isUploading, setIsUploading] = useState(false);
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            setIsUploading(true);
+            const data = new FormData();
+            data.append('file', file);
+            data.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'ml_default');
+
+            const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+            if (!cloudName) {
+                throw new Error('Cloudinary cloud name is not configured');
+            }
+
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                method: 'POST',
+                body: data
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                console.error('Cloudinary upload error:', errData);
+                throw new Error(errData.error?.message || 'Upload failed');
+            }
+            
+            const result = await res.json();
+            setFormData(prev => ({ ...prev, avatar: result.secure_url }));
+            toast.success('Image uploaded successfully');
+        } catch (error) {
+            toast.error('Failed to upload image');
+            console.error(error);
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     useEffect(() => {
         loadProfile();
@@ -56,7 +93,11 @@ export default function ProfilePage() {
             setIsLoading(true);
             const data = await api.getProfile();
             setProfile(data);
-            setFormData(data);
+            setFormData({
+                ...data,
+                firstName: data.userId?.firstName || user?.firstName || '',
+                lastName: data.userId?.lastName || user?.lastName || '',
+            });
         } catch (error) {
             toast.error('Failed to load profile');
         } finally {
@@ -145,23 +186,22 @@ export default function ProfilePage() {
                                         <UserIcon className="w-24 h-24 text-slate-200" />
                                     )}
                                     {isEditing ? (
-                                        <CldUploadWidget 
-                                            uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'ml_default'}
-                                            onSuccess={(result: any) => {
-                                                if (result.info && typeof result.info !== 'string' && result.info.secure_url) {
-                                                    setFormData({ ...formData, avatar: result.info.secure_url });
-                                                }
-                                            }}
-                                        >
-                                            {({ open }) => (
-                                                <div 
-                                                    className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                                                    onClick={() => open()}
-                                                >
+                                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full">
+                                                {isUploading ? (
+                                                    <Loader2 className="w-8 h-8 text-white animate-spin" />
+                                                ) : (
                                                     <Camera className="w-8 h-8 text-white" />
-                                                </div>
-                                            )}
-                                        </CldUploadWidget>
+                                                )}
+                                                <input 
+                                                    type="file" 
+                                                    className="hidden" 
+                                                    accept="image/*"
+                                                    onChange={handleImageUpload}
+                                                    disabled={isUploading}
+                                                />
+                                            </label>
+                                        </div>
                                     ) : null}
                                     <div className="absolute top-6 left-6 p-2 bg-white rounded-xl shadow-sm">
                                         <Camera className="w-5 h-5 text-slate-900" />
