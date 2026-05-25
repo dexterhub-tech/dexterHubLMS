@@ -292,6 +292,10 @@ class APIClient {
     return this.request(`/api/learner-progress/${learnerId}/notifications`);
   }
 
+  async getLearnerGradesAndReview(learnerId: string): Promise<any> {
+    return this.request(`/api/learner-progress/${learnerId}/grades-review`);
+  }
+
   async getEvents(): Promise<Event[]> {
     return this.request('/api/events');
   }

@@ -41,7 +41,7 @@ function SidebarContent({ role, user, logout, pathname, onLinkClick }: {
         { href: '/dashboard', label: 'Overview', icon: Home },
         { href: '/dashboard/courses', label: 'My Courses', icon: BookOpen },
         { href: '/dashboard/tasks', label: 'Tasks', icon: CheckSquare },
-        // { href: '/dashboard/progress', label: 'Achievements', icon: TrendingUp },
+        { href: '/dashboard/grades', label: 'Grade & Review', icon: GraduationCap },
         { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
         { href: '/dashboard/profile', label: 'Profile', icon: User },
     ];

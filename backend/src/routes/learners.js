@@ -7,6 +7,7 @@ router.get('/:learnerId', authMiddleware, learnerController.getLearnerProgress);
 router.get('/:learnerId/tasks', authMiddleware, learnerController.getLearnerTasks);
 router.get('/:learnerId/dashboard', authMiddleware, learnerController.getLearnerProgressDashboard);
 router.get('/:learnerId/notifications', authMiddleware, learnerController.getLearnerNotifications);
+router.get('/:learnerId/grades-review', authMiddleware, learnerController.getGradesAndReview);
 router.put('/:id', authMiddleware, learnerController.updateLearnerProgress);
 
 module.exports = router;

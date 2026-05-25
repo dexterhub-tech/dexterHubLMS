@@ -416,3 +416,181 @@ exports.getLearnerNotifications = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+// Get grades and review details for learner
+exports.getGradesAndReview = async (req, res) => {
+    try {
+        const learnerId = req.params.learnerId;
+
+        // 1. Find enrollment progress to identify cohort and course (prioritizing actual course enrollment)
+        let progress = await LearnerProgress.findOne({
+            learnerId,
+            courseId: { $ne: null }
+        })
+        .populate('learnerId', 'firstName lastName email')
+        .populate('courseId')
+        .populate('cohortId');
+
+        if (!progress) {
+            progress = await LearnerProgress.findOne({ learnerId })
+                .populate('learnerId', 'firstName lastName email')
+                .populate('courseId')
+                .populate('cohortId');
+        }
+
+        if (!progress) {
+            return res.status(404).json({ error: 'Learner progress not found.' });
+        }
+
+        const cohortId = progress.cohortId?._id || progress.cohortId;
+        const courseId = progress.courseId?._id || progress.courseId;
+
+        // 2. Fetch all assignments in the course (Lessons that have assignments)
+        let lessons = [];
+        if (courseId) {
+            const modules = await Module.find({ courseId });
+            const moduleIds = modules.map(m => m._id);
+            
+            // Gather lesson IDs specified in the lessons array of each module
+            let lessonIdsFromModules = [];
+            modules.forEach(m => {
+                if (m.lessons && Array.isArray(m.lessons)) {
+                    lessonIdsFromModules.push(...m.lessons);
+                }
+            });
+
+            lessons = await Lesson.find({
+                $or: [
+                    { moduleId: { $in: moduleIds } },
+                    { _id: { $in: lessonIdsFromModules } }
+                ],
+                'assignment.title': { $exists: true, $nin: ["", null] }
+            }).populate('moduleId', 'name');
+        }
+
+        // 3. Fetch submissions for this learner in this cohort
+        const submissions = await Submission.find({
+            learnerId,
+            cohortId
+        }).populate('gradedBy', 'firstName lastName');
+
+        // Create a map of lessonId -> submission for easy lookup
+        const submissionMap = {};
+        submissions.forEach(sub => {
+            submissionMap[sub.lessonId.toString()] = sub;
+        });
+
+        // 4. Map lessons to tasks with grades
+        const tasks = lessons.map(lesson => {
+            const submission = submissionMap[lesson._id.toString()];
+            return {
+                lessonId: lesson._id,
+                title: lesson.assignment.title || lesson.name,
+                description: lesson.assignment.description,
+                type: lesson.assignment.type || 'task',
+                maxScore: lesson.assignment.maxScore || 10,
+                moduleName: lesson.moduleId?.name || 'General',
+                status: submission ? (submission.status === 'graded' ? 'graded' : 'submitted') : 'pending',
+                grade: submission ? submission.grade : null,
+                feedback: submission ? submission.feedback : null,
+                submittedAt: submission ? submission.submittedAt : null,
+                gradedAt: submission ? submission.gradedAt : null,
+                gradedBy: submission && submission.gradedBy ? `${submission.gradedBy.firstName} ${submission.gradedBy.lastName}` : null,
+                content: submission ? submission.content : null
+            };
+        });
+
+        // 5. Fetch leaderboard of other learners in that course/cohort
+        let leaderboard = [];
+        if (cohortId) {
+            const cohortProgressList = await LearnerProgress.find({ cohortId })
+                .populate('learnerId', 'firstName lastName email avatar')
+                .sort({ currentScore: -1 });
+
+                leaderboard = cohortProgressList.map((cp, idx) => ({
+                  rank: idx + 1,
+                  id: cp.learnerId ? cp.learnerId._id : null,
+                  name: cp.learnerId ? `${cp.learnerId.firstName} ${cp.learnerId.lastName}` : 'Unknown Learner',
+                  email: cp.learnerId?.email,
+                  avatar: cp.learnerId?.avatar,
+                  currentScore: Math.round(cp.currentScore || 0),
+                  status: cp.status,
+                  isCurrentUser: cp.learnerId?._id.toString() === learnerId.toString()
+                }));
+        }
+
+        // 6. Show grade analytics
+        const moduleProgressDetails = [];
+        if (progress.moduleProgress && progress.moduleProgress.length > 0) {
+            for (const mp of progress.moduleProgress) {
+                const mod = await Module.findById(mp.moduleId);
+                moduleProgressDetails.push({
+                    moduleId: mp.moduleId,
+                    moduleName: mod ? mod.name : 'Unknown Module',
+                    averageScore: mp.averageScore || 0,
+                    scores: mp.scores || [],
+                    isGraduated: mp.isGraduated || false
+                });
+            }
+        }
+
+        const gradedTasks = tasks.filter(t => t.status === 'graded');
+        const submittedTasks = tasks.filter(t => t.status === 'submitted' || t.status === 'graded');
+        
+        const avgScore = gradedTasks.length > 0
+            ? (gradedTasks.reduce((sum, t) => sum + (t.grade || 0), 0) / gradedTasks.length)
+            : 0;
+
+        const distribution = { A: 0, B: 0, C: 0, F: 0 };
+        gradedTasks.forEach(t => {
+            const scorePct = (t.grade / t.maxScore) * 100;
+            if (scorePct >= 85) distribution.A++;
+            else if (scorePct >= 70) distribution.B++;
+            else if (scorePct >= 50) distribution.C++;
+            else distribution.F++;
+        });
+
+        // 7. Encouragement / Warning message
+        let feedbackMessage = '';
+        let messageType = 'info';
+        const currentScore = progress.currentScore || 0;
+
+        if (currentScore >= 85) {
+            feedbackMessage = `Excellent work, ${progress.learnerId?.firstName || 'Learner'}! You are performing exceptionally well with a score of ${Math.round(currentScore)}%. Keep up the great work and maintain this momentum!`;
+            messageType = 'success';
+        } else if (currentScore >= 70) {
+            feedbackMessage = `You're doing great! Your current score is ${Math.round(currentScore)}%. A little more focus and consistency will get you to the top tier. Keep going!`;
+            messageType = 'success';
+        } else if (currentScore >= 50) {
+            feedbackMessage = `You are on track with a score of ${Math.round(currentScore)}%, but there is room for improvement. We encourage you to review your instructor's feedback and revise your recent submissions to boost your score.`;
+            messageType = 'info';
+        } else {
+            feedbackMessage = `Warning: Your current score of ${Math.round(currentScore)}% is below the passing threshold of 50%. Please review the feedback on graded assignments, complete any pending tasks immediately, and reach out to your instructor for support.`;
+            messageType = 'warning';
+        }
+
+        res.json({
+            courseName: progress.courseId?.name || 'My Course',
+            cohortName: progress.cohortId?.name || 'My Cohort',
+            currentScore: Math.round(currentScore),
+            status: progress.status,
+            analytics: {
+                totalTasks: tasks.length,
+                submittedTasksCount: submittedTasks.length,
+                gradedTasksCount: gradedTasks.length,
+                averageGrade: parseFloat(avgScore.toFixed(1)),
+                gradeDistribution: distribution,
+                moduleProgress: moduleProgressDetails
+            },
+            feedbackMessage,
+            messageType,
+            tasks,
+            leaderboard
+        });
+
+    } catch (error) {
+        console.error("Error in getGradesAndReview:", error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
