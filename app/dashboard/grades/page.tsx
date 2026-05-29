@@ -206,10 +206,10 @@ export default function GradesPage() {
             gradient="violet"
           />
           <StatCard
-            title="Leaderboard Rank"
-            value={`#${data.leaderboard.find((l: any) => l.isCurrentUser)?.rank || '-'}`}
-            description={`Out of ${data.leaderboard.length} learners`}
-            icon={Trophy}
+            title="Pending Tasks"
+            value={data.analytics.totalTasks - data.analytics.gradedTasksCount}
+            description="Awaiting submission or grading"
+            icon={Clock}
             gradient="amber"
           />
         </div>
@@ -301,8 +301,8 @@ export default function GradesPage() {
               </CardContent>
             </Card>
 
-            {/* Leaderboard Card */}
-            <Card className="rounded-[24px] border border-slate-200 shadow-sm bg-white overflow-hidden">
+            {/* Leaderboard Card - temporarily hidden */}
+            {/* <Card className="rounded-[24px] border border-slate-200 shadow-sm bg-white overflow-hidden">
               <CardHeader className="p-6 pb-4">
                 <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
                   <Trophy className="w-5 h-5 text-amber-500" />
@@ -311,68 +311,62 @@ export default function GradesPage() {
                 <CardDescription className="text-xs">Ranks based on overall course performance score</CardDescription>
               </CardHeader>
               <CardContent className="p-6 pt-0">
-{data.leaderboard.map((learner: any, idx) => {
-const isGold = learner.rank === 1;
-                    const isSilver = learner.rank === 2;
-                    const isBronze = learner.rank === 3;
-
-                    return (
-                      <div
-                        key={`${learner.id ?? learner.email}-${idx}`}
-                        className={cn(
-                          "flex items-center justify-between p-3 rounded-2xl border transition-all duration-200",
-                          learner.isCurrentUser
-                            ? "bg-indigo-50/50 border-indigo-200 shadow-sm"
-                            : "bg-neutral-50/40 border-transparent hover:bg-neutral-50 hover:border-slate-100"
-                        )}
-                      >
-                        <div className="flex items-center gap-3">
-                          {/* Rank indicator */}
-                          <div className="w-7 h-7 flex items-center justify-center shrink-0">
-                            {isGold ? (
-                              <Trophy className="w-5 h-5 text-amber-500 fill-amber-100" />
-                            ) : isSilver ? (
-                              <Trophy className="w-5 h-5 text-slate-400 fill-slate-100" />
-                            ) : isBronze ? (
-                              <Trophy className="w-5 h-5 text-amber-700 fill-amber-50" />
-                            ) : (
-                              <span className="text-xs font-bold text-slate-400">#{learner.rank}</span>
-                            )}
-                          </div>
-
-                          {/* Avatar */}
-                          <div className={cn(
-                            "w-8 h-8 rounded-xl font-bold flex items-center justify-center text-xs shrink-0 shadow-sm border border-white",
-                            learner.isCurrentUser ? "bg-indigo-600 text-white" : "bg-white text-slate-700"
-                          )}>
-                            {learner.name[0]}
-                          </div>
-
-                          <div className="max-w-[130px]">
-                            <p className={cn(
-                              "text-xs font-semibold truncate",
-                              learner.isCurrentUser ? "text-indigo-950 font-bold" : "text-slate-800"
-                            )}>
-                              {learner.name} {learner.isCurrentUser && <span className="text-[10px] text-indigo-500 font-medium">(You)</span>}
-                            </p>
-                            <p className="text-[9px] text-slate-400 truncate">{learner.email}</p>
-                          </div>
+                {data.leaderboard.map((learner: any, idx) => {
+                  const isGold = learner.rank === 1;
+                  const isSilver = learner.rank === 2;
+                  const isBronze = learner.rank === 3;
+                  return (
+                    <div
+                      key={`${learner.id ?? learner.email}-${idx}`}
+                      className={cn(
+                        "flex items-center justify-between p-3 rounded-2xl border transition-all duration-200",
+                        learner.isCurrentUser
+                          ? "bg-indigo-50/50 border-indigo-200 shadow-sm"
+                          : "bg-neutral-50/40 border-transparent hover:bg-neutral-50 hover:border-slate-100"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-7 h-7 flex items-center justify-center shrink-0">
+                          {isGold ? (
+                            <Trophy className="w-5 h-5 text-amber-500 fill-amber-100" />
+                          ) : isSilver ? (
+                            <Trophy className="w-5 h-5 text-slate-400 fill-slate-100" />
+                          ) : isBronze ? (
+                            <Trophy className="w-5 h-5 text-amber-700 fill-amber-50" />
+                          ) : (
+                            <span className="text-xs font-bold text-slate-400">#{learner.rank}</span>
+                          )}
                         </div>
-
-                        <div className="text-right">
-                          <span className={cn(
-                            "text-sm font-extrabold",
-                            learner.isCurrentUser ? "text-indigo-600" : "text-slate-700"
+                        <div className={cn(
+                          "w-8 h-8 rounded-xl font-bold flex items-center justify-center text-xs shrink-0 shadow-sm border border-white",
+                          learner.isCurrentUser ? "bg-indigo-600 text-white" : "bg-white text-slate-700"
+                        )}>
+                          {learner.name[0]}
+                        </div>
+                        <div className="max-w-[130px]">
+                          <p className={cn(
+                            "text-xs font-semibold truncate",
+                            learner.isCurrentUser ? "text-indigo-950 font-bold" : "text-slate-800"
                           )}>
-                            {learner.currentScore}%
-                          </span>
+                            {learner.name} {learner.isCurrentUser && <span className="text-[10px] text-indigo-500 font-medium">(You)</span>}
+                          </p>
+                          <p className="text-[9px] text-slate-400 truncate">{learner.email}</p>
                         </div>
                       </div>
-                    );
-                  })}
-
+                      <div className="text-right">
+                        <span className={cn(
+                          "text-sm font-extrabold",
+                          learner.isCurrentUser ? "text-indigo-600" : "text-slate-700"
+                        )}>
+                          {learner.currentScore}%
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </CardContent>
-            </Card>
+            </Card> */}
+
           </div>
 
           {/* Right Column: Grades and Feedback List */}

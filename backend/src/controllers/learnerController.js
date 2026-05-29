@@ -536,10 +536,22 @@ exports.getGradesAndReview = async (req, res) => {
 
         const gradedTasks = tasks.filter(t => t.status === 'graded');
         const submittedTasks = tasks.filter(t => t.status === 'submitted' || t.status === 'graded');
-        
+
+        // Average grade (out of maxScore, on a 0–10 scale)
         const avgScore = gradedTasks.length > 0
             ? (gradedTasks.reduce((sum, t) => sum + (t.grade || 0), 0) / gradedTasks.length)
             : 0;
+
+        // --- FIX: Calculate real overall score from actual graded submissions ---
+        // Use weighted percentage: total points earned / total max points possible
+        // This replaces the stale progress.currentScore field which defaults to 100.
+        let currentScore = 0;
+        if (gradedTasks.length > 0) {
+            const totalEarned = gradedTasks.reduce((sum, t) => sum + (t.grade || 0), 0);
+            const totalPossible = gradedTasks.reduce((sum, t) => sum + (t.maxScore || 10), 0);
+            currentScore = totalPossible > 0 ? Math.round((totalEarned / totalPossible) * 100) : 0;
+        }
+        // If no graded tasks yet, show 0% rather than a misleading stored value
 
         const distribution = { A: 0, B: 0, C: 0, F: 0 };
         gradedTasks.forEach(t => {
@@ -553,7 +565,6 @@ exports.getGradesAndReview = async (req, res) => {
         // 7. Encouragement / Warning message
         let feedbackMessage = '';
         let messageType = 'info';
-        const currentScore = progress.currentScore || 0;
 
         if (currentScore >= 85) {
             feedbackMessage = `Excellent work, ${progress.learnerId?.firstName || 'Learner'}! You are performing exceptionally well with a score of ${Math.round(currentScore)}%. Keep up the great work and maintain this momentum!`;
