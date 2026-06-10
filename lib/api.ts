@@ -235,6 +235,20 @@ class APIClient {
     return this.request('/api/auth/me');
   }
 
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    return this.request('/api/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async resetPassword(token: string, password: string): Promise<{ message: string }> {
+    return this.request('/api/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, password }),
+    });
+  }
+
   logout() {
     this.clearToken();
   }

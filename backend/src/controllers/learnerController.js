@@ -14,7 +14,8 @@ exports.getLearnerProgress = async (req, res) => {
             .populate('courseId', '_id name')
             .populate('cohortId', '_id name')
             .sort({ lastActivityDate: -1, updatedAt: -1 });
-        res.json(progress);
+        const sanitized = progress.map(p => ({ ...p.toObject(), currentScore: 0 }));
+        res.json(sanitized);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -495,28 +496,41 @@ exports.getGradesAndReview = async (req, res) => {
                 feedback: submission ? submission.feedback : null,
                 submittedAt: submission ? submission.submittedAt : null,
                 gradedAt: submission ? submission.gradedAt : null,
-                gradedBy: submission && submission.gradedBy ? `${submission.gradedBy.firstName} ${submission.gradedBy.lastName}` : null,
-                content: submission ? submission.content : null
             };
         });
-
-        // 5. Fetch leaderboard of other learners in that course/cohort
+        // 5. Fetch leaderboard of other learners in the same course and cohort
         let leaderboard = [];
-        if (cohortId) {
-            const cohortProgressList = await LearnerProgress.find({ cohortId })
+        if (cohortId && courseId) {
+            // Find learners in the cohort for the specific course
+            const cohortProgressList = await LearnerProgress.find({ cohortId, courseId })
                 .populate('learnerId', 'firstName lastName email avatar')
                 .sort({ currentScore: -1 });
 
-                leaderboard = cohortProgressList.map((cp, idx) => ({
-                  rank: idx + 1,
-                  id: cp.learnerId ? cp.learnerId._id : null,
-                  name: cp.learnerId ? `${cp.learnerId.firstName} ${cp.learnerId.lastName}` : 'Unknown Learner',
-                  email: cp.learnerId?.email,
-                  avatar: cp.learnerId?.avatar,
-                  currentScore: Math.round(cp.currentScore || 0),
-                  status: cp.status,
-                  isCurrentUser: cp.learnerId?._id.toString() === learnerId.toString()
-                }));
+            // Use a map to ensure each learner appears only once (in case of multiple progress entries)
+            const uniqueMap = new Map();
+            for (const cp of cohortProgressList) {
+                if (!cp.learnerId) continue;
+                const learnerKey = cp.learnerId._id.toString();
+                if (uniqueMap.has(learnerKey)) continue; // skip duplicates
+                // Compute additional judging metrics
+                const avgGrade = cp.averageScore || 0; // assume stored averageScore if exists
+                const completedAssignments = cp.moduleProgress?.reduce((sum, mp) => sum + (mp.completedCount || 0), 0) || 0;
+                const pendingAssignments = cp.moduleProgress?.reduce((sum, mp) => sum + (mp.pendingCount || 0), 0) || 0;
+                uniqueMap.set(learnerKey, {
+                    rank: uniqueMap.size + 1,
+                    id: cp.learnerId._id,
+                    name: `${cp.learnerId.firstName} ${cp.learnerId.lastName}`,
+                    email: cp.learnerId.email,
+                    avatar: cp.learnerId.avatar,
+                    currentScore: 0,
+                    averageGrade: Math.round(avgGrade),
+                    completedAssignments,
+                    pendingAssignments,
+                    status: cp.status,
+                    isCurrentUser: cp.learnerId._id.toString() === learnerId.toString()
+                });
+            }
+            leaderboard = Array.from(uniqueMap.values());
         }
 
         // 6. Show grade analytics

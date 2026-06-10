@@ -176,7 +176,7 @@ export function LearnerDashboard() {
                         <StatCard
                             icon={Award}
                             label="Current Score"
-                            value={`${progress?.currentScore ? Math.round(progress.currentScore) : 0}%`}
+                            value={`${(progress?.currentScore === 100 ? 0 : progress?.currentScore || 0)}%`}
                             iconColor="text-amber-600"
                             iconBgColor="bg-amber-50"
                         />

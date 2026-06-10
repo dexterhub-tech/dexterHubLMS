@@ -302,7 +302,7 @@ export default function GradesPage() {
             </Card>
 
             {/* Leaderboard Card - temporarily hidden */}
-            {/* <Card className="rounded-[24px] border border-slate-200 shadow-sm bg-white overflow-hidden">
+            <Card className="rounded-[24px] border border-slate-200 shadow-sm bg-white overflow-hidden">
               <CardHeader className="p-6 pb-4">
                 <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
                   <Trophy className="w-5 h-5 text-amber-500" />
@@ -365,7 +365,7 @@ export default function GradesPage() {
                   );
                 })}
               </CardContent>
-            </Card> */}
+            </Card> 
 
           </div>
 

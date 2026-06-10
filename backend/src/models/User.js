@@ -8,6 +8,8 @@ const userSchema = new mongoose.Schema({
     role: { type: String, enum: ['learner', 'instructor', 'admin', 'super-admin'], required: true },
     status: { type: String, enum: ['active', 'inactive', 'dropped'], default: 'active' },
     activeCohortId: mongoose.Schema.Types.ObjectId,
+    resetPasswordToken: { type: String, default: null },
+    resetPasswordExpires: { type: Date, default: null },
     createdAt: { type: Date, default: Date.now },
 });
 
