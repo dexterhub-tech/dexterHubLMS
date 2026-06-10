@@ -407,6 +407,19 @@ class APIClient {
     return this.request('/api/admin/users');
   }
 
+  async transferLearner(data: {
+    learnerId: string;
+    fromCohortId: string;
+    fromCourseId: string;
+    toCohortId: string;
+    toCourseId: string;
+  }): Promise<any> {
+    return this.request('/api/admin/transfer-learner', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   // New Cohort & Submission Methods
   async joinCohort(cohortId: string): Promise<any> {
     return this.request('/api/cohorts/join', {

@@ -33,5 +33,6 @@ router.get('/audit-logs', authMiddleware, roleCheck(['admin', 'super-admin']), a
 
 // User management
 router.get('/users', authMiddleware, roleCheck(['admin', 'super-admin']), adminController.getAllUsers);
+router.post('/transfer-learner', authMiddleware, roleCheck(['admin', 'super-admin']), adminController.transferLearner);
 
 module.exports = router;

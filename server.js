@@ -580,6 +580,117 @@ app.get('/api/audit-logs', authMiddleware, roleMiddleware(['admin', 'super-admin
   }
 });
 
+app.post('/api/admin/transfer-learner', authMiddleware, roleMiddleware(['admin', 'super-admin']), async (req, res) => {
+  try {
+    const { learnerId, fromCohortId, fromCourseId, toCohortId, toCourseId } = req.body;
+
+    if (!learnerId || !fromCohortId || !fromCourseId || !toCohortId || !toCourseId) {
+      return res.status(400).json({ error: 'All fields (learnerId, fromCohortId, fromCourseId, toCohortId, toCourseId) are required' });
+    }
+
+    // Check if student exists
+    const learner = await User.findById(learnerId);
+    if (!learner) {
+      return res.status(404).json({ error: 'Learner not found' });
+    }
+
+    // Check if source and target cohorts/courses exist
+    const fromCohort = await Cohort.findById(fromCohortId);
+    const toCohort = await Cohort.findById(toCohortId);
+    if (!fromCohort || !toCohort) {
+      return res.status(404).json({ error: 'One or both cohorts not found' });
+    }
+
+    const fromCourse = await Course.findById(fromCourseId);
+    const toCourse = await Course.findById(toCourseId);
+    if (!fromCourse || !toCourse) {
+      return res.status(404).json({ error: 'One or both courses not found' });
+    }
+
+    // Check if destination course is actually in target cohort
+    if (!toCohort.courseIds.includes(toCourseId)) {
+      return res.status(400).json({ error: 'Target course is not assigned to the target cohort' });
+    }
+
+    // 1. Process previous progress (Mark it as dropped)
+    await LearnerProgress.updateMany(
+      { learnerId, cohortId: fromCohortId, courseId: fromCourseId, status: { $ne: 'dropped' } },
+      { $set: { status: 'dropped' } }
+    );
+
+    // 2. Remove learner from fromCourse registrars
+    await Course.findByIdAndUpdate(fromCourseId, {
+      $pull: { registrars: learnerId }
+    });
+
+    // 3. Add learner to toCourse registrars
+    await Course.findByIdAndUpdate(toCourseId, {
+      $addToSet: { registrars: learnerId }
+    });
+
+    // 4. Update Cohort learner lists
+    if (fromCohortId.toString() !== toCohortId.toString()) {
+      // Remove from old cohort learnerIds
+      await Cohort.findByIdAndUpdate(fromCohortId, {
+        $pull: { learnerIds: learnerId }
+      });
+    }
+
+    // Add to new cohort learnerIds
+    await Cohort.findByIdAndUpdate(toCohortId, {
+      $addToSet: { learnerIds: learnerId }
+    });
+
+    // 5. Check if progress record already exists for destination
+    let toProgress = await LearnerProgress.findOne({ learnerId, cohortId: toCohortId, courseId: toCourseId });
+    if (toProgress) {
+      toProgress.status = 'on-track';
+      toProgress.updatedAt = new Date();
+      await toProgress.save();
+    } else {
+      // Create fresh progress record
+      toProgress = new LearnerProgress({
+        learnerId,
+        cohortId: toCohortId,
+        courseId: toCourseId,
+        status: 'on-track',
+        currentScore: 0,
+        learningHoursThisWeek: 0
+      });
+      await toProgress.save();
+    }
+
+    // 6. Update user's active cohort
+    await User.findByIdAndUpdate(learnerId, { activeCohortId: toCohortId });
+
+    // 7. Write to AuditLog
+    const auditLog = new AuditLog({
+      actor: req.user.id,
+      action: 'transfer_learner',
+      targetUser: learnerId,
+      targetCohort: toCohortId,
+      details: {
+        fromCohortId,
+        fromCourseId,
+        toCohortId,
+        toCourseId,
+        fromCohortName: fromCohort.name,
+        toCohortName: toCohort.name,
+        fromCourseName: fromCourse.name,
+        toCourseName: toCourse.name
+      }
+    });
+    await auditLog.save();
+
+    res.json({
+      message: 'Learner transferred successfully',
+      progress: toProgress
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Start Server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
