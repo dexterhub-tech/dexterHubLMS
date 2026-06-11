@@ -127,7 +127,7 @@ exports.forgotPassword = async (req, res) => {
         await user.save();
 
         // Send email
-        const frontendUrl = process.env.FRONTEND_URL || req.headers.origin || 'http://localhost:3000';
+        const frontendUrl = process.env.FRONTEND_URL || req.headers.origin || 'https://learn.dextertechhq.com';
         const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
 
         const emailHtml = `

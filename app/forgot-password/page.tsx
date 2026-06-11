@@ -109,9 +109,7 @@ export default function ForgotPasswordPage() {
                   <p className="text-sm text-slate-600 font-medium leading-relaxed">
                     An email was sent to <strong className="text-slate-800">{email}</strong> containing a secure password reset link.
                   </p>
-                  <p className="text-xs text-slate-400 font-semibold italic">
-                    Note: If you are running locally without a Resend API key, the reset link has been logged to the backend terminal console.
-                  </p>
+                 
                 </div>
                 <Button 
                   onClick={() => setIsSubmitted(false)}
